@@ -1387,7 +1387,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 }
 
 /* =============================================
-   MODALS - Mobile optimized
+   MODALS - Modern Mobile-First Design
    ============================================= */
 .modal-overlay {
   position: fixed;
@@ -1395,14 +1395,15 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   z-index: 2000;
   padding: 0;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.25s ease;
 }
 
 @keyframes fadeIn {
@@ -1414,16 +1415,23 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   background: var(--white);
   border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
   width: 100%;
-  max-width: 500px;
-  max-height: 90vh;
-  max-height: 90dvh;
+  max-width: 560px;
+  max-height: 92vh;
+  max-height: 92dvh;
   overflow-y: auto;
-  animation: slideUp 0.3s ease;
+  animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from { 
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @media (min-width: 600px) {
@@ -1435,6 +1443,19 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   .modal {
     border-radius: var(--radius-2xl);
     max-height: 85vh;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes scaleIn {
+    from { 
+      transform: scale(0.95);
+      opacity: 0;
+    }
+    to { 
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 
@@ -1446,57 +1467,92 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   border-bottom: 1px solid var(--gray-100);
   position: sticky;
   top: 0;
-  background: var(--white);
+  background: linear-gradient(180deg, var(--white) 0%, rgba(255,255,255,0.98) 100%);
   z-index: 10;
+}
+
+.modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
 }
 
 .modal-title {
   font-size: 1.25rem;
   font-weight: 700;
+  color: var(--gray-800);
 }
 
 .modal-close {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   background: var(--gray-100);
-  color: var(--gray-600);
-  font-size: 20px;
+  color: var(--gray-500);
+  font-size: 24px;
+  font-weight: 300;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 
 .modal-close:hover {
-  background: var(--gray-200);
+  background: var(--danger-bg);
+  color: var(--danger);
+  transform: rotate(90deg);
 }
 
 .modal-body {
   padding: 24px;
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  .modal-body {
+    padding: 20px;
+    max-height: calc(92vh - 160px);
+  }
 }
 
 .modal-footer {
-  padding: 16px 24px;
-  padding-bottom: max(16px, var(--safe-bottom));
+  padding: 20px 24px;
+  padding-bottom: max(20px, var(--safe-bottom));
   border-top: 1px solid var(--gray-100);
   display: flex;
   gap: 12px;
+  background: var(--gray-50);
 }
 
 .modal-footer .btn {
   flex: 1;
+  justify-content: center;
 }
 
 /* Modal handle for mobile */
 .modal-handle {
   width: 40px;
-  height: 4px;
+  height: 5px;
   background: var(--gray-300);
-  border-radius: 2px;
-  margin: 12px auto 0;
+  border-radius: 3px;
+  margin: 10px auto 8px;
+}
+
+/* Publish Modal */
+.publish-modal {
+  max-width: 640px;
+}
+
+/* Join Modal */
+.join-modal {
+  max-width: 520px;
 }
 
 /* =============================================
@@ -1883,6 +1939,631 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 .animate-delay-3 { animation-delay: 0.3s; }
 
 /* =============================================
+   CARPOOL CARDS GRID
+   ============================================= */
+.cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+}
+
+/* =============================================
+   CARPOOL CARD STYLES
+   ============================================= */
+.carpool-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  overflow: visible;
+}
+
+.carpool-card:hover {
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px);
+}
+
+.carpool-card.offer-card {
+  border-left: 4px solid var(--primary);
+}
+
+.carpool-card.request-card {
+  border-left: 4px solid var(--secondary);
+}
+
+.carpool-card.my-card {
+  background: linear-gradient(135deg, #faf5ff 0%, #f0fdf4 100%);
+  border: 2px solid var(--primary-light);
+}
+
+.carpool-card.matched-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfeff 100%);
+  border: 2px solid var(--success);
+}
+
+/* Card Badges */
+.my-badge,
+.matched-badge {
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow);
+}
+
+.my-badge {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--white);
+}
+
+.matched-badge {
+  background: linear-gradient(135deg, var(--success) 0%, #15803d 100%);
+  color: var(--white);
+}
+
+/* Card Header Row */
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.driver-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.driver-info .avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow);
+}
+
+.driver-info h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 6px;
+}
+
+/* Seats Badge */
+.seats-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  color: var(--primary-dark);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.seats-badge.full {
+  background: linear-gradient(135deg, #fecaca 0%, #fed7aa 100%);
+  color: #b91c1c;
+}
+
+/* Trip Badge */
+.trip-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Preference Badge */
+.preference-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.preference-badge.male {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.preference-badge.female {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+/* Locations List */
+.locations-list {
+  margin: 16px 0;
+  padding: 14px;
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-100);
+}
+
+.location-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  font-size: 14px;
+  color: var(--gray-700);
+  border-bottom: 1px dashed var(--gray-200);
+}
+
+.location-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.location-item:first-child {
+  padding-top: 0;
+}
+
+.direction-badge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.direction-badge:contains('Going') {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Match Info */
+.match-info {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-radius: var(--radius);
+  border: 1px solid #86efac;
+  text-align: center;
+}
+
+.match-label {
+  font-size: 13px;
+  color: #166534;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.match-driver {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #14532d;
+}
+
+/* Payment Info */
+.payment-info {
+  margin: 16px 0;
+  padding: 14px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: var(--radius);
+  border: 1px solid #f59e0b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-info .amount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #92400e;
+}
+
+/* Card Actions */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--gray-100);
+  flex-wrap: wrap;
+}
+
+.card-actions .btn {
+  flex: 1;
+  min-width: 100px;
+}
+
+/* Passengers Preview */
+.passengers-preview {
+  margin: 16px 0;
+  padding: 14px;
+  background: var(--gray-50);
+  border-radius: var(--radius);
+}
+
+.passengers-preview h4 {
+  font-size: 13px;
+  color: var(--gray-600);
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.passenger-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+  color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.passenger-item:last-child {
+  border-bottom: none;
+}
+
+
+/* Form Sections in Modal */
+.form-section {
+  padding: 24px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.form-section:last-child {
+  border-bottom: none;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 20px;
+}
+
+.form-section-title .icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+/* Form Grid for Modal */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-row:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 500px) {
+  .form-row.two-col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Toggle Options in Modal */
+.toggle-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toggle-option {
+  flex: 1;
+  min-width: 100px;
+  padding: 14px 18px;
+  background: var(--gray-50);
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.toggle-option:hover {
+  border-color: var(--primary-light);
+  background: var(--primary-bg);
+}
+
+.toggle-option.active {
+  background: linear-gradient(135deg, var(--primary-bg) 0%, #ddd6fe 100%);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.toggle-option input {
+  display: none;
+}
+
+.toggle-option .icon {
+  font-size: 24px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.toggle-option .text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Join Modal Offer Summary */
+.offer-summary {
+  padding: 20px;
+  background: linear-gradient(135deg, var(--gray-50) 0%, #f0fdf4 100%);
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+  border: 1px solid var(--gray-100);
+}
+
+.offer-summary h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  color: var(--gray-800);
+  margin-bottom: 12px;
+}
+
+.offer-summary .details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--gray-600);
+}
+
+.offer-summary .detail-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Request Actions in Modal */
+.request-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* Passenger Management */
+.passengers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.passenger-manage-item {
+  padding: 18px;
+  background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-100);
+  transition: all 0.2s;
+}
+
+.passenger-manage-item:hover {
+  border-color: var(--gray-200);
+  box-shadow: var(--shadow);
+}
+
+.passenger-manage-item h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passenger-manage-item p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--gray-500);
+}
+
+.passenger-manage-item details {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--gray-100);
+}
+
+.passenger-manage-item details summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 600;
+  padding: 8px 0;
+  list-style: none;
+}
+
+.passenger-manage-item details summary::-webkit-details-marker {
+  display: none;
+}
+
+.passenger-manage-item details[open] summary {
+  margin-bottom: 12px;
+}
+
+.passenger-manage-item textarea {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 2px solid var(--gray-200);
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.passenger-manage-item textarea:focus {
+  outline: none;
+  border-color: var(--danger);
+}
+
+/* Join Request Item in Driver Modal */
+.join-request-item {
+  padding: 18px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--gray-100);
+  margin-bottom: 12px;
+  transition: all 0.2s;
+}
+
+.join-request-item:hover {
+  border-color: var(--primary-light);
+}
+
+.join-request-item .request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.join-request-item .requester-info h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 4px;
+}
+
+.join-request-item .requester-info p {
+  font-size: 13px;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.join-request-item .pickup-info {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--gray-50);
+  border-radius: var(--radius);
+}
+
+.join-request-item .pickup-info .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.join-request-item .pickup-info .address {
+  font-size: 14px;
+  color: var(--gray-700);
+}
+
+/* OTP Verification in Modal */
+.otp-verification-section {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.otp-verification-section .otp-inputs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.otp-verification-section input {
+  width: 52px;
+  height: 60px;
+  text-align: center;
+  font-size: 26px;
+  font-weight: 700;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: var(--white);
+  transition: all 0.2s;
+}
+
+.otp-verification-section input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-bg);
+  outline: none;
+}
+
+/* =============================================
+   EMPTY STATE IMPROVEMENTS
+   ============================================= */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: linear-gradient(135deg, var(--gray-50) 0%, var(--white) 100%);
+  border-radius: var(--radius-xl);
+  border: 2px dashed var(--gray-200);
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+  display: block;
+  filter: grayscale(30%);
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--gray-500);
+  margin-bottom: 24px;
+  font-size: 15px;
+}
+
+.empty-state .btn {
+  display: inline-flex;
+}
+
+/* =============================================
    PRINT STYLES
    ============================================= */
 @media print {
@@ -1896,7 +2577,8 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
     background: white;
   }
   
-  .card {
+  .card,
+  .carpool-card {
     box-shadow: none;
     border: 1px solid var(--gray-200);
   }
