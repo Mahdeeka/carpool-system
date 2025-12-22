@@ -1,0 +1,164 @@
+.route-map-container {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.route-map {
+  width: 100%;
+  position: relative;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.map-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 10;
+}
+
+.map-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.map-loading span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.route-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 14px;
+  direction: rtl;
+  text-align: right;
+}
+
+.route-info {
+  padding: 16px;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  direction: rtl;
+}
+
+.route-summary {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.route-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-icon {
+  font-size: 18px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b !important;
+  background: transparent;
+}
+
+.route-info {
+  color: #1e293b;
+}
+
+.route-summary {
+  color: #1e293b;
+}
+
+.route-legs {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.route-leg {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.route-leg:last-child {
+  border-bottom: none;
+}
+
+.leg-number {
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.leg-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.leg-endpoints {
+  font-size: 13px;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.leg-stats {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Compact route info for cards */
+.route-map-container.compact .route-info {
+  padding: 12px;
+}
+
+.route-map-container.compact .route-summary {
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.route-map-container.compact .stat-value {
+  font-size: 14px;
+}
+
+.route-map-container.compact .route-legs {
+  display: none;
+}
+

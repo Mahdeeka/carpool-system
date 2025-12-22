@@ -1,0 +1,23 @@
+{
+  "name": "carpool-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Carpool System",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "pg": "^8.16.3",
+    "twilio": "^5.10.7"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

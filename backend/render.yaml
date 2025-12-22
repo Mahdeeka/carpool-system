@@ -1,0 +1,16 @@
+# Render Blueprint - Backend Service Configuration
+# This file helps Render auto-detect settings
+
+services:
+  - type: web
+    name: carpool-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false  # Set manually after frontend deploy
+
