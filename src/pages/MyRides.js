@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
+import { API_BASE_URL as API_URL } from '../services/api';
 import RouteWithDetour from '../components/RouteWithDetour';
 import './MyRides.css';
-
-import { API_BASE_URL as API_URL } from '../services/api';
 
 // localStorage keys for tracking user's rides
 const STORAGE_KEYS = {

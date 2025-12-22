@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
-import { requestOTP, verifyOTP } from '../services/api';
+import { requestOTP, verifyOTP, API_BASE_URL as API_URL } from '../services/api';
 
 // Lazy load heavy components for faster initial render
 const MapLocationPicker = lazy(() => import('../components/MapLocationPicker'));
@@ -13,8 +13,6 @@ const RouteWithDetour = lazy(() => import('../components/RouteWithDetour'));
 const LoadingPlaceholder = () => (
   <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>Loading...</div>
 );
-
-import { API_BASE_URL as API_URL } from '../services/api';
 
 // localStorage keys
 const STORAGE_KEYS = {

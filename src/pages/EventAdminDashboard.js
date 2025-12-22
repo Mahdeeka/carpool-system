@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
+import { API_BASE_URL as API_URL } from '../services/api';
 import MapLocationPicker from '../components/MapLocationPicker';
 import './EventAdminDashboard.css';
-
-import { API_BASE_URL as API_URL } from '../services/api';
 
 function EventAdminDashboard() {
   const { eventCode } = useParams();

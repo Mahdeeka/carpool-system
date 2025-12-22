@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
-import { updateAccount, deleteCarpoolOffer, deleteCarpoolRequest } from '../services/api';
-
-import { API_BASE_URL as API_URL } from '../services/api';
+import { updateAccount, deleteCarpoolOffer, deleteCarpoolRequest, API_BASE_URL as API_URL } from '../services/api';
 
 function MyAccount() {
   const navigate = useNavigate();
