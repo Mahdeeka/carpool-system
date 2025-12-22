@@ -65,9 +65,7 @@ async function sendSMS(phone, message) {
 
 // Generate 6-digit OTP
 function generateOTP() {
-  // TODO: Replace with actual random OTP when Twilio is set up
-  return '123456'; // Hardcoded for testing until Twilio integration (6 digits)
-  // return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 // Generate session token
