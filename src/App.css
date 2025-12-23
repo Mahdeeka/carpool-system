@@ -1842,6 +1842,12 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   align-items: center;
   justify-content: center;
   z-index: 5000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Animated background for loading */
@@ -1890,11 +1896,28 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   left: 50%;
   transform: translateX(-50%);
   animation: epicCarBounce 0.4s ease-in-out infinite;
+  will-change: transform; /* GPU acceleration for smoother animation */
 }
 
 @keyframes epicCarBounce {
   0%, 100% { transform: translateX(-50%) translateY(0) rotate(-1deg); }
   50% { transform: translateX(-50%) translateY(-8px) rotate(1deg); }
+}
+
+/* Loader container entrance animation */
+.simple-car-loader {
+  animation: loaderEnter 0.5s ease-out;
+}
+
+@keyframes loaderEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Car body - Neon gradient */
@@ -2011,6 +2034,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
     0 4px 10px rgba(0, 0, 0, 0.5),
     inset 0 0 10px rgba(0, 0, 0, 0.5);
   animation: wheelSpin 0.3s linear infinite;
+  will-change: transform;
 }
 
 @keyframes wheelSpin {
@@ -2082,6 +2106,36 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   100% { opacity: 0; transform: translateX(-20px); }
 }
 
+/* Individual speed line elements */
+.speed-line {
+  position: absolute;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%);
+  border-radius: 2px;
+  animation: speedLineMove 0.3s ease-out infinite;
+}
+
+.speed-line:nth-child(1) {
+  top: 0;
+  width: 40px;
+  left: 0;
+  animation-delay: 0s;
+}
+
+.speed-line:nth-child(2) {
+  top: 10px;
+  width: 35px;
+  left: 5px;
+  animation-delay: 0.1s;
+}
+
+.speed-line:nth-child(3) {
+  top: 20px;
+  width: 25px;
+  left: 10px;
+  animation-delay: 0.2s;
+}
+
 /* Exhaust smoke */
 .exhaust {
   display: block !important;
@@ -2113,6 +2167,34 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 @keyframes exhaustPuff {
   0% { transform: scale(0.5) translateX(0); opacity: 0.8; }
   100% { transform: scale(2) translateX(-30px); opacity: 0; }
+}
+
+/* Individual exhaust puff elements */
+.exhaust-puff {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, rgba(6, 182, 212, 0.3) 50%, transparent 70%);
+  border-radius: 50%;
+  animation: exhaustPuff 0.6s ease-out infinite;
+}
+
+.exhaust-puff:nth-child(1) {
+  top: 0;
+  left: 0;
+  animation-delay: 0s;
+}
+
+.exhaust-puff:nth-child(2) {
+  top: -5px;
+  left: -10px;
+  animation-delay: 0.2s;
+}
+
+.exhaust-puff:nth-child(3) {
+  top: 5px;
+  left: -15px;
+  animation-delay: 0.4s;
 }
 
 /* Neon road with glow */
