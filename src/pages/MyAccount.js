@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { updateAccount, deleteCarpoolOffer, deleteCarpoolRequest, API_BASE_URL as API_URL } from '../services/api';
+import './MyAccount.css';
 
 function MyAccount() {
   const navigate = useNavigate();
