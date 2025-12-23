@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { requestOTP, verifyOTP, API_BASE_URL as API_URL } from '../services/api';
+import './EventDashboard.css';
 
 // Lazy load heavy components for faster initial render
 const MapLocationPicker = lazy(() => import('../components/MapLocationPicker'));
@@ -995,192 +996,92 @@ function EventDashboard() {
 
   // Main Dashboard
   return (
-    <div className="event-dashboard-page">
-      {/* Top Navigation Bar */}
-      <div className="top-nav-bar" style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 20px',
-        background: 'white',
-        borderBottom: '1px solid var(--gray-200)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100
-      }}>
-        <button 
-          onClick={() => navigate('/')}
-          style={{
-            background: 'none',
-            border: 'none',
-            fontSize: '14px',
-            color: 'var(--gray-600)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}
-        >
+    <div className="event-dashboard">
+      {/* Top Navigation Bar - Legendary Style */}
+      <nav className="legendary-top-nav">
+        <button onClick={() => navigate('/')} className="nav-back-btn">
           ← Home
         </button>
-        
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {/* My Rides Button */}
-          <button
-            onClick={() => navigate('/my-rides')}
-            style={{
-              background: '#f0f9ff',
-              border: '1px solid #0ea5e9',
-              borderRadius: '8px',
-              padding: '8px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#0369a1',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
+
+        <div className="nav-actions">
+          <button onClick={() => navigate('/my-rides')} className="nav-btn-rides">
             🚗 My Rides
           </button>
-          
-          {/* Account Button */}
+
           {isAuthenticated ? (
-            <button
-              onClick={() => navigate('/my-account')}
-              style={{
-                background: 'linear-gradient(135deg, #10b981, #059669)',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '8px 14px',
-                fontSize: '13px',
-                fontWeight: 600,
-                color: 'white',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.3)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '12px'
-              }}>
+            <button onClick={() => navigate('/my-account')} className="nav-btn-account">
+              <span className="nav-avatar">
                 {authData?.name?.charAt(0)?.toUpperCase()}
               </span>
               {authData?.name?.split(' ')[0]}
             </button>
           ) : (
-            <button
-              onClick={() => navigate('/login')}
-              style={{
-                background: 'var(--gray-100)',
-                border: '1px solid var(--gray-300)',
-                borderRadius: '8px',
-                padding: '8px 14px',
-                fontSize: '13px',
-                fontWeight: 500,
-                color: 'var(--gray-700)',
-                cursor: 'pointer'
-              }}
-            >
+            <button onClick={() => navigate('/login')} className="nav-btn-login">
               Login
             </button>
           )}
         </div>
-      </div>
-      
-      {/* Header */}
-      <div className="dashboard-header">
+      </nav>
+
+      {/* Legendary Header */}
+      <header className="legendary-header">
         <div className="header-content">
           <div className="event-info">
             <h1>{event?.event_name}</h1>
             <div className="event-meta">
               {event?.event_date && (
-                <span>📅 {new Date(event.event_date).toLocaleDateString('en-US', { 
-                  weekday: 'short', month: 'short', day: 'numeric' 
+                <span>📅 {new Date(event.event_date).toLocaleDateString('en-US', {
+                  weekday: 'short', month: 'short', day: 'numeric'
                 })}</span>
               )}
               {event?.event_time && <span>🕐 {event.event_time}</span>}
               {event?.event_location && <span>📍 {event.event_location}</span>}
               {event?.participant_count > 0 && (
-                <span style={{ 
-                  background: '#dcfce7', 
-                  color: '#166534', 
-                  padding: '4px 10px', 
-                  borderRadius: '12px',
-                  fontSize: '13px',
-                  fontWeight: 500
-                }}>
+                <span className="participant-badge">
                   👥 {event.participant_count} joined
                 </span>
               )}
             </div>
           </div>
           <div className="header-actions">
-            <button onClick={() => { resetForm(); setShowModal('offer'); }} className="btn btn-primary">
+            <button onClick={() => { resetForm(); setShowModal('offer'); }} className="legendary-btn legendary-btn-primary">
               🚗 Offer a Ride
             </button>
-            <button onClick={() => { resetForm(); setShowModal('request'); }} className="btn btn-outline">
+            <button onClick={() => { resetForm(); setShowModal('request'); }} className="legendary-btn legendary-btn-outline">
               🙋 Need a Ride
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Tabs */}
-      <div className="dashboard-tabs">
-        <button 
-          className={`tab ${activeTab === 'offers' ? 'active' : ''}`}
+      {/* Legendary Tabs */}
+      <div className="legendary-tabs">
+        <button
+          className={`legendary-tab ${activeTab === 'offers' ? 'active' : ''}`}
           onClick={() => setActiveTab('offers')}
         >
           🚗 Rides Available <span className="tab-count">{offers.length}</span>
         </button>
-        <button 
-          className={`tab ${activeTab === 'requests' ? 'active' : ''}`}
+        <button
+          className={`legendary-tab ${activeTab === 'requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('requests')}
         >
           🙋 Rides Needed <span className="tab-count">{requests.length}</span>
         </button>
       </div>
 
-      {/* My Confirmed Rides Section */}
+      {/* My Confirmed Rides Section - Legendary */}
       {myJoinedRides.length > 0 && (
-        <div style={{
-          margin: '20px 0',
-          padding: '20px',
-          background: 'linear-gradient(135deg, #dcfce7 0%, #f0fdf4 100%)',
-          borderRadius: '12px',
-          border: '2px solid #86efac'
-        }}>
-          <h2 style={{ 
-            margin: '0 0 16px', 
-            fontSize: '20px', 
-            color: '#166534',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
+        <section className="confirmed-rides-section">
+          <h2 className="confirmed-rides-title">
             ✅ My Confirmed Rides ({myJoinedRides.length})
           </h2>
-          <div style={{ display: 'grid', gap: '16px' }}>
+          <div>
             {myJoinedRides.map((ride, idx) => (
-              <div key={ride.join_request_id || idx} style={{
-                background: 'white',
-                padding: '16px',
-                borderRadius: '10px',
-                border: '1px solid #bbf7d0'
-              }}>
+              <div key={ride.join_request_id || idx} className="confirmed-ride-card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                   <div>
-                    <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#1e293b' }}>
+                    <h3 style={{ margin: '0 0 8px', fontSize: '18px', color: '#1e293b', fontWeight: 700 }}>
                       🚗 Riding with <strong>{ride.driverName}</strong>
                     </h3>
                     <div style={{ fontSize: '14px', color: '#64748b' }}>
@@ -1194,38 +1095,21 @@ function EventDashboard() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <a 
-                      href={`tel:${ride.driverPhone}`}
-                      style={{
-                        padding: '8px 12px',
-                        background: '#10b981',
-                        color: 'white',
-                        borderRadius: '8px',
-                        textDecoration: 'none',
-                        fontSize: '14px'
-                      }}
-                    >
+                    <a href={`tel:${ride.driverPhone}`} className="legendary-action-btn success" style={{ padding: '10px 16px' }}>
                       📞 Call
                     </a>
-                    <a 
+                    <a
                       href={`https://wa.me/${ride.driverPhone?.replace(/\D/g, '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{
-                        padding: '8px 12px',
-                        background: '#25d366',
-                        color: 'white',
-                        borderRadius: '8px',
-                        textDecoration: 'none',
-                        fontSize: '14px'
-                      }}
+                      className="legendary-action-btn whatsapp"
+                      style={{ padding: '10px 16px' }}
                     >
                       💬 WhatsApp
                     </a>
                   </div>
                 </div>
-                
-                {/* Show route if we have locations */}
+
                 {ride.offerLocations?.[0]?.location_address && ride.eventLocation && ride.pickupLocation && ride.pickupLat && ride.pickupLng && (
                   <Suspense fallback={<LoadingPlaceholder />}>
                     <div style={{ marginTop: '12px' }}>
@@ -1246,19 +1130,19 @@ function EventDashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Content */}
-      <div className="dashboard-content">
+      {/* Legendary Content */}
+      <div className="legendary-content">
         {activeTab === 'offers' && (
-          <div className="cards-grid">
+          <div className="legendary-cards-grid">
             {offers.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">🚗</div>
+              <div className="legendary-empty-state">
+                <span className="legendary-empty-icon">🚗</span>
                 <h3>No rides offered yet</h3>
                 <p>Be the first to offer a ride to this event!</p>
-                <button onClick={() => { resetForm(); setShowModal('offer'); }} className="btn btn-primary">
+                <button onClick={() => { resetForm(); setShowModal('offer'); }} className="legendary-btn legendary-btn-primary">
                   Offer a Ride
                 </button>
               </div>
@@ -1268,61 +1152,38 @@ function EventDashboard() {
                 const isMine = isMyOffer(offer);
                 const isFull = seats.available <= 0;
                 const pref = getPreferenceLabel(offer.preference);
-                
+
                 return (
-                  <div key={offer.offer_id || index} className={`carpool-card offer-card ${isMine ? 'my-card' : ''} ${isFull ? 'full-card' : ''}`}>
-                    {isMine && <div className="my-badge">My Offer</div>}
-                    {isFull && <div className="full-badge">Full</div>}
-                    
-                    <div className="card-header-row">
-                      <div className="driver-info">
-                        <div className="avatar">🚗</div>
-                        <div>
+                  <div key={offer.offer_id || index} className={`legendary-card offer-card ${isMine ? 'my-card' : ''} ${isFull ? 'full-card' : ''}`}>
+                    {isMine && <div className="legendary-badge my-badge">My Offer</div>}
+                    {isFull && !isMine && <div className="legendary-badge full-badge">Full</div>}
+
+                    <div className="legendary-card-header">
+                      <div className="legendary-driver-info">
+                        <div className="legendary-avatar driver">🚗</div>
+                        <div className="legendary-driver-details">
                           <h3>{offer.driver_name || offer.name || 'Driver'}</h3>
-                          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                            <span className={`seats-badge ${isFull ? 'seats-full' : ''}`}>
+                          <div className="legendary-meta-badges">
+                            <span className={`legendary-seats-badge ${isFull ? 'full' : ''}`}>
                               {seats.confirmed}/{seats.total} seats
                             </span>
                             {pref && (
-                              <span className={`preference-badge ${offer.preference}`}>
+                              <span className={`legendary-pref-badge ${offer.preference}`}>
                                 {pref.icon} {pref.text}
                               </span>
                             )}
                             {(offer.hide_name || offer.hide_phone) && (
-                              <span style={{ 
-                                background: '#64748b', 
-                                color: 'white', 
-                                padding: '4px 10px', 
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: '600'
-                              }}>
+                              <span className="legendary-privacy-badge">
                                 🔒 {offer.hide_name && offer.hide_phone ? 'Private' : offer.hide_name ? 'Name hidden' : 'Phone hidden'}
                               </span>
                             )}
                             {offer.payment_required === 'obligatory' && offer.payment_amount && (
-                              <span style={{ 
-                                background: '#dc2626', 
-                                color: 'white', 
-                                padding: '4px 10px', 
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                border: '2px solid #991b1b'
-                              }}>
+                              <span className="legendary-payment-badge obligatory">
                                 💰 ₪{offer.payment_amount} Required
                               </span>
                             )}
                             {offer.payment_required === 'optional' && offer.payment_amount && (
-                              <span style={{ 
-                                background: '#16a34a', 
-                                color: 'white', 
-                                padding: '4px 10px', 
-                                borderRadius: '12px',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                border: '2px solid #15803d'
-                              }}>
+                              <span className="legendary-payment-badge optional">
                                 💰 ₪{offer.payment_amount} Optional
                               </span>
                             )}
@@ -1330,12 +1191,12 @@ function EventDashboard() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {offer.locations && offer.locations.length > 0 && (
-                      <div className="locations-list">
+                      <div className="legendary-locations">
                         {offer.locations.map((loc, i) => (
-                          <div key={i} className="location-item">
-                            <span className="direction-badge">
+                          <div key={i} className="legendary-location-item">
+                            <span className={`legendary-direction-badge ${loc.trip_direction}`}>
                               {loc.trip_direction === 'going' ? '→ Going' : '← Return'}
                             </span>
                             <span>{loc.location_address}</span>
@@ -1343,71 +1204,58 @@ function EventDashboard() {
                         ))}
                       </div>
                     )}
-                    
+
                     {offer.description && (
-                      <p className="card-description">{offer.description}</p>
+                      <p className="legendary-description">{offer.description}</p>
                     )}
 
-                    {/* Confirmed passengers */}
                     {offer.confirmed_passengers && offer.confirmed_passengers.length > 0 && (
-                      <div className="confirmed-passengers">
-                        <div className="confirmed-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span>✅ Confirmed passengers ({offer.confirmed_passengers.length})</span>
+                      <div className="legendary-passengers">
+                        <div className="legendary-passengers-header">
+                          <span className="legendary-passengers-label">✅ Confirmed ({offer.confirmed_passengers.length})</span>
                           {isMine && (
-                            <button 
-                              onClick={() => setShowPassengersModal(offer)}
-                              className="manage-passengers-btn"
-                              style={{
-                                background: '#f0f9ff',
-                                border: '1px solid #0ea5e9',
-                                color: '#0369a1',
-                                padding: '4px 10px',
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                cursor: 'pointer'
-                              }}
-                            >
+                            <button onClick={() => setShowPassengersModal(offer)} className="legendary-manage-btn">
                               ⚙️ Manage
                             </button>
                           )}
                         </div>
                         {offer.confirmed_passengers.map((p, i) => (
-                          <div key={i} className="confirmed-passenger">
-                            👤 {p.name} {isMine && <span className="passenger-phone">({p.phone})</span>}
+                          <div key={i} className="legendary-passenger-item">
+                            👤 {p.name} {isMine && <span className="legendary-passenger-phone">({p.phone})</span>}
                           </div>
                         ))}
                       </div>
                     )}
-                    
-                    <div className="card-actions">
+
+                    <div className="legendary-actions">
                       {isMine ? (
                         <>
-                          <button onClick={() => handleViewJoinRequests(offer)} className="btn btn-primary btn-sm">
+                          <button onClick={() => handleViewJoinRequests(offer)} className="legendary-action-btn primary">
                             📋 Requests {offer.pending_requests > 0 && <span className="request-count">{offer.pending_requests}</span>}
                           </button>
-                          <button onClick={() => handleEdit('offer', offer)} className="btn btn-secondary btn-sm">
+                          <button onClick={() => handleEdit('offer', offer)} className="legendary-action-btn secondary">
                             ✏️ Edit
                           </button>
-                          <button onClick={() => handleDelete('offer', offer)} className="btn btn-ghost btn-sm">
+                          <button onClick={() => handleDelete('offer', offer)} className="legendary-action-btn ghost">
                             🗑️
                           </button>
                         </>
                       ) : (
                         <>
                           {!isFull && (
-                            <button onClick={() => handleOpenJoinModal(offer)} className="btn btn-success btn-sm">
+                            <button onClick={() => handleOpenJoinModal(offer)} className="legendary-action-btn success">
                               🙋 Request to Join
                             </button>
                           )}
-                          <a 
+                          <a
                             href={`https://wa.me/${formatPhone(offer.driver_phone || offer.phone)}?text=Hi! I saw your carpool offer for ${event?.event_name}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="whatsapp-btn"
+                            className="legendary-action-btn whatsapp"
                           >
                             💬 WhatsApp
                           </a>
-                          <a href={`tel:${offer.driver_phone || offer.phone}`} className="btn btn-secondary btn-sm">
+                          <a href={`tel:${offer.driver_phone || offer.phone}`} className="legendary-action-btn secondary">
                             📞
                           </a>
                         </>
@@ -1421,13 +1269,13 @@ function EventDashboard() {
         )}
 
         {activeTab === 'requests' && (
-          <div className="cards-grid">
+          <div className="legendary-cards-grid">
             {requests.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">🙋</div>
+              <div className="legendary-empty-state">
+                <span className="legendary-empty-icon">🙋</span>
                 <h3>No ride requests yet</h3>
                 <p>Looking for a ride? Post a request!</p>
-                <button onClick={() => { resetForm(); setShowModal('request'); }} className="btn btn-primary">
+                <button onClick={() => { resetForm(); setShowModal('request'); }} className="legendary-btn legendary-btn-primary">
                   Request a Ride
                 </button>
               </div>
@@ -1436,21 +1284,23 @@ function EventDashboard() {
                 const isMine = isMyRequest(request);
                 const hasMatch = request.matched_offer;
                 const pref = getPreferenceLabel(request.preference);
-                
+
                 return (
-                  <div key={request.request_id || index} className={`carpool-card request-card ${isMine ? 'my-card' : ''} ${hasMatch ? 'matched-card' : ''}`}>
-                    {isMine && <div className="my-badge">My Request</div>}
-                    {hasMatch && <div className="matched-badge">✅ Matched</div>}
-                    
-                    <div className="card-header-row">
-                      <div className="driver-info">
-                        <div className="avatar">🙋</div>
-                        <div>
+                  <div key={request.request_id || index} className={`legendary-card request-card ${isMine ? 'my-card' : ''} ${hasMatch ? 'matched-card' : ''}`}>
+                    {isMine && <div className="legendary-badge my-badge">My Request</div>}
+                    {hasMatch && <div className="legendary-badge matched-badge">✅ Matched</div>}
+
+                    <div className="legendary-card-header">
+                      <div className="legendary-driver-info">
+                        <div className="legendary-avatar passenger">🙋</div>
+                        <div className="legendary-driver-details">
                           <h3>{request.name || 'Passenger'}</h3>
-                          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                            <span className="trip-badge">{request.trip_type === 'both' ? 'Round trip' : request.trip_type}</span>
+                          <div className="legendary-meta-badges">
+                            <span className="legendary-seats-badge">
+                              {request.trip_type === 'both' ? '🔄 Round trip' : request.trip_type === 'going' ? '→ Going' : '← Return'}
+                            </span>
                             {pref && (
-                              <span className={`preference-badge ${request.preference}`}>
+                              <span className={`legendary-pref-badge ${request.preference}`}>
                                 {pref.icon} {pref.text}
                               </span>
                             )}
@@ -1458,12 +1308,12 @@ function EventDashboard() {
                         </div>
                       </div>
                     </div>
-                    
+
                     {request.locations && request.locations.length > 0 && (
-                      <div className="locations-list">
+                      <div className="legendary-locations">
                         {request.locations.map((loc, i) => (
-                          <div key={i} className="location-item">
-                            <span className="direction-badge">
+                          <div key={i} className="legendary-location-item">
+                            <span className={`legendary-direction-badge ${loc.trip_direction}`}>
                               {loc.trip_direction === 'going' ? '→ Going' : '← Return'}
                             </span>
                             <span>{loc.location_address}</span>
@@ -1472,46 +1322,45 @@ function EventDashboard() {
                       </div>
                     )}
 
-                    {/* Show matched driver info */}
                     {hasMatch && (
-                      <div className="match-info">
-                        <div className="match-label">🚗 Riding with</div>
-                        <div className="match-driver">{request.matched_offer.driver_name}</div>
+                      <div className="legendary-match-info">
+                        <div className="legendary-match-label">🚗 Riding with</div>
+                        <div className="legendary-match-driver">{request.matched_offer.driver_name}</div>
                         {isMine && (
-                          <a 
+                          <a
                             href={`https://wa.me/${formatPhone(request.matched_offer.driver_phone)}?text=Hi! I'm confirmed for your carpool to ${event?.event_name}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="whatsapp-btn"
-                            style={{ marginTop: '12px' }}
+                            className="legendary-action-btn whatsapp"
+                            style={{ marginTop: '12px', display: 'inline-flex' }}
                           >
                             💬 Contact Driver
                           </a>
                         )}
                       </div>
                     )}
-                    
-                    <div className="card-actions">
+
+                    <div className="legendary-actions">
                       {isMine ? (
                         <>
-                          <button onClick={() => handleEdit('request', request)} className="btn btn-secondary btn-sm">
+                          <button onClick={() => handleEdit('request', request)} className="legendary-action-btn secondary">
                             ✏️ Edit
                           </button>
-                          <button onClick={() => handleDelete('request', request)} className="btn btn-ghost btn-sm">
+                          <button onClick={() => handleDelete('request', request)} className="legendary-action-btn ghost">
                             🗑️
                           </button>
                         </>
                       ) : (
                         <>
-                          <a 
+                          <a
                             href={`https://wa.me/${formatPhone(request.phone)}?text=Hi! I can give you a ride to ${event?.event_name}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="whatsapp-btn"
+                            className="legendary-action-btn whatsapp"
                           >
                             💬 WhatsApp
                           </a>
-                          <a href={`tel:${request.phone}`} className="btn btn-secondary btn-sm">
+                          <a href={`tel:${request.phone}`} className="legendary-action-btn secondary">
                             📞
                           </a>
                         </>
@@ -1525,20 +1374,21 @@ function EventDashboard() {
         )}
       </div>
 
-      {/* Publish/Edit Modal */}
+      {/* Publish/Edit Modal - Legendary */}
       {(showModal === 'offer' || showModal === 'request' || showModal === 'edit-offer' || showModal === 'edit-request') && (
-        <div className="modal-overlay" onClick={() => !submitting && setShowModal(null)}>
-          <div className="modal publish-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="legendary-modal-overlay" onClick={() => !submitting && setShowModal(null)}>
+          <div className="legendary-modal" onClick={e => e.stopPropagation()}>
+            <div className="legendary-modal-handle" />
+            <div className="legendary-modal-header">
               <h2>
-                {showModal === 'edit-offer' ? '✏️ Edit Ride Offer' : 
+                {showModal === 'edit-offer' ? '✏️ Edit Ride Offer' :
                  showModal === 'edit-request' ? '✏️ Edit Ride Request' :
                  showModal === 'offer' ? '🚗 Offer a Ride' : '🙋 Need a Ride'}
               </h2>
-              <button className="modal-close" onClick={() => !submitting && setShowModal(null)}>×</button>
+              <button className="legendary-modal-close" onClick={() => !submitting && setShowModal(null)}>×</button>
             </div>
             
-            <div className="modal-body">
+            <div className="legendary-modal-body">
               {/* OTP Verification Step */}
               {authStep === 'otp' ? (
                 <div className="otp-verification-section" style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -2147,16 +1997,16 @@ function EventDashboard() {
             </div>
             
             {authStep !== 'otp' && (
-              <div className="modal-footer">
-                <button 
-                  className="btn btn-secondary" 
+              <div className="legendary-modal-footer">
+                <button
+                  className="legendary-action-btn secondary"
                   onClick={() => { setShowModal(null); resetForm(); }}
                   disabled={submitting}
                 >
                   Cancel
                 </button>
-                <button 
-                  className="btn btn-primary" 
+                <button
+                  className="legendary-action-btn primary"
                   onClick={() => handlePublish(showModal.includes('offer') ? 'offer' : 'request')}
                   disabled={submitting}
                 >
@@ -2165,7 +2015,7 @@ function EventDashboard() {
                       <span className="mini-car">🚗</span>
                       {isAuthenticated ? 'Saving...' : 'Sending code...'}
                     </span>
-                  ) : (editingItem ? 'Save Changes' : (showModal === 'offer' ? 'Publish Offer' : 'Publish Request'))}
+                  ) : (editingItem ? 'Save Changes' : (showModal === 'offer' ? '🚀 Publish Offer' : '🚀 Publish Request'))}
                 </button>
               </div>
             )}
@@ -2202,16 +2052,17 @@ function EventDashboard() {
         </div>
       )}
 
-      {/* Join Ride Modal - Simple contact form */}
+      {/* Join Ride Modal - Legendary */}
       {showModal === 'join-ride' && selectedOffer && (
-        <div className="modal-overlay" onClick={() => { if (!submitting) { setShowModal(null); setJoinPickupLocation(null); } }}>
-          <div className="modal join-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="legendary-modal-overlay" onClick={() => { if (!submitting) { setShowModal(null); setJoinPickupLocation(null); } }}>
+          <div className="legendary-modal" onClick={e => e.stopPropagation()}>
+            <div className="legendary-modal-handle" />
+            <div className="legendary-modal-header">
               <h2>🙋 Request to Join Ride</h2>
-              <button className="modal-close" onClick={() => { if (!submitting) { setShowModal(null); setJoinPickupLocation(null); } }}>×</button>
+              <button className="legendary-modal-close" onClick={() => { if (!submitting) { setShowModal(null); setJoinPickupLocation(null); } }}>×</button>
             </div>
-            
-            <div className="modal-body">
+
+            <div className="legendary-modal-body">
               <div className="driver-preview">
                 <h3>🚗 {selectedOffer.driver_name || selectedOffer.name}</h3>
                 <p>{selectedOffer.locations?.[0]?.location_address}</p>
@@ -2493,40 +2344,41 @@ function EventDashboard() {
                 <span>Remember my details</span>
               </label>
             </div>
-            
-            <div className="modal-footer">
-              <button 
-                className="btn btn-secondary" 
+
+            <div className="legendary-modal-footer">
+              <button
+                className="legendary-action-btn secondary"
                 onClick={() => { setShowModal(null); setJoinPickupLocation(null); setJoinMessage(''); }}
                 disabled={submitting}
               >
                 Cancel
               </button>
-              <button 
-                className="btn btn-success" 
+              <button
+                className="legendary-action-btn success"
                 onClick={handleSubmitJoinRequest}
                 disabled={submitting}
               >
-                {submitting ? 'Sending...' : 'Send Request'}
+                {submitting ? '🚗 Sending...' : '🚀 Send Request'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Join Requests Modal - For drivers to manage requests */}
+      {/* Join Requests Modal - Legendary */}
       {showModal === 'join-requests' && selectedOffer && (
-        <div className="modal-overlay" onClick={() => setShowModal(null)}>
-          <div className="modal join-requests-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
+        <div className="legendary-modal-overlay" onClick={() => setShowModal(null)}>
+          <div className="legendary-modal" onClick={e => e.stopPropagation()}>
+            <div className="legendary-modal-handle" />
+            <div className="legendary-modal-header">
               <h2>📋 Join Requests</h2>
-              <button className="modal-close" onClick={() => setShowModal(null)}>×</button>
+              <button className="legendary-modal-close" onClick={() => setShowModal(null)}>×</button>
             </div>
-            
-            <div className="modal-body">
+
+            <div className="legendary-modal-body">
               {joinRequests.length === 0 ? (
-                <div className="empty-state" style={{ padding: '40px 20px' }}>
-                  <div className="empty-state-icon">📭</div>
+                <div className="legendary-empty-state" style={{ padding: '40px 20px' }}>
+                  <span className="legendary-empty-icon">📭</span>
                   <h3>No requests yet</h3>
                   <p>When someone asks to join your ride, they'll appear here.</p>
                 </div>
@@ -2646,8 +2498,8 @@ function EventDashboard() {
               )}
             </div>
             
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowModal(null)}>
+            <div className="legendary-modal-footer">
+              <button className="legendary-action-btn secondary" onClick={() => setShowModal(null)}>
                 Close
               </button>
             </div>
@@ -2655,16 +2507,17 @@ function EventDashboard() {
         </div>
       )}
 
-      {/* Manage Passengers Modal - Cancel passengers with message */}
+      {/* Manage Passengers Modal - Legendary */}
       {showPassengersModal && (
-        <div className="modal-overlay" onClick={() => { setShowPassengersModal(null); setCancelMessage(''); }}>
-          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '550px' }}>
-            <div className="modal-header">
+        <div className="legendary-modal-overlay" onClick={() => { setShowPassengersModal(null); setCancelMessage(''); }}>
+          <div className="legendary-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '550px' }}>
+            <div className="legendary-modal-handle" />
+            <div className="legendary-modal-header">
               <h2>👥 Manage Passengers</h2>
-              <button className="modal-close" onClick={() => { setShowPassengersModal(null); setCancelMessage(''); }}>×</button>
+              <button className="legendary-modal-close" onClick={() => { setShowPassengersModal(null); setCancelMessage(''); }}>×</button>
             </div>
-            
-            <div className="modal-body">
+
+            <div className="legendary-modal-body">
               <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '20px', direction: 'rtl' }}>
                 כאן תוכל לנהל את הנוסעים המאושרים לנסיעה שלך. אם תרצה לבטל נוסע, תוכל לשלוח לו הודעה עם הסיבה.
               </p>
@@ -2779,16 +2632,16 @@ function EventDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="empty-state" style={{ padding: '40px 20px' }}>
-                  <div className="empty-state-icon">👥</div>
+                <div className="legendary-empty-state" style={{ padding: '40px 20px' }}>
+                  <span className="legendary-empty-icon">👥</span>
                   <h3>No confirmed passengers yet</h3>
                   <p>When you accept passengers, they'll appear here.</p>
                 </div>
               )}
             </div>
-            
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => { setShowPassengersModal(null); setCancelMessage(''); }}>
+
+            <div className="legendary-modal-footer">
+              <button className="legendary-action-btn secondary" onClick={() => { setShowPassengersModal(null); setCancelMessage(''); }}>
                 Close
               </button>
             </div>
