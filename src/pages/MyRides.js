@@ -5,7 +5,6 @@ import { API_BASE_URL as API_URL } from '../services/api';
 import RouteWithDetour from '../components/RouteWithDetour';
 import { SkeletonMyRidesPage } from '../components/SkeletonLoader';
 import { NoOffersEmptyState, NoJoinedRidesEmptyState, NoRequestsEmptyState } from '../components/EmptyState';
-import { PullToRefresh } from '../components/MicroInteractions';
 import './MyRides.css';
 
 // localStorage keys for tracking user's rides
