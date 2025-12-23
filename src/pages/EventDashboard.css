@@ -1122,9 +1122,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(3, 7, 18, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(11, 18, 32, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -1134,8 +1134,8 @@
 }
 
 .legendary-modal {
-  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-base) 100%);
-  border: 1px solid var(--glass-border);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   border-bottom: none;
   border-radius: 32px 32px 0 0;
   width: 100%;
@@ -1144,7 +1144,7 @@
   max-height: 92dvh;
   overflow: hidden;
   animation: slideUpModal 0.4s var(--ease-spring);
-  box-shadow: 0 -10px 60px rgba(0, 0, 0, 0.5), var(--shadow-neon);
+  box-shadow: 0 -10px 60px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
 }
@@ -1164,6 +1164,8 @@
     border-radius: 32px;
     max-height: 90vh;
     animation: scaleInModal 0.4s var(--ease-spring);
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
   }
 
   @keyframes scaleInModal {
@@ -1175,7 +1177,7 @@
 .legendary-modal-handle {
   width: 48px;
   height: 5px;
-  background: var(--glass-border);
+  background: #E5E7EB;
   border-radius: 3px;
   margin: 12px auto 0;
 }
@@ -1185,19 +1187,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid #E5E7EB;
   position: sticky;
   top: 0;
-  background: linear-gradient(180deg, var(--bg-elevated) 0%, rgba(31, 41, 55, 0.98) 100%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #FFFFFF;
   z-index: 10;
 }
 
 .legendary-modal-header h2 {
   font-size: 20px;
   font-weight: 800;
-  color: var(--text-primary);
+  color: #0B1220;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1208,9 +1208,9 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-  color: var(--text-muted);
+  border: 1px solid #E5E7EB;
+  background: #F8FAFC;
+  color: #4B5563;
   font-size: 24px;
   display: flex;
   align-items: center;
@@ -1220,9 +1220,9 @@
 }
 
 .legendary-modal-close:hover {
-  background: var(--danger-bg);
-  border-color: var(--danger);
-  color: var(--danger-light);
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #EF4444;
+  color: #EF4444;
   transform: rotate(90deg);
 }
 
@@ -1230,17 +1230,19 @@
   padding: 20px 16px;
   overflow-y: auto;
   flex: 1;
+  background: #F8FAFC;
 }
 
 /* === COMPACT FORM STYLES FOR MOBILE === */
 
 /* Form sections with visual grouping */
 .form-section {
-  background: var(--glass-bg);
+  background: #FFFFFF;
   border-radius: 16px;
   padding: 16px;
   margin-bottom: 16px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .form-section-header {
@@ -1249,7 +1251,7 @@
   gap: 8px;
   margin-bottom: 14px;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .form-section-icon {
@@ -1259,7 +1261,7 @@
 .form-section-title {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: #0B1220;
   margin: 0;
 }
 
@@ -1276,7 +1278,7 @@
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #4B5563;
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -1287,10 +1289,10 @@
   width: 100%;
   padding: 12px 14px;
   font-size: 15px;
-  border: 2px solid var(--glass-border);
+  border: 2px solid #E5E7EB;
   border-radius: 12px;
-  background: var(--bg-elevated);
-  color: var(--text-primary);
+  background: #FFFFFF;
+  color: #0B1220;
   transition: all 0.2s var(--ease-smooth);
   -webkit-appearance: none;
   appearance: none;
@@ -1299,16 +1301,16 @@
 .form-input:focus,
 .form-select:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px var(--primary-bg), var(--primary-glow);
+  border-color: #0EA5E9;
+  box-shadow: 0 0 0 4px #E0F2FE;
 }
 
 .form-input::placeholder {
-  color: var(--text-dim);
+  color: #9CA3AF;
 }
 
 .form-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 40px;
@@ -1481,7 +1483,7 @@
 
 /* Collapsible section for optional fields */
 .collapsible-section {
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
   margin-bottom: 14px;
   overflow: hidden;
@@ -1492,20 +1494,21 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: #f8fafc;
+  background: #F8FAFC;
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: #0B1220;
   transition: background 0.2s;
 }
 
 .collapsible-header:hover {
-  background: #f1f5f9;
+  background: #E0F2FE;
 }
 
 .collapsible-header .chevron {
   transition: transform 0.2s;
+  color: #0EA5E9;
 }
 
 .collapsible-section.open .collapsible-header .chevron {
@@ -1514,7 +1517,7 @@
 
 .collapsible-content {
   padding: 14px;
-  background: white;
+  background: #FFFFFF;
   display: none;
 }
 
@@ -1540,7 +1543,7 @@
 }
 
 .payment-compact .form-label {
-  color: #7c3aed;
+  color: #0B2A4A;
 }
 
 .payment-amount-row {
@@ -1565,22 +1568,22 @@
   top: 50%;
   transform: translateY(-50%);
   font-weight: 700;
-  color: #7c3aed;
+  color: #0B2A4A;
 }
 
 .payment-max-hint {
   font-size: 11px;
-  color: #7c3aed;
+  color: #0EA5E9;
   margin-top: 6px;
 }
 
 .legendary-modal-footer {
   padding: 16px;
   padding-bottom: max(16px, var(--safe-bottom));
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid #E5E7EB;
   display: flex;
   gap: 10px;
-  background: rgba(0, 0, 0, 0.3);
+  background: #FFFFFF;
 }
 
 .legendary-modal-footer .legendary-action-btn {
@@ -1603,7 +1606,7 @@
   width: 64px;
   height: 64px;
   margin: 0 auto 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -1615,7 +1618,7 @@
 .otp-header h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #1e293b;
+  color: #0B1220;
   margin: 0 0 8px;
 }
 
@@ -1982,9 +1985,9 @@
 .payment-options-section {
   margin-top: 24px;
   padding: 20px;
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  background: #E0F2FE;
   border-radius: 16px;
-  border: 1px solid #d8b4fe;
+  border: 1px solid #0EA5E9;
 }
 
 .payment-options-section .form-label {
@@ -1993,7 +1996,7 @@
   gap: 8px;
   font-size: 15px;
   font-weight: 600;
-  color: #7c3aed;
+  color: #0B2A4A;
 }
 
 /* Payment method cards */
@@ -2008,24 +2011,24 @@
   flex: 1;
   min-width: 90px;
   padding: 16px 12px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid #E5E7EB;
   border-radius: 14px;
-  background: white;
+  background: #FFFFFF;
   cursor: pointer;
   transition: all 0.3s var(--ease-spring);
   text-align: center;
 }
 
 .payment-method-card:hover {
-  border-color: #c4b5fd;
-  background: #faf5ff;
+  border-color: #0EA5E9;
+  background: #F8FAFC;
   transform: translateY(-2px);
 }
 
 .payment-method-card.selected {
-  border-color: #7c3aed;
-  background: linear-gradient(135deg, #faf5ff 0%, #ede9fe 100%);
-  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
+  border-color: #0EA5E9;
+  background: #E0F2FE;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2);
 }
 
 .payment-method-card input {
@@ -2041,11 +2044,11 @@
 .payment-method-card .text {
   font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: #4B5563;
 }
 
 .payment-method-card.selected .text {
-  color: #7c3aed;
+  color: #0B2A4A;
 }
 
 /* Payment amount input wrapper */
@@ -2067,7 +2070,7 @@
   transform: translateY(-50%);
   font-size: 18px;
   font-weight: 700;
-  color: #7c3aed;
+  color: #0B2A4A;
 }
 
 /* Privacy options box */
@@ -2547,7 +2550,7 @@
 .otp-resend-btn {
   background: none;
   border: none;
-  color: #667eea;
+  color: #0EA5E9;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
@@ -2642,9 +2645,9 @@
 .remember-me {
   margin-top: 20px;
   padding: 14px;
-  background: #f8fafc;
+  background: #F8FAFC;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #E5E7EB;
 }
 
 /* === MODAL FOOTER IMPROVEMENTS === */
