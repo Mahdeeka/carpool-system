@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { API_BASE_URL as API_URL } from '../services/api';
 import RouteWithDetour from '../components/RouteWithDetour';
+import { SkeletonMyRidesPage } from '../components/SkeletonLoader';
 import './MyRides.css';
 
 // localStorage keys for tracking user's rides
@@ -270,30 +271,8 @@ function MyRides() {
 
   if (loading) {
     return (
-      <div className="page-loading-overlay">
-        <div className="simple-car-loader">
-          <div className="simple-car">
-            <div className="simple-car-body"></div>
-            <div className="simple-car-top"></div>
-            <div className="simple-car-window"></div>
-            <div className="simple-car-light-front"></div>
-            <div className="simple-car-light-back"></div>
-            <div className="simple-car-wheel simple-car-wheel-front"></div>
-            <div className="simple-car-wheel simple-car-wheel-back"></div>
-            <div className="speed-lines">
-              <div className="speed-line"></div>
-              <div className="speed-line"></div>
-              <div className="speed-line"></div>
-            </div>
-            <div className="exhaust">
-              <div className="exhaust-puff"></div>
-              <div className="exhaust-puff"></div>
-              <div className="exhaust-puff"></div>
-            </div>
-          </div>
-          <div className="simple-road"></div>
-        </div>
-        <p className="loading-text">Loading your rides...</p>
+      <div className="my-rides-page">
+        <SkeletonMyRidesPage />
       </div>
     );
   }

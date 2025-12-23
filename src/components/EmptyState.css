@@ -1,0 +1,319 @@
+/* ========================================
+   EMPTY STATE COMPONENT STYLES
+   Brand Colors: #0B2A4A, #0EA5E9, #F8FAFC
+   ======================================== */
+
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 48px 24px;
+  background: #FFFFFF;
+  border: 1px dashed #E5E7EB;
+  border-radius: 24px;
+  transition: all 0.3s ease;
+}
+
+.empty-state-container:hover {
+  border-color: #0EA5E9;
+  box-shadow: 0 8px 32px rgba(14, 165, 233, 0.08);
+}
+
+/* Variants */
+.empty-state-container.compact {
+  padding: 32px 20px;
+  border-radius: 16px;
+}
+
+.empty-state-container.card {
+  padding: 24px;
+  border-style: solid;
+  border-radius: 12px;
+}
+
+/* Visual Section */
+.empty-state-visual {
+  margin-bottom: 24px;
+}
+
+.empty-state-icon {
+  font-size: 72px;
+  line-height: 1;
+  filter: grayscale(10%);
+  animation: empty-state-float 3s ease-in-out infinite;
+}
+
+.empty-state-container.compact .empty-state-icon {
+  font-size: 56px;
+}
+
+@keyframes empty-state-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.empty-state-illustration {
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+.empty-state-illustration svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Content Section */
+.empty-state-content {
+  max-width: 340px;
+  margin-bottom: 24px;
+}
+
+.empty-state-title {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0B1220;
+}
+
+.empty-state-container.compact .empty-state-title {
+  font-size: 1.15rem;
+  margin-bottom: 8px;
+}
+
+.empty-state-description {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #4B5563;
+}
+
+.empty-state-container.compact .empty-state-description {
+  font-size: 14px;
+}
+
+/* Tips Section */
+.empty-state-tips {
+  margin-top: 20px;
+  padding: 16px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+}
+
+.empty-state-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  text-align: left;
+}
+
+.empty-state-tip:first-child {
+  padding-top: 0;
+}
+
+.empty-state-tip:last-child {
+  padding-bottom: 0;
+}
+
+.empty-state-tip:not(:last-child) {
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.tip-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.tip-text {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.4;
+}
+
+/* Actions Section */
+.empty-state-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+@media (min-width: 480px) {
+  .empty-state-actions {
+    flex-direction: row;
+    justify-content: center;
+    max-width: none;
+  }
+}
+
+.empty-state-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.empty-state-btn .btn-icon {
+  font-size: 16px;
+}
+
+/* Primary Button */
+.empty-state-btn.primary {
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(11, 42, 74, 0.25);
+}
+
+.empty-state-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(11, 42, 74, 0.35);
+}
+
+.empty-state-btn.primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary Button */
+.empty-state-btn.secondary {
+  background: #FFFFFF;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+}
+
+.empty-state-btn.secondary:hover {
+  background: #F8FAFC;
+  border-color: #0EA5E9;
+  color: #0EA5E9;
+  transform: translateY(-2px);
+}
+
+/* Login Warning Banner */
+.empty-state-login-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  font-size: 13px;
+  color: #EF4444;
+  font-weight: 500;
+}
+
+/* Pulse animation for attention */
+.empty-state-container.highlight .empty-state-btn.primary {
+  animation: empty-btn-pulse 2s ease-in-out infinite;
+}
+
+@keyframes empty-btn-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(11, 42, 74, 0.25);
+  }
+  50% {
+    box-shadow: 0 4px 24px rgba(14, 165, 233, 0.5);
+  }
+}
+
+/* Success animation when something changes */
+.empty-state-container.success {
+  border-color: #22C55E;
+  background: rgba(34, 197, 94, 0.02);
+}
+
+.empty-state-container.success .empty-state-icon {
+  animation: empty-success-bounce 0.6s ease;
+}
+
+@keyframes empty-success-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .empty-state-container {
+    padding: 36px 20px;
+    border-radius: 20px;
+  }
+
+  .empty-state-icon {
+    font-size: 56px;
+  }
+
+  .empty-state-title {
+    font-size: 1.2rem;
+  }
+
+  .empty-state-description {
+    font-size: 14px;
+  }
+
+  .empty-state-btn {
+    width: 100%;
+    padding: 14px 24px;
+  }
+
+  .empty-state-tips {
+    padding: 12px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .empty-state-container {
+    background: #1F2937;
+    border-color: #374151;
+  }
+
+  .empty-state-container:hover {
+    border-color: #0EA5E9;
+  }
+
+  .empty-state-title {
+    color: #F9FAFB;
+  }
+
+  .empty-state-description {
+    color: #9CA3AF;
+  }
+
+  .empty-state-tips {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .tip-text {
+    color: #9CA3AF;
+  }
+
+  .empty-state-btn.secondary {
+    background: #374151;
+    border-color: #4B5563;
+    color: #E5E7EB;
+  }
+
+  .empty-state-btn.secondary:hover {
+    background: #4B5563;
+    color: #0EA5E9;
+  }
+}

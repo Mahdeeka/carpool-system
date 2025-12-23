@@ -1,0 +1,563 @@
+/* ========================================
+   PWA ENHANCEMENT STYLES
+   Brand Colors: #0B2A4A, #0EA5E9, #F8FAFC
+   ======================================== */
+
+/* ========================================
+   OFFLINE INDICATOR
+   ======================================== */
+.offline-indicator {
+  position: fixed;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  animation: slide-up 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.offline-indicator.offline {
+  background: #EF4444;
+  color: #FFFFFF;
+}
+
+.offline-indicator.online {
+  background: #22C55E;
+  color: #FFFFFF;
+  animation: slide-up 0.3s ease, fade-out 0.5s 1.5s ease forwards;
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+.offline-icon {
+  font-size: 16px;
+}
+
+/* ========================================
+   UPDATE BANNER
+   ======================================== */
+.update-banner {
+  position: fixed;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 400px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 1001;
+  animation: slide-up 0.4s ease;
+}
+
+.update-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.update-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.update-text strong {
+  display: block;
+  font-size: 16px;
+  color: #0B1220;
+  margin-bottom: 4px;
+}
+
+.update-text p {
+  margin: 0;
+  font-size: 14px;
+  color: #4B5563;
+}
+
+.update-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.update-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.update-btn.primary {
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  color: #FFFFFF;
+}
+
+.update-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(11, 42, 74, 0.3);
+}
+
+.update-btn.secondary {
+  background: #F8FAFC;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+}
+
+.update-btn.secondary:hover {
+  background: #E5E7EB;
+}
+
+/* ========================================
+   INSTALL BANNER
+   ======================================== */
+.install-banner {
+  position: fixed;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 400px;
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(11, 42, 74, 0.3);
+  z-index: 1001;
+  animation: slide-up 0.4s ease;
+}
+
+.install-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.install-icon {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.install-text {
+  color: #FFFFFF;
+}
+
+.install-text strong {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.install-text p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.install-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.install-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.install-btn.primary {
+  background: #FFFFFF;
+  color: #0B2A4A;
+}
+
+.install-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
+}
+
+.install-btn.secondary {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+.install-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ========================================
+   FLOATING INSTALL BUTTON
+   ======================================== */
+.install-floating {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: float-in 0.5s ease;
+}
+
+.install-floating.bottom-right {
+  bottom: max(80px, calc(env(safe-area-inset-bottom) + 56px));
+  right: 16px;
+}
+
+.install-floating.bottom-left {
+  bottom: max(80px, calc(env(safe-area-inset-bottom) + 56px));
+  left: 16px;
+}
+
+.install-floating.top-right {
+  top: max(80px, calc(env(safe-area-inset-top) + 56px));
+  right: 16px;
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.install-floating-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(11, 42, 74, 0.3);
+  transition: all 0.3s ease;
+}
+
+.install-floating-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(11, 42, 74, 0.4);
+}
+
+.install-floating-btn .btn-icon {
+  font-size: 18px;
+}
+
+.install-dismiss {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #4B5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: -4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.install-dismiss:hover {
+  background: #EF4444;
+  color: #FFFFFF;
+  border-color: #EF4444;
+}
+
+/* ========================================
+   NETWORK STATUS INDICATOR
+   ======================================== */
+.network-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #F8FAFC;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  font-size: 12px;
+  color: #4B5563;
+}
+
+.network-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22C55E;
+}
+
+.network-dot.slow {
+  background: #F59E0B;
+}
+
+.network-dot.offline {
+  background: #EF4444;
+}
+
+/* ========================================
+   SHARE BUTTON
+   ======================================== */
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4B5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.share-button:hover {
+  border-color: #0EA5E9;
+  color: #0EA5E9;
+  background: #E0F2FE;
+}
+
+.share-button .share-icon {
+  font-size: 16px;
+}
+
+/* ========================================
+   PENDING SYNC INDICATOR
+   ======================================== */
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #FEF3C7;
+  border: 1px solid #F59E0B;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #92400E;
+}
+
+.sync-indicator .sync-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.sync-count {
+  font-weight: 600;
+}
+
+/* ========================================
+   NOTIFICATION PERMISSION PROMPT
+   ======================================== */
+.notification-prompt {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 380px;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  z-index: 1002;
+  animation: slide-down 0.4s ease;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.notification-prompt-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.notification-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.notification-text strong {
+  display: block;
+  font-size: 15px;
+  color: #0B1220;
+  margin-bottom: 4px;
+}
+
+.notification-text p {
+  margin: 0;
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.4;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notification-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.notification-btn.primary {
+  background: #0EA5E9;
+  color: #FFFFFF;
+}
+
+.notification-btn.secondary {
+  background: #F8FAFC;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 480px) {
+  .install-banner,
+  .update-banner {
+    border-radius: 16px 16px 0 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: none;
+    transform: none;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .install-floating {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .install-dismiss {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    margin-left: 0;
+  }
+
+  .notification-prompt {
+    width: 100%;
+    max-width: none;
+    left: 0;
+    right: 0;
+    top: 0;
+    transform: none;
+    border-radius: 0 0 16px 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+}
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .update-banner,
+  .notification-prompt {
+    background: #1F2937;
+    border-color: #374151;
+  }
+
+  .update-text strong,
+  .notification-text strong {
+    color: #F9FAFB;
+  }
+
+  .update-text p,
+  .notification-text p {
+    color: #9CA3AF;
+  }
+
+  .update-btn.secondary,
+  .notification-btn.secondary {
+    background: #374151;
+    border-color: #4B5563;
+    color: #E5E7EB;
+  }
+
+  .network-status {
+    background: #374151;
+    border-color: #4B5563;
+    color: #E5E7EB;
+  }
+
+  .share-button {
+    background: #374151;
+    border-color: #4B5563;
+    color: #E5E7EB;
+  }
+
+  .install-dismiss {
+    background: #374151;
+    border-color: #4B5563;
+    color: #E5E7EB;
+  }
+
+  .sync-indicator {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: #D97706;
+    color: #FCD34D;
+  }
+}
