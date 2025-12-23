@@ -440,34 +440,49 @@ function RouteMap({
 
   // Initialize map once
   useEffect(() => {
-    if (!mapRef.current || !window.google || mapReadyRef.current) {
+    if (!mapRef.current || mapReadyRef.current) {
       setIsLoading(false);
       return;
     }
 
-    const map = new window.google.maps.Map(mapRef.current, {
-      center: { lat: 32.0853, lng: 34.7818 }, // Israel center
-      zoom: 8,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true,
-    });
+    // Check if Google Maps is fully loaded
+    if (!window.google || !window.google.maps || !window.google.maps.Map) {
+      console.warn('Google Maps not yet available, waiting...');
+      setIsLoading(false);
+      setError('Map is loading...');
+      return;
+    }
 
-    mapInstanceRef.current = map;
+    try {
+      const map = new window.google.maps.Map(mapRef.current, {
+        center: { lat: 32.0853, lng: 34.7818 }, // Israel center
+        zoom: 8,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+      });
 
-    const directionsRenderer = new window.google.maps.DirectionsRenderer({
-      map,
-      suppressMarkers: false,
-      polylineOptions: {
-        strokeColor: '#3b82f6',
-        strokeWeight: 5,
-        strokeOpacity: 0.8
-      }
-    });
+      mapInstanceRef.current = map;
 
-    directionsRendererRef.current = directionsRenderer;
-    mapReadyRef.current = true;
-    setIsLoading(false);
+      const directionsRenderer = new window.google.maps.DirectionsRenderer({
+        map,
+        suppressMarkers: false,
+        polylineOptions: {
+          strokeColor: '#3b82f6',
+          strokeWeight: 5,
+          strokeOpacity: 0.8
+        }
+      });
+
+      directionsRendererRef.current = directionsRenderer;
+      mapReadyRef.current = true;
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Failed to initialize Google Maps:', err);
+      setError('Failed to load map');
+      setIsLoading(false);
+      return;
+    }
 
     return () => {
       clearMarkers();
@@ -565,3 +580,4 @@ function RouteMap({
 }
 
 export default RouteMap;
+

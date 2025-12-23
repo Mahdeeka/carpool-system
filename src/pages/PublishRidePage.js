@@ -1,8 +1,43 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, Component } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { requestOTP, verifyOTP, API_BASE_URL as API_URL } from '../services/api';
 import './PublishRidePage.css';
+
+// Error boundary to catch map component errors
+class MapErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Map component error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="map-error-fallback" style={{
+          padding: '16px',
+          background: 'rgba(239, 68, 68, 0.1)',
+          borderRadius: '8px',
+          color: '#ef4444',
+          fontSize: '14px',
+          textAlign: 'center'
+        }}>
+          ⚠️ Map could not be loaded. Your location has been saved.
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Lazy load map components
 const MapLocationPicker = lazy(() => import('../components/MapLocationPicker'));
@@ -585,33 +620,37 @@ function PublishRidePage() {
               {/* Pickup Location */}
               <div className="form-field">
                 <label>{isOffer ? 'Starting Location' : 'Pickup Location'} <span className="required">*</span></label>
-                <Suspense fallback={<div className="map-loading">Loading map...</div>}>
-                  <MapLocationPicker
-                    value={formData.pickupLocation}
-                    onChange={(value) => setFormData(prev => ({ ...prev, pickupLocation: value }))}
-                    onLocationSelect={(loc) => setFormData(prev => ({
-                      ...prev,
-                      pickupLocation: loc.address,
-                      pickupLat: loc.lat,
-                      pickupLng: loc.lng
-                    }))}
-                    placeholder="Search for location..."
-                  />
-                </Suspense>
+                <MapErrorBoundary>
+                  <Suspense fallback={<div className="map-loading">Loading map...</div>}>
+                    <MapLocationPicker
+                      value={formData.pickupLocation}
+                      onChange={(value) => setFormData(prev => ({ ...prev, pickupLocation: value }))}
+                      onLocationSelect={(loc) => setFormData(prev => ({
+                        ...prev,
+                        pickupLocation: loc.address,
+                        pickupLat: loc.lat,
+                        pickupLng: loc.lng
+                      }))}
+                      placeholder="Search for location..."
+                    />
+                  </Suspense>
+                </MapErrorBoundary>
               </div>
 
               {/* Route Preview */}
               {formData.pickupLat && formData.pickupLng && event?.event_location && (
                 <div className="route-preview">
-                  <Suspense fallback={<div className="map-loading">Loading route...</div>}>
-                    <RouteMap
-                      origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
-                      destination={event.event_location}
+                  <MapErrorBoundary>
+                    <Suspense fallback={<div className="map-loading">Loading route...</div>}>
+                      <RouteMap
+                        origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
+                        destination={event.event_location}
                       height="200px"
                       showDirections={true}
                       onRouteCalculated={handleRouteCalculated}
-                    />
-                  </Suspense>
+                      />
+                    </Suspense>
+                  </MapErrorBoundary>
                   {routeDistance && (
                     <div className="route-info">
                       <span>📏 {routeDistance.toFixed(1)} km to {event?.event_name}</span>
