@@ -147,6 +147,10 @@ function InfoPage() {
         
         @media (max-width: 768px) {
           .desktop-only { display: none !important; }
+          .features-grid-responsive { grid-template-columns: 1fr !important; }
+        }
+        @media (min-width: 769px) and (max-width: 1024px) {
+          .features-grid-responsive { grid-template-columns: repeat(2, 1fr) !important; }
         }
         @media (min-width: 769px) {
           .mobile-only { display: none !important; }
@@ -376,7 +380,7 @@ function InfoPage() {
             <p style={styles.sectionSubtitle}>Powerful features designed to make carpooling effortless for organizers and attendees alike.</p>
           </div>
 
-          <div style={styles.featuresGrid}>
+          <div style={styles.featuresGrid} className="features-grid-responsive">
             {valueProps.map((prop, idx) => (
               <div key={idx} style={styles.featureCard} className="hover-lift">
                 <div style={{ ...styles.featureIcon, background: `${prop.color}15` }}>{prop.icon}</div>
@@ -1142,7 +1146,7 @@ const styles = {
   // Features
   featuresGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '24px',
   },
   featureCard: {
