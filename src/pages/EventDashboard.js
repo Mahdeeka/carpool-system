@@ -1490,34 +1490,22 @@ function EventDashboard() {
                 <>
                   {/* User Info Fields - Pre-filled for logged in users */}
                   {isAuthenticated && (
-                    <div style={{ 
-                      background: '#f0fdf4', 
-                      border: '1px solid #86efac', 
-                      borderRadius: '8px', 
-                      padding: '8px 12px', 
-                      marginBottom: '16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '13px',
-                      color: '#166534'
-                    }}>
-                      <span>✅</span>
+                    <div className="logged-in-notice">
+                      <span className="icon">✅</span>
                       <span>Logged in - Your info is pre-filled below</span>
                     </div>
                   )}
                   
                   {/* Name Field with Hide Checkbox */}
                   <div className="form-group">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <label className="form-label" style={{ margin: 0 }}>Your Name *</label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+                    <div className="form-field-header">
+                      <label className="form-label">Your Name *</label>
+                      <label className="hide-toggle">
                         <input
                           type="checkbox"
                           name="hideName"
                           checked={formData.hideName}
                           onChange={handleInputChange}
-                          style={{ width: '14px', height: '14px' }}
                         />
                         🙈 Anonymous
                       </label>
@@ -1535,15 +1523,14 @@ function EventDashboard() {
                   {/* Phone and Email Fields with Hide Checkboxes */}
                   <div className="form-row two-col">
                     <div className="form-group">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <label className="form-label" style={{ margin: 0 }}>Phone *</label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+                      <div className="form-field-header">
+                        <label className="form-label">Phone *</label>
+                        <label className="hide-toggle">
                           <input
                             type="checkbox"
                             name="hidePhone"
                             checked={formData.hidePhone}
                             onChange={handleInputChange}
-                            style={{ width: '14px', height: '14px' }}
                           />
                           🙈
                         </label>
@@ -1558,15 +1545,14 @@ function EventDashboard() {
                       />
                     </div>
                     <div className="form-group">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                        <label className="form-label" style={{ margin: 0 }}>Email *</label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', cursor: 'pointer' }}>
+                      <div className="form-field-header">
+                        <label className="form-label">Email *</label>
+                        <label className="hide-toggle">
                           <input
                             type="checkbox"
                             name="hideEmail"
                             checked={formData.hideEmail}
                             onChange={handleInputChange}
-                            style={{ width: '14px', height: '14px' }}
                           />
                           🙈
                         </label>
@@ -1584,15 +1570,9 @@ function EventDashboard() {
                   
                   {/* Privacy notice */}
                   {(formData.hideName || formData.hidePhone || formData.hideEmail) && (
-                    <div style={{ 
-                      padding: '8px 12px', 
-                      background: '#fef3c7', 
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                      color: '#92400e',
-                      marginBottom: '16px'
-                    }}>
-                      ⚠️ Hidden info will only be shared after ride is confirmed
+                    <div className="privacy-notice">
+                      <span>⚠️</span>
+                      <span>Hidden info will only be shared after ride is confirmed</span>
                     </div>
                   )}
 
@@ -1645,13 +1625,13 @@ function EventDashboard() {
               {/* Route Preview - Only show when we have coordinates and event location */}
               {formData.pickupLat && formData.pickupLng && event?.event_location && (
                 <Suspense fallback={<LoadingPlaceholder />}>
-                  <div className="route-preview-section" style={{ marginTop: '16px', marginBottom: '16px' }}>
-                    <h4 style={{ fontSize: '14px', marginBottom: '12px', color: '#0369a1' }}>🗺️ תצוגת מסלול לאירוע</h4>
+                  <div className="route-preview-section">
+                    <h4>🗺️ תצוגת מסלול לאירוע</h4>
                     <RouteMap
-                      origin={{ 
-                        address: formData.pickupLocation, 
-                        lat: formData.pickupLat, 
-                        lng: formData.pickupLng 
+                      origin={{
+                        address: formData.pickupLocation,
+                        lat: formData.pickupLat,
+                        lng: formData.pickupLng
                       }}
                       destination={event.event_location}
                       height="250px"
@@ -1659,15 +1639,9 @@ function EventDashboard() {
                       onRouteCalculated={handleRouteCalculated}
                     />
                     {routeDistance && (
-                      <div style={{ 
-                        marginTop: '8px', 
-                        padding: '8px 12px', 
-                        background: '#f0fdf4', 
-                        borderRadius: '8px',
-                        fontSize: '13px',
-                        color: '#166534'
-                      }}>
-                        📏 Distance: {routeDistance.toFixed(1)} km • Max payment: ₪{maxPayment.toFixed(2)}
+                      <div className="route-distance-info">
+                        <span>📏</span>
+                        <span>Distance: {routeDistance.toFixed(1)} km • Max payment: ₪{maxPayment.toFixed(2)}</span>
                       </div>
                     )}
                   </div>
@@ -1779,10 +1753,10 @@ function EventDashboard() {
               </div>
 
               {/* Gender Selection */}
-              <div className="form-group">
+              <div className="form-group gender-selector">
                 <label className="form-label">Your Gender *</label>
-                <div className="radio-group" style={{ display: 'flex', gap: '12px' }}>
-                  <label className="radio-option" style={{ flex: 1 }}>
+                <div className="radio-group">
+                  <label className="radio-option">
                     <input
                       type="radio"
                       name="gender"
@@ -1792,7 +1766,7 @@ function EventDashboard() {
                     />
                     <span>♂️ Male</span>
                   </label>
-                  <label className="radio-option" style={{ flex: 1 }}>
+                  <label className="radio-option">
                     <input
                       type="radio"
                       name="gender"
@@ -1804,17 +1778,12 @@ function EventDashboard() {
                   </label>
                 </div>
               </div>
-              
+
               {/* Privacy Options - Only show for non-logged-in users */}
               {!isAuthenticated && (
-                <div className="form-group" style={{ 
-                  background: '#f8fafc', 
-                  padding: '12px', 
-                  borderRadius: '8px',
-                  marginTop: '8px'
-                }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>🔒 Privacy Options</div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', marginBottom: '6px' }}>
+                <div className="privacy-options-box">
+                  <div className="privacy-options-title">🔒 Privacy Options</div>
+                  <label className="privacy-option-label">
                     <input
                       type="checkbox"
                       name="hideName"
@@ -1823,7 +1792,7 @@ function EventDashboard() {
                     />
                     Hide my name from others
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+                  <label className="privacy-option-label">
                     <input
                       type="checkbox"
                       name="hidePhone"
@@ -1931,65 +1900,41 @@ function EventDashboard() {
                       </div>
                       
                       {/* Payment Method */}
-                      <div className="form-group" style={{ marginTop: '16px' }}>
+                      <div className="form-group">
                         <label className="form-label">💳 Payment Method *</label>
-                        <div className="radio-group" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          <label className="radio-option" style={{ 
-                            flex: '1', 
-                            minWidth: '100px',
-                            padding: '12px',
-                            border: formData.paymentMethod === 'bit' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            background: formData.paymentMethod === 'bit' ? '#eff6ff' : 'white',
-                            cursor: 'pointer'
-                          }}>
+                        <div className="payment-methods-grid">
+                          <label className={`payment-method-card ${formData.paymentMethod === 'bit' ? 'selected' : ''}`}>
                             <input
                               type="radio"
                               name="paymentMethod"
                               value="bit"
                               checked={formData.paymentMethod === 'bit'}
                               onChange={handleInputChange}
-                              style={{ display: 'none' }}
                             />
-                            <span style={{ fontWeight: 600 }}>📱 Bit</span>
+                            <span className="icon">📱</span>
+                            <span className="text">Bit</span>
                           </label>
-                          <label className="radio-option" style={{ 
-                            flex: '1', 
-                            minWidth: '100px',
-                            padding: '12px',
-                            border: formData.paymentMethod === 'paybox' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            background: formData.paymentMethod === 'paybox' ? '#eff6ff' : 'white',
-                            cursor: 'pointer'
-                          }}>
+                          <label className={`payment-method-card ${formData.paymentMethod === 'paybox' ? 'selected' : ''}`}>
                             <input
                               type="radio"
                               name="paymentMethod"
                               value="paybox"
                               checked={formData.paymentMethod === 'paybox'}
                               onChange={handleInputChange}
-                              style={{ display: 'none' }}
                             />
-                            <span style={{ fontWeight: 600 }}>📦 PayBox</span>
+                            <span className="icon">📦</span>
+                            <span className="text">PayBox</span>
                           </label>
-                          <label className="radio-option" style={{ 
-                            flex: '1', 
-                            minWidth: '100px',
-                            padding: '12px',
-                            border: formData.paymentMethod === 'cash' ? '2px solid #3b82f6' : '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            background: formData.paymentMethod === 'cash' ? '#eff6ff' : 'white',
-                            cursor: 'pointer'
-                          }}>
+                          <label className={`payment-method-card ${formData.paymentMethod === 'cash' ? 'selected' : ''}`}>
                             <input
                               type="radio"
                               name="paymentMethod"
                               value="cash"
                               checked={formData.paymentMethod === 'cash'}
                               onChange={handleInputChange}
-                              style={{ display: 'none' }}
                             />
-                            <span style={{ fontWeight: 600 }}>💵 Cash</span>
+                            <span className="icon">💵</span>
+                            <span className="text">Cash</span>
                           </label>
                         </div>
                       </div>
@@ -2091,10 +2036,8 @@ function EventDashboard() {
               
               {/* Show driver's route and allow picking pickup location */}
               {selectedOffer.locations?.[0]?.location_address && event?.event_location && (
-                <div style={{ marginBottom: '20px' }}>
-                  <h4 style={{ fontSize: '14px', marginBottom: '12px', color: '#0369a1', direction: 'rtl', textAlign: 'right' }}>
-                    🗺️ בחר מיקום איסוף על המסלול
-                  </h4>
+                <div className="route-picker-section">
+                  <h4>🗺️ בחר מיקום איסוף על המסלול</h4>
                   <Suspense fallback={<LoadingPlaceholder />}>
                     <RoutePicker
                       origin={selectedOffer.locations[0].location_address}
@@ -2109,10 +2052,8 @@ function EventDashboard() {
                     />
                   </Suspense>
                   
-                  <div style={{ marginTop: '12px', padding: '12px', background: '#f8fafc', borderRadius: '8px', direction: 'rtl' }}>
-                    <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px' }}>
-                      או הזן כתובת ידנית:
-                    </p>
+                  <div className="manual-address-box">
+                    <p>או הזן כתובת ידנית:</p>
                     <Suspense fallback={
                       <input 
                         type="text" 
@@ -2137,57 +2078,24 @@ function EventDashboard() {
 
               {/* Show selected pickup location confirmation */}
               {joinPickupLocation && joinPickupLocation.lat != null && joinPickupLocation.lng != null ? (
-                <div style={{ 
-                  marginBottom: '20px', 
-                  padding: '12px', 
-                  background: '#dcfce7', 
-                  borderRadius: '8px',
-                  border: '1px solid #22c55e',
-                  direction: 'rtl'
-                }}>
-                  <p style={{ fontSize: '14px', color: '#16a34a', margin: 0, fontWeight: '500' }}>
-                    ✅ מיקום איסוף נבחר:
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#15803d', margin: '4px 0 0 0' }}>
-                    {joinPickupLocation.address}
-                  </p>
-                  <p style={{ fontSize: '11px', color: '#166534', margin: '2px 0 0 0' }}>
-                    ({joinPickupLocation.lat.toFixed(5)}, {joinPickupLocation.lng.toFixed(5)})
-                  </p>
+                <div className="pickup-confirmed">
+                  <p className="title">✅ מיקום איסוף נבחר:</p>
+                  <p className="address">{joinPickupLocation.address}</p>
+                  <p className="coords">({joinPickupLocation.lat.toFixed(5)}, {joinPickupLocation.lng.toFixed(5)})</p>
                 </div>
               ) : (
-                <div style={{ 
-                  marginBottom: '20px', 
-                  padding: '12px', 
-                  background: '#fef3c7', 
-                  borderRadius: '8px',
-                  border: '1px solid #f59e0b',
-                  direction: 'rtl'
-                }}>
-                  <p style={{ fontSize: '13px', color: '#92400e', margin: 0 }}>
-                    ⚠️ לא נבחר מיקום איסוף. לחץ על המסלול הכחול למעלה או הזן כתובת.
-                  </p>
+                <div className="pickup-warning">
+                  <p>⚠️ לא נבחר מיקום איסוף. לחץ על המסלול הכחול למעלה או הזן כתובת.</p>
                 </div>
               )}
               
               {isAuthenticated ? (
-                <div style={{ 
-                  background: '#f0fdf4', 
-                  border: '1px solid #86efac', 
-                  borderRadius: '8px', 
-                  padding: '8px 12px', 
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '13px',
-                  color: '#166534'
-                }}>
-                  <span>✅</span>
+                <div className="logged-in-notice">
+                  <span className="icon">✅</span>
                   <span>Logged in - Your info is pre-filled below</span>
                 </div>
               ) : (
-                <p style={{ textAlign: 'center', color: 'var(--gray-600)', marginBottom: '20px' }}>
+                <p className="text-center text-muted mb-2">
                   Enter your details to request a spot
                 </p>
               )}
@@ -2229,22 +2137,13 @@ function EventDashboard() {
               </div>
 
               {/* Number of Passengers */}
-              <div className="form-group">
+              <div className="form-group passenger-count-section">
                 <label className="form-label">Number of Passengers (Including You) *</label>
-                <select 
-                  name="passengerCount" 
+                <select
+                  name="passengerCount"
                   className="form-select"
                   value={formData.passengerCount || 1}
                   onChange={handleInputChange}
-                  style={{
-                    padding: '10px',
-                    borderRadius: '8px',
-                    border: '1px solid #e2e8f0',
-                    fontSize: '14px',
-                    background: 'white',
-                    color: '#1e293b',
-                    cursor: 'pointer'
-                  }}
                 >
                   {[...Array(Math.min(selectedOffer?.available_seats || 1, 10))].map((_, i) => (
                     <option key={i + 1} value={i + 1}>
@@ -2252,18 +2151,13 @@ function EventDashboard() {
                     </option>
                   ))}
                 </select>
-                <p style={{ 
-                  fontSize: '12px', 
-                  color: '#64748b', 
-                  marginTop: '6px',
-                  fontStyle: 'italic'
-                }}>
+                <p className="passenger-count-hint">
                   💡 Available seats: {selectedOffer?.available_seats || 0}
                 </p>
               </div>
 
               {/* Message/Note field */}
-              <div className="form-group">
+              <div className="form-group message-to-driver">
                 <label className="form-label">הודעה לנהג (אופציונלי)</label>
                 <textarea
                   className="form-input"
@@ -2271,15 +2165,14 @@ function EventDashboard() {
                   onChange={(e) => setJoinMessage(e.target.value)}
                   placeholder="הערות מיוחדות, זמני גמישות, או כל מידע חשוב לנהג..."
                   rows={3}
-                  style={{ resize: 'vertical', direction: 'rtl' }}
                 />
               </div>
 
               {/* Gender Selection */}
-              <div className="form-group">
+              <div className="form-group gender-selector">
                 <label className="form-label">Your Gender *</label>
-                <div className="radio-group" style={{ display: 'flex', gap: '12px' }}>
-                  <label className="radio-option" style={{ flex: 1 }}>
+                <div className="radio-group">
+                  <label className="radio-option">
                     <input
                       type="radio"
                       name="gender"
@@ -2289,7 +2182,7 @@ function EventDashboard() {
                     />
                     <span>♂️ Male</span>
                   </label>
-                  <label className="radio-option" style={{ flex: 1 }}>
+                  <label className="radio-option">
                     <input
                       type="radio"
                       name="gender"
@@ -2406,14 +2299,15 @@ function EventDashboard() {
                         <h4>👤 {req.name}</h4>
                         <p>{req.phone} • {req.email}</p>
                         {req.pickup_location && (
-                          <p style={{ marginTop: '8px', color: '#64748b', fontSize: '13px' }}>
-                            📍 מיקום איסוף: {req.pickup_location}
+                          <p className="request-pickup-location">
+                            <span>📍</span>
+                            <span>מיקום איסוף: {req.pickup_location}</span>
                           </p>
                         )}
                         {req.message && (
-                          <div style={{ marginTop: '8px', padding: '10px', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #bae6fd' }}>
-                            <p style={{ fontSize: '12px', color: '#0369a1', margin: 0, fontWeight: 500 }}>💬 הודעה מהנוסע:</p>
-                            <p style={{ fontSize: '13px', color: '#0c4a6e', margin: '4px 0 0', direction: 'rtl' }}>{req.message}</p>
+                          <div className="passenger-message-box">
+                            <p className="label">💬 הודעה מהנוסע:</p>
+                            <p className="message">{req.message}</p>
                           </div>
                         )}
                         <span className={`status-badge status-${req.status}`}>
