@@ -571,7 +571,10 @@ function EventDashboard() {
       }
     } catch (err) {
       console.error('Error publishing:', err);
-      showToast('Error publishing. Please try again.', 'error');
+      const errorMessage = err.message?.includes('timed out')
+        ? 'Request timed out. Please check your connection and try again.'
+        : 'Error publishing. Please try again.';
+      showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -594,13 +597,17 @@ function EventDashboard() {
         await executePublish(pendingPublishType, result.token);
       } else {
         showToast(result.message || 'Invalid code. Please try again.', 'error');
+        setSubmitting(false);
       }
     } catch (err) {
       console.error('OTP verification error:', err);
-      showToast('Verification failed. Please try again.', 'error');
-    } finally {
+      const errorMessage = err.message?.includes('timed out')
+        ? 'Request timed out. Please check your connection and try again.'
+        : 'Verification failed. Please try again.';
+      showToast(errorMessage, 'error');
       setSubmitting(false);
     }
+    // Note: setSubmitting(false) is called in executePublish's finally block on success
   };
 
   // Resend OTP code
@@ -614,7 +621,10 @@ function EventDashboard() {
         showToast(result.message || 'Failed to send code', 'error');
       }
     } catch (err) {
-      showToast('Failed to send code', 'error');
+      const errorMessage = err.message?.includes('timed out')
+        ? 'Request timed out. Please try again.'
+        : 'Failed to send code. Please try again.';
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -668,7 +678,7 @@ function EventDashboard() {
     // For non-authenticated users, start OTP flow
     setSubmitting(true);
     setPendingPublishType(type);
-    
+
     try {
       const result = await requestOTP(formData.phone);
       if (result.success) {
@@ -680,7 +690,10 @@ function EventDashboard() {
       }
     } catch (err) {
       console.error('Error requesting OTP:', err);
-      showToast('Failed to send verification code', 'error');
+      const errorMessage = err.message?.includes('timed out')
+        ? 'Request timed out. Please check your connection and try again.'
+        : 'Failed to send verification code. Please try again.';
+      showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -836,7 +849,10 @@ function EventDashboard() {
       }
     } catch (err) {
       console.error('Error requesting to join:', err);
-      showToast('Error sending request', 'error');
+      const errorMessage = err.message?.includes('timed out')
+        ? 'Request timed out. Please check your connection and try again.'
+        : 'Error sending request. Please try again.';
+      showToast(errorMessage, 'error');
     } finally {
       setSubmitting(false);
     }

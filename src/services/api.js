@@ -1,29 +1,46 @@
 // API Base URL - Change this to your backend URL
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+// Default timeout for API calls (10 seconds)
+const DEFAULT_TIMEOUT = 10000;
+
 // Get auth token from localStorage
 const getAuthToken = () => {
   return localStorage.getItem('authToken');
 };
 
-// Helper function for API calls
-const apiCall = async (endpoint, options = {}) => {
+// Helper function to create a timeout promise
+const createTimeoutPromise = (ms) => {
+  return new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Request timed out. Please try again.')), ms);
+  });
+};
+
+// Helper function for API calls with timeout
+const apiCall = async (endpoint, options = {}, timeout = DEFAULT_TIMEOUT) => {
   try {
     const token = getAuthToken();
     const headers = {
       'Content-Type': 'application/json',
       ...options.headers,
     };
-    
+
     // Add authorization header if token exists
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+
+    // Create fetch promise
+    const fetchPromise = fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers,
     });
+
+    // Race between fetch and timeout
+    const response = await Promise.race([
+      fetchPromise,
+      createTimeoutPromise(timeout)
+    ]);
 
     const data = await response.json();
 
