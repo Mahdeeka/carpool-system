@@ -320,40 +320,6 @@ function MyRides() {
         )}
       </div>
 
-      {/* Data Warning Banner */}
-      {isAuthenticated && (myOffers.length === 0 && myJoinedRides.length === 0 && myRequests.length === 0) && (
-        <div style={{
-          margin: '20px',
-          padding: '20px',
-          background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-          border: '2px solid #f59e0b',
-          borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <div style={{ fontSize: '32px' }}>⚠️</div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: '0 0 8px', color: '#92400e', fontSize: '18px', fontWeight: '700' }}>
-                No Rides Found - Data May Have Been Lost
-              </h3>
-              <p style={{ margin: '0 0 12px', color: '#78350f', fontSize: '14px', lineHeight: '1.6' }}>
-                The system uses <strong>in-memory storage</strong> which means all data is lost when the server restarts.
-              </p>
-              <div style={{ background: 'rgba(255,255,255,0.7)', padding: '12px', borderRadius: '8px', marginTop: '12px' }}>
-                <p style={{ margin: '0 0 8px', color: '#78350f', fontSize: '14px', fontWeight: '600' }}>
-                  💡 To see your rides here:
-                </p>
-                <ol style={{ margin: '0', paddingLeft: '20px', color: '#78350f', fontSize: '13px', lineHeight: '1.8' }}>
-                  <li><strong>Create a new offer</strong> - Go to an event and click "Offer a Ride"</li>
-                  <li><strong>Request to join a ride</strong> - Browse events and click "Request to Join"</li>
-                  <li><strong>Keep the server running</strong> - Don't restart to preserve data</li>
-                  <li><strong>Or set up PostgreSQL</strong> - For permanent storage (see database/schema.sql)</li>
-                </ol>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Tabs */}
       <div className="rides-tabs">
@@ -391,9 +357,6 @@ function MyRides() {
                     ⚠️ Please login to see your offers
                   </p>
                 )}
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-                  Note: If server was restarted, previous data may have been lost.
-                </p>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
                   <button onClick={() => navigate('/')} className="btn btn-primary">
                     🚗 Offer a Ride
@@ -649,9 +612,6 @@ function MyRides() {
                     ⚠️ Please login to see your joined rides
                   </p>
                 )}
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-                  Note: If server was restarted, previous data may have been lost.
-                </p>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
                   <button onClick={() => navigate('/')} className="btn btn-primary">
                     🙋 Ask for a Ride
@@ -781,9 +741,6 @@ function MyRides() {
                     ⚠️ Please login to see your requests
                   </p>
                 )}
-                <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-                  Note: If server was restarted, previous data may have been lost.
-                </p>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
                   <button onClick={() => navigate('/')} className="btn btn-primary">
                     🙋 Find a Ride
