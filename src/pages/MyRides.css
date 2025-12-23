@@ -152,14 +152,14 @@
 }
 
 .empty-state h3 {
-  color: white;
+  color: #0B1220;
   font-size: 1.3rem;
   font-weight: 700;
   margin: 0 0 10px;
 }
 
 .empty-state p {
-  color: rgba(255, 255, 255, 0.6);
+  color: #4B5563;
   font-size: 15px;
   margin-bottom: 24px;
   max-width: 300px;
@@ -174,25 +174,24 @@
 }
 
 .empty-state .btn-primary {
-  background: var(--gradient-neon);
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
   border: none;
-  box-shadow: var(--shadow-neon);
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(11, 42, 74, 0.3);
 }
 
 .empty-state .btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #4B5563;
 }
 
 /* Offer Card */
 .offer-card,
 .joined-ride-card,
 .request-card {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   border-radius: 20px;
   margin-bottom: 20px;
   overflow: hidden;
@@ -202,10 +201,9 @@
 .offer-card:hover,
 .joined-ride-card:hover,
 .request-card:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: #0EA5E9;
   transform: translateY(-4px);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .offer-header {
@@ -213,14 +211,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #F8FAFC;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .offer-info h3 {
   margin: 0 0 6px;
   font-size: 1.1rem;
-  color: white;
+  color: #0B1220;
   font-weight: 700;
 }
 
@@ -231,13 +229,13 @@
 }
 
 .seats-info {
-  color: rgba(255, 255, 255, 0.7);
+  color: #4B5563;
   font-weight: 500;
 }
 
 .pending-badge {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
+  background: linear-gradient(135deg, #F59E0B 0%, #d97706 100%);
+  color: #FFFFFF;
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -245,9 +243,9 @@
 }
 
 .expand-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #4B5563;
   padding: 10px 18px;
   border-radius: 10px;
   font-size: 13px;
@@ -257,7 +255,9 @@
 }
 
 .expand-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #F8FAFC;
+  border-color: #0EA5E9;
+  color: #0EA5E9;
   transform: translateY(-2px);
 }
 
@@ -267,8 +267,8 @@
   align-items: center;
   gap: 16px;
   padding: 16px 24px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #F8FAFC;
+  border-bottom: 1px solid #E5E7EB;
   flex-wrap: wrap;
 }
 
@@ -277,7 +277,7 @@
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #0B1220;
 }
 
 .point-icon {
@@ -285,25 +285,25 @@
 }
 
 .route-arrow {
-  color: rgba(255, 255, 255, 0.4);
+  color: #4B5563;
   font-size: 20px;
 }
 
 /* Passengers Section */
 .passengers-section {
   padding: 20px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .passengers-section h4 {
   margin: 0 0 16px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #0B1220;
   font-weight: 600;
 }
 
 .pending-section {
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(245, 158, 11, 0.08);
 }
 
 .passengers-list {
@@ -318,24 +318,25 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #E5E7EB;
   transition: all 0.2s ease;
 }
 
 .passenger-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: #F8FAFC;
+  border-color: #0EA5E9;
 }
 
 .passenger-card.confirmed {
-  border-left: 4px solid #10b981;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+  border-left: 4px solid #22C55E;
+  background: rgba(34, 197, 94, 0.05);
 }
 
 .passenger-card.pending {
-  border-left: 4px solid #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
+  border-left: 4px solid #F59E0B;
+  background: rgba(245, 158, 11, 0.05);
 }
 
 .passenger-info {
@@ -371,17 +372,17 @@
 
 .passenger-details strong {
   font-size: 15px;
-  color: white;
+  color: #0B1220;
 }
 
 .passenger-contact {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #4B5563;
 }
 
 .pickup-location {
   font-size: 13px;
-  color: #60a5fa;
+  color: #0EA5E9;
   font-weight: 500;
 }
 
@@ -412,9 +413,9 @@
 }
 
 .call-btn-small {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #FFFFFF;
+  color: #4B5563;
+  border: 1px solid #E5E7EB;
 }
 
 .whatsapp-btn-small:hover,
@@ -425,14 +426,14 @@
 /* Expanded Details */
 .expanded-details {
   padding: 24px;
-  background: rgba(0, 0, 0, 0.3);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #F8FAFC;
+  border-top: 1px solid #E5E7EB;
 }
 
 .expanded-details h4 {
   margin: 0 0 20px;
   font-size: 16px;
-  color: white;
+  color: #0B1220;
   font-weight: 600;
 }
 
@@ -443,23 +444,24 @@
 .passenger-route {
   margin-bottom: 20px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #E5E7EB;
 }
 
 .passenger-route h5 {
   margin: 0 0 16px;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #0B1220;
 }
 
 .no-passengers-map {
   text-align: center;
   padding: 48px 24px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #FFFFFF;
   border-radius: 14px;
-  color: rgba(255, 255, 255, 0.5);
+  border: 1px dashed #E5E7EB;
+  color: #4B5563;
 }
 
 /* Passengers Table */
@@ -470,9 +472,10 @@
 .passengers-table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.06);
+  background: #FFFFFF;
   border-radius: 14px;
   overflow: hidden;
+  border: 1px solid #E5E7EB;
 }
 
 .passengers-table th,
@@ -480,20 +483,20 @@
   padding: 14px 18px;
   text-align: left;
   font-size: 13px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .passengers-table th {
-  background: rgba(255, 255, 255, 0.08);
+  background: #F8FAFC;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: #4B5563;
   text-transform: uppercase;
   font-size: 11px;
   letter-spacing: 0.5px;
 }
 
 .passengers-table td {
-  color: rgba(255, 255, 255, 0.7);
+  color: #0B1220;
 }
 
 .passengers-table tr:last-child td {
@@ -511,14 +514,14 @@
 }
 
 .status-badge.confirmed {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .status-badge.pending {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
-  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -533,14 +536,14 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #F8FAFC;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .ride-header h3 {
   margin: 0;
   font-size: 1.1rem;
-  color: white;
+  color: #0B1220;
   font-weight: 700;
 }
 
@@ -552,25 +555,25 @@
 }
 
 .ride-status.confirmed {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: #22C55E;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
 }
 
 .ride-status.pending {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
+  background: #F59E0B;
+  color: #FFFFFF;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .ride-status.rejected {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+  background: #EF4444;
+  color: #FFFFFF;
 }
 
 .ride-status.cancelled {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: #E5E7EB;
+  color: #4B5563;
 }
 
 .ride-details {
@@ -583,7 +586,7 @@
   gap: 12px;
   padding: 10px 0;
   font-size: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .detail-row:last-child {
@@ -591,20 +594,20 @@
 }
 
 .detail-row .detail-label {
-  color: rgba(255, 255, 255, 0.5);
+  color: #4B5563;
   font-weight: 500;
   min-width: 100px;
   flex-shrink: 0;
 }
 
 .detail-row span:last-child {
-  color: rgba(255, 255, 255, 0.9);
+  color: #0B1220;
 }
 
 .ride-actions {
   padding: 20px 24px;
-  background: rgba(0, 0, 0, 0.2);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #F8FAFC;
+  border-top: 1px solid #E5E7EB;
 }
 
 /* Loading State */
@@ -614,11 +617,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  background: #F8FAFC;
 }
 
 .loading-text {
-  color: rgba(255, 255, 255, 0.7);
+  color: #4B5563;
   font-size: 16px;
   margin-top: 24px;
   font-weight: 500;
@@ -647,7 +650,7 @@
 .simple-car-body {
   width: 80px;
   height: 30px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
   border-radius: 8px 20px 8px 8px;
   position: relative;
 }
@@ -658,7 +661,7 @@
   left: 15px;
   width: 45px;
   height: 20px;
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, #0EA5E9 0%, #38BDF8 100%);
   border-radius: 10px 10px 0 0;
 }
 

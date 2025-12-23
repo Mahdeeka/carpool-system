@@ -2,14 +2,14 @@
   width: 100%;
   border-radius: 12px;
   overflow: hidden;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #F8FAFC;
+  border: 1px solid #E5E7EB;
 }
 
 .route-map {
   width: 100%;
   position: relative;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: #F8FAFC;
 }
 
 .map-loading {
@@ -30,8 +30,8 @@
 .map-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3b82f6;
+  border: 3px solid #E5E7EB;
+  border-top-color: #0EA5E9;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -41,15 +41,15 @@
 }
 
 .map-loading span {
-  color: #64748b;
+  color: #4B5563;
   font-size: 14px;
 }
 
 .route-error {
   padding: 12px 16px;
-  background: #fef2f2;
-  border-top: 1px solid #fecaca;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.05);
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+  color: #EF4444;
   font-size: 14px;
   direction: rtl;
   text-align: right;
@@ -57,8 +57,8 @@
 
 .route-info {
   padding: 16px;
-  background: white;
-  border-top: 1px solid #e2e8f0;
+  background: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
   direction: rtl;
 }
 
@@ -82,20 +82,20 @@
 .stat-value {
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b !important;
+  color: #0B1220 !important;
   background: transparent;
 }
 
 .route-info {
-  color: #1e293b;
+  color: #0B1220;
 }
 
 .route-summary {
-  color: #1e293b;
+  color: #0B1220;
 }
 
 .route-legs {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid #E5E7EB;
   padding-top: 12px;
   margin-top: 12px;
 }
@@ -105,7 +105,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .route-leg:last-child {
@@ -115,8 +115,8 @@
 .leg-number {
   width: 24px;
   height: 24px;
-  background: #3b82f6;
-  color: white;
+  background: #0EA5E9;
+  color: #FFFFFF;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -135,13 +135,13 @@
 
 .leg-endpoints {
   font-size: 13px;
-  color: #1e293b;
+  color: #0B1220;
   line-height: 1.4;
 }
 
 .leg-stats {
   font-size: 12px;
-  color: #64748b;
+  color: #4B5563;
 }
 
 /* Compact route info for cards */
