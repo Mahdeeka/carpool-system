@@ -1,11 +1,11 @@
 /* =============================================
-   MY RIDES - LEGENDARY UI/UX DESIGN
+   MY RIDES - MIDNIGHT NEON THEME
    ============================================= */
 
 /* Page Container */
 .my-rides-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  background: linear-gradient(180deg, var(--bg-darkest) 0%, var(--bg-dark) 50%, var(--bg-base) 100%);
   padding-bottom: 100px;
 }
 
@@ -66,7 +66,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-neon);
   border: none;
   border-radius: 12px;
   padding: 10px 18px;
@@ -74,12 +74,12 @@
   font-weight: 600;
   color: white;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: var(--shadow-neon);
   transition: all 0.3s ease;
 }
 
 .account-btn:hover {
-  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.5), 0 0 60px rgba(6, 182, 212, 0.3);
   transform: translateY(-2px);
 }
 
@@ -129,10 +129,10 @@
 }
 
 .rides-tabs .tab.active {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-neon);
   border-color: transparent;
   color: white;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.5);
+  box-shadow: var(--shadow-neon);
 }
 
 /* Content */
@@ -180,9 +180,9 @@
 }
 
 .empty-state .btn-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-neon);
   border: none;
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  box-shadow: var(--shadow-neon);
 }
 
 .empty-state .btn-secondary {
