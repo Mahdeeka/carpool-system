@@ -5,95 +5,98 @@
 /* Import Google Font - Outfit for modern look */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
-/* CSS Variables - MIDNIGHT NEON THEME */
+/* CSS Variables - CLEAN LIGHT THEME */
 :root {
-  /* === MIDNIGHT NEON COLOR PALETTE === */
+  /* === BRAND COLOR PALETTE === */
 
-  /* Primary - Electric Cyan */
-  --primary: #06b6d4;
-  --primary-dark: #0891b2;
-  --primary-light: #22d3ee;
-  --primary-bg: rgba(6, 182, 212, 0.15);
-  --primary-glow: 0 0 30px rgba(6, 182, 212, 0.5);
+  /* Primary - Deep Navy */
+  --primary: #0B2A4A;
+  --primary-dark: #071F36;
+  --primary-light: #0B2A4A;
+  --primary-bg: #E0F2FE;
+  --primary-hover: #071F36;
 
-  /* Secondary - Electric Violet */
-  --secondary: #8b5cf6;
-  --secondary-dark: #7c3aed;
-  --secondary-light: #a78bfa;
-  --secondary-bg: rgba(139, 92, 246, 0.15);
-  --secondary-glow: 0 0 30px rgba(139, 92, 246, 0.5);
+  /* Accent - Sky Blue */
+  --accent: #0EA5E9;
+  --accent-dark: #0284C7;
+  --accent-light: #38BDF8;
+  --accent-bg: #E0F2FE;
 
-  /* Accent - Hot Magenta */
-  --accent: #ec4899;
-  --accent-dark: #db2777;
-  --accent-light: #f472b6;
-  --accent-bg: rgba(236, 72, 153, 0.15);
-  --accent-glow: 0 0 30px rgba(236, 72, 153, 0.5);
+  /* Secondary (same as accent for this theme) */
+  --secondary: #0EA5E9;
+  --secondary-dark: #0284C7;
+  --secondary-light: #38BDF8;
+  --secondary-bg: #E0F2FE;
 
-  /* Status colors - Neon variants */
-  --success: #10b981;
-  --success-light: #34d399;
-  --success-bg: rgba(16, 185, 129, 0.15);
-  --success-glow: 0 0 20px rgba(16, 185, 129, 0.5);
+  /* Status colors */
+  --success: #22C55E;
+  --success-light: #4ADE80;
+  --success-bg: rgba(34, 197, 94, 0.1);
 
-  --warning: #f59e0b;
-  --warning-light: #fbbf24;
-  --warning-bg: rgba(245, 158, 11, 0.15);
-  --warning-glow: 0 0 20px rgba(245, 158, 11, 0.5);
+  --warning: #F59E0B;
+  --warning-light: #FBBF24;
+  --warning-bg: rgba(245, 158, 11, 0.1);
 
-  --danger: #ef4444;
-  --danger-light: #f87171;
-  --danger-bg: rgba(239, 68, 68, 0.15);
-  --danger-glow: 0 0 20px rgba(239, 68, 68, 0.5);
+  --danger: #EF4444;
+  --danger-light: #F87171;
+  --danger-bg: rgba(239, 68, 68, 0.1);
 
-  /* Dark Theme Neutrals */
-  --bg-darkest: #030712;
-  --bg-dark: #0a0e17;
-  --bg-base: #111827;
-  --bg-elevated: #1f2937;
-  --bg-surface: #374151;
+  /* Light Theme Backgrounds */
+  --bg-page: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-muted: #F1F5F9;
 
-  /* Light text on dark */
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
+  /* Legacy dark bg vars (mapped to light for compatibility) */
+  --bg-darkest: #F8FAFC;
+  --bg-dark: #F8FAFC;
+  --bg-base: #F8FAFC;
 
-  /* Glass effect colors */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-hover: rgba(255, 255, 255, 0.1);
+  /* Text colors - Dark on light */
+  --text-primary: #0B1220;
+  --text-secondary: #334155;
+  --text-muted: #4B5563;
+  --text-dim: #6B7280;
 
-  /* Legacy gray scale (for compatibility) */
-  --white: #ffffff;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
+  /* Border */
+  --border: #E5E7EB;
+  --border-light: #F3F4F6;
+
+  /* Glass effect colors (light theme) */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: #E5E7EB;
+  --glass-hover: rgba(0, 0, 0, 0.02);
+
+  /* Gray scale */
+  --white: #FFFFFF;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
   --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
+  --gray-800: #1F2937;
+  --gray-900: #0B1220;
 
-  /* Premium Gradients */
-  --gradient-primary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-  --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-  --gradient-hero: linear-gradient(135deg, #030712 0%, #1e1b4b 50%, #0f172a 100%);
-  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-  --gradient-neon: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%);
-  --gradient-aurora: linear-gradient(135deg, #22d3ee 0%, #a855f7 50%, #f472b6 100%);
-  --gradient-cosmic: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+  /* Gradients - Clean and subtle */
+  --gradient-primary: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  --gradient-secondary: linear-gradient(135deg, #0EA5E9 0%, #0B2A4A 100%);
+  --gradient-hero: linear-gradient(135deg, #0B2A4A 0%, #071F36 100%);
+  --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%);
+  --gradient-neon: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  --gradient-aurora: linear-gradient(135deg, #0EA5E9 0%, #0B2A4A 100%);
+  --gradient-cosmic: linear-gradient(135deg, #0B2A4A 0%, #071F36 100%);
 
-  /* Shadows - Dark theme optimized */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.7);
-  --shadow-glow: 0 0 60px rgba(6, 182, 212, 0.3);
-  --shadow-neon: 0 0 40px rgba(139, 92, 246, 0.4), 0 0 80px rgba(6, 182, 212, 0.2);
+  /* Shadows - Light theme */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 4px 20px rgba(14, 165, 233, 0.15);
+  --shadow-neon: 0 4px 20px rgba(11, 42, 74, 0.1);
 
   /* Border radius */
   --radius-sm: 8px;
@@ -136,7 +139,7 @@ body {
   font-size: 16px;
   line-height: 1.6;
   color: var(--text-primary);
-  background: var(--bg-dark);
+  background: #F8FAFC;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -145,24 +148,8 @@ body {
 .App {
   min-height: 100vh;
   min-height: 100dvh;
-  background: linear-gradient(180deg, var(--bg-darkest) 0%, var(--bg-dark) 50%, var(--bg-base) 100%);
+  background: #F8FAFC;
   position: relative;
-}
-
-/* Animated background particles */
-.App::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Better touch targets */
@@ -231,107 +218,92 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 }
 
 .btn-primary {
-  background: var(--gradient-primary);
-  color: var(--white);
-  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4), var(--primary-glow);
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: #0B2A4A;
+  color: #FFFFFF;
+  box-shadow: var(--shadow);
+  border: none;
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 8px 32px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.4);
-  transform: translateY(-2px);
+  background: #071F36;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
-  background: var(--glass-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #FFFFFF;
+  color: #0B1220;
+  border: 1px solid #E5E7EB;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--glass-hover);
-  border-color: var(--primary);
-  box-shadow: var(--primary-glow);
+  background: #F8FAFC;
+  border-color: #0B2A4A;
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-  color: var(--white);
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4), var(--success-glow);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: #22C55E;
+  color: #FFFFFF;
+  box-shadow: var(--shadow);
+  border: none;
 }
 
 .btn-success:hover:not(:disabled) {
-  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.4);
-  transform: translateY(-2px);
+  background: #16A34A;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
-  color: var(--white);
-  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: #EF4444;
+  color: #FFFFFF;
+  box-shadow: var(--shadow);
+  border: none;
 }
 
 .btn-danger:hover:not(:disabled) {
-  box-shadow: 0 8px 32px rgba(239, 68, 68, 0.5), var(--danger-glow);
-  transform: translateY(-2px);
+  background: #DC2626;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .btn-outline {
   background: transparent;
-  border: 2px solid var(--primary);
-  color: var(--primary);
+  border: 2px solid #0B2A4A;
+  color: #0B2A4A;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: var(--primary);
-  color: var(--white);
-  box-shadow: var(--primary-glow);
+  background: #0B2A4A;
+  color: #FFFFFF;
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--text-muted);
+  color: #4B5563;
   padding: 12px 20px;
   min-height: 44px;
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: var(--glass-bg);
-  color: var(--text-primary);
+  background: #F8FAFC;
+  color: #0B1220;
 }
 
-/* Neon button variant */
-.btn-neon {
-  background: var(--gradient-neon);
-  color: var(--white);
-  box-shadow: var(--shadow-neon);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  position: relative;
-  overflow: hidden;
+/* Accent button variant */
+.btn-neon,
+.btn-accent {
+  background: #0EA5E9;
+  color: #FFFFFF;
+  box-shadow: var(--shadow);
+  border: none;
 }
 
-.btn-neon::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s;
-}
-
-.btn-neon:hover::before {
-  left: 100%;
-}
-
-.btn-neon:hover:not(:disabled) {
-  box-shadow: 0 0 60px rgba(139, 92, 246, 0.5), 0 0 100px rgba(6, 182, 212, 0.3);
-  transform: translateY(-2px) scale(1.02);
+.btn-neon:hover:not(:disabled),
+.btn-accent:hover:not(:disabled) {
+  background: #0284C7;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .btn-block { width: 100%; }
@@ -376,13 +348,13 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   width: 100%;
   padding: 16px 18px;
   min-height: 56px;
-  border: 2px solid var(--glass-border);
+  border: 1px solid #E5E7EB;
   border-radius: var(--radius);
   font-size: 16px;
   font-family: inherit;
-  transition: all 0.3s var(--ease-smooth);
-  background: var(--bg-elevated);
-  color: var(--text-primary);
+  transition: all 0.2s ease;
+  background: #FFFFFF;
+  color: #0B1220;
   -webkit-appearance: none;
   appearance: none;
 }
@@ -391,9 +363,9 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px var(--primary-bg), var(--primary-glow);
-  background: var(--bg-surface);
+  border-color: #0EA5E9;
+  box-shadow: 0 0 0 3px #E0F2FE;
+  background: #FFFFFF;
 }
 
 .form-input::placeholder {
@@ -415,16 +387,16 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 }
 
 .form-error {
-  color: var(--danger-light);
+  color: #EF4444;
   font-size: 14px;
   margin-top: 8px;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 12px 16px;
-  background: var(--danger-bg);
+  background: rgba(239, 68, 68, 0.1);
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .form-hint {
@@ -1828,7 +1800,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 }
 
 /* =============================================
-   LOADING STATES - EPIC NEON CAR ANIMATION
+   LOADING STATES - CLEAN CAR ANIMATION
    ============================================= */
 .page-loading-overlay {
   position: fixed;
@@ -1836,7 +1808,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(180deg, var(--bg-darkest) 0%, var(--bg-dark) 50%, var(--bg-base) 100%);
+  background: #F8FAFC;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1850,24 +1822,9 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   to { opacity: 1; }
 }
 
-/* Animated background for loading */
-.page-loading-overlay::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.1) 0%, transparent 60%);
-  animation: pulseOrbs 4s ease-in-out infinite;
-}
-
 .loading-text {
   margin-top: 32px;
-  color: var(--text-secondary);
+  color: #4B5563;
   font-size: 18px;
   font-weight: 600;
   text-align: center;
@@ -1881,12 +1838,13 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   50% { opacity: 1; }
 }
 
-/* ===== EPIC NEON CAR LOADER ===== */
+/* ===== CAR LOADER ===== */
 .simple-car-loader {
   position: relative;
   width: 280px;
   height: 160px;
   z-index: 1;
+  animation: loaderEnter 0.5s ease-out;
 }
 
 /* The car container with bounce animation */
@@ -1896,17 +1854,12 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   left: 50%;
   transform: translateX(-50%);
   animation: epicCarBounce 0.4s ease-in-out infinite;
-  will-change: transform; /* GPU acceleration for smoother animation */
+  will-change: transform;
 }
 
 @keyframes epicCarBounce {
   0%, 100% { transform: translateX(-50%) translateY(0) rotate(-1deg); }
   50% { transform: translateX(-50%) translateY(-8px) rotate(1deg); }
-}
-
-/* Loader container entrance animation */
-.simple-car-loader {
-  animation: loaderEnter 0.5s ease-out;
 }
 
 @keyframes loaderEnter {
@@ -1920,119 +1873,86 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   }
 }
 
-/* Car body - Neon gradient */
+/* Car body - Primary gradient */
 .simple-car-body {
   width: 100px;
   height: 32px;
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
   border-radius: 8px 24px 6px 6px;
   position: relative;
-  box-shadow:
-    0 8px 30px rgba(6, 182, 212, 0.4),
-    0 0 40px rgba(139, 92, 246, 0.3),
-    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(11, 42, 74, 0.3);
 }
 
 /* Car roof */
 .simple-car-top {
   width: 55px;
   height: 26px;
-  background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, #0EA5E9 0%, #0B2A4A 100%);
   border-radius: 14px 14px 0 0;
   position: absolute;
   top: -20px;
   left: 16px;
-  box-shadow:
-    0 -4px 20px rgba(6, 182, 212, 0.3),
-    inset 0 2px 4px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 -2px 10px rgba(14, 165, 233, 0.2);
 }
 
-/* Car windows - Glass effect */
+/* Car windows */
 .simple-car-window {
   width: 45px;
   height: 16px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(139, 92, 246, 0.3) 100%);
+  background: linear-gradient(180deg, #E0F2FE 0%, rgba(14, 165, 233, 0.3) 100%);
   border-radius: 8px 8px 0 0;
   position: absolute;
   top: -16px;
   left: 21px;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(14, 165, 233, 0.3);
 }
 
-/* Front headlight - NEON GLOW */
+/* Front headlight */
 .simple-car-light-front {
   position: absolute;
   right: -6px;
   top: 8px;
   width: 12px;
   height: 10px;
-  background: linear-gradient(135deg, #fbbf24 0%, #fff 50%, #fbbf24 100%);
+  background: #F59E0B;
   border-radius: 4px 6px 6px 4px;
-  box-shadow:
-    0 0 20px #fbbf24,
-    0 0 40px #fbbf24,
-    0 0 60px rgba(251, 191, 36, 0.5),
-    10px 0 40px rgba(251, 191, 36, 0.3);
-  animation: headlightFlicker 0.1s ease-in-out infinite;
-}
-
-@keyframes headlightFlicker {
-  0%, 100% { opacity: 1; box-shadow: 0 0 20px #fbbf24, 0 0 40px #fbbf24, 0 0 60px rgba(251, 191, 36, 0.5), 15px 0 50px rgba(251, 191, 36, 0.4); }
-  50% { opacity: 0.95; box-shadow: 0 0 15px #fbbf24, 0 0 30px #fbbf24, 0 0 50px rgba(251, 191, 36, 0.4), 10px 0 40px rgba(251, 191, 36, 0.3); }
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
 }
 
 /* Light beam effect */
 .simple-car-light-front::after {
   content: '';
   position: absolute;
-  right: -80px;
-  top: -15px;
-  width: 100px;
-  height: 40px;
-  background: linear-gradient(90deg, rgba(251, 191, 36, 0.3) 0%, transparent 100%);
+  right: -60px;
+  top: -10px;
+  width: 80px;
+  height: 30px;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.2) 0%, transparent 100%);
   clip-path: polygon(0 40%, 100% 20%, 100% 80%, 0 60%);
-  animation: beamPulse 1s ease-in-out infinite;
 }
 
-@keyframes beamPulse {
-  0%, 100% { opacity: 0.6; transform: scaleX(1); }
-  50% { opacity: 0.8; transform: scaleX(1.1); }
-}
-
-/* Tail light - RED NEON */
+/* Tail light */
 .simple-car-light-back {
   position: absolute;
   left: -4px;
   top: 10px;
   width: 8px;
   height: 8px;
-  background: linear-gradient(135deg, #ef4444 0%, #ff6b6b 100%);
+  background: #EF4444;
   border-radius: 3px;
-  box-shadow:
-    0 0 15px #ef4444,
-    0 0 30px #ef4444,
-    -10px 0 25px rgba(239, 68, 68, 0.4);
-  animation: tailLightPulse 0.5s ease-in-out infinite;
-}
-
-@keyframes tailLightPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
 }
 
 /* Wheels with spin animation */
 .simple-car-wheel {
   width: 22px;
   height: 22px;
-  background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #1f2937 100%);
+  background: #0B1220;
   border-radius: 50%;
   position: absolute;
   bottom: -10px;
-  border: 3px solid #4b5563;
-  box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.5),
-    inset 0 0 10px rgba(0, 0, 0, 0.5);
+  border: 3px solid #4B5563;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   animation: wheelSpin 0.3s linear infinite;
   will-change: transform;
 }
@@ -2051,9 +1971,8 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   transform: translate(-50%, -50%);
   width: 8px;
   height: 8px;
-  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+  background: #0EA5E9;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
 }
 
 .simple-car-wheel-front {
@@ -2081,7 +2000,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   content: '';
   position: absolute;
   height: 3px;
-  background: linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #0EA5E9 50%, transparent 100%);
   border-radius: 2px;
   animation: speedLineMove 0.3s ease-out infinite;
 }
@@ -2110,7 +2029,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
 .speed-line {
   position: absolute;
   height: 3px;
-  background: linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #0EA5E9 50%, transparent 100%);
   border-radius: 2px;
   animation: speedLineMove 0.3s ease-out infinite;
 }
@@ -2150,7 +2069,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   position: absolute;
   width: 12px;
   height: 12px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(107, 114, 128, 0.4) 0%, transparent 70%);
   border-radius: 50%;
   animation: exhaustPuff 0.6s ease-out infinite;
 }
@@ -2174,7 +2093,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   position: absolute;
   width: 12px;
   height: 12px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, rgba(6, 182, 212, 0.3) 50%, transparent 70%);
+  background: radial-gradient(circle, rgba(107, 114, 128, 0.4) 0%, rgba(156, 163, 175, 0.2) 50%, transparent 70%);
   border-radius: 50%;
   animation: exhaustPuff 0.6s ease-out infinite;
 }
@@ -2197,7 +2116,7 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   animation-delay: 0.4s;
 }
 
-/* Neon road with glow */
+/* Road */
 .simple-road {
   position: absolute;
   bottom: 30px;
@@ -2207,18 +2126,15 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   height: 6px;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(139, 92, 246, 0.3) 20%,
-    rgba(6, 182, 212, 0.5) 50%,
-    rgba(139, 92, 246, 0.3) 80%,
+    #E5E7EB 20%,
+    #D1D5DB 50%,
+    #E5E7EB 80%,
     transparent 100%
   );
   border-radius: 3px;
-  box-shadow:
-    0 0 20px rgba(6, 182, 212, 0.4),
-    0 0 40px rgba(139, 92, 246, 0.3);
 }
 
-/* Road glow animation */
+/* Road shadow */
 .simple-road::before {
   content: '';
   position: absolute;
@@ -2228,15 +2144,9 @@ h3 { font-size: clamp(1.25rem, 3vw, 1.5rem); }
   height: 10px;
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(6, 182, 212, 0.2) 50%,
+    rgba(14, 165, 233, 0.1) 50%,
     transparent 100%
   );
-  animation: roadGlow 1.5s ease-in-out infinite;
-}
-
-@keyframes roadGlow {
-  0%, 100% { opacity: 0.5; transform: scaleX(0.8); }
-  50% { opacity: 1; transform: scaleX(1); }
 }
 
 /* Road lane markers */

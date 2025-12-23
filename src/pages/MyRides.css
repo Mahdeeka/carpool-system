@@ -1,11 +1,11 @@
 /* =============================================
-   MY RIDES - MIDNIGHT NEON THEME
+   MY RIDES - CLEAN LIGHT THEME
    ============================================= */
 
 /* Page Container */
 .my-rides-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--bg-darkest) 0%, var(--bg-dark) 50%, var(--bg-base) 100%);
+  background: #F8FAFC;
   padding-bottom: 100px;
 }
 
@@ -19,10 +19,8 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 0.95) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
 }
 
 .header-left {
@@ -35,30 +33,24 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: white;
-  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0B1220;
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #4B5563;
   padding: 10px 16px;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  background: #F8FAFC;
+  border-color: #0B2A4A;
   transform: translateX(-4px);
 }
 
@@ -66,20 +58,21 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--gradient-neon);
+  background: #0B2A4A;
   border: none;
   border-radius: 12px;
   padding: 10px 18px;
   font-size: 14px;
   font-weight: 600;
-  color: white;
+  color: #FFFFFF;
   cursor: pointer;
-  box-shadow: var(--shadow-neon);
-  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(11, 42, 74, 0.2);
+  transition: all 0.2s ease;
 }
 
 .account-btn:hover {
-  box-shadow: 0 0 40px rgba(139, 92, 246, 0.5), 0 0 60px rgba(6, 182, 212, 0.3);
+  background: #071F36;
+  box-shadow: 0 4px 16px rgba(11, 42, 74, 0.3);
   transform: translateY(-2px);
 }
 
@@ -112,27 +105,28 @@
 .rides-tabs .tab {
   flex-shrink: 0;
   padding: 14px 22px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   border-radius: 14px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #4B5563;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .rides-tabs .tab:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
+  background: #F8FAFC;
+  color: #0B1220;
+  border-color: #0EA5E9;
 }
 
 .rides-tabs .tab.active {
-  background: var(--gradient-neon);
+  background: #0B2A4A;
   border-color: transparent;
-  color: white;
-  box-shadow: var(--shadow-neon);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(11, 42, 74, 0.2);
 }
 
 /* Content */
@@ -144,8 +138,8 @@
 
 /* Empty State */
 .empty-state {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: #FFFFFF;
+  border: 1px dashed #E5E7EB;
   border-radius: 24px;
   padding: 60px 24px;
   text-align: center;

@@ -1,5 +1,5 @@
 /* =============================================
-   EVENT DASHBOARD - MIDNIGHT NEON THEME
+   EVENT DASHBOARD - CLEAN LIGHT THEME
    ============================================= */
 
 /* === DESIGN TOKENS (Inherits from App.css) === */
@@ -8,31 +8,9 @@
 .event-dashboard {
   min-height: 100vh;
   min-height: 100dvh;
-  background: linear-gradient(180deg, var(--bg-darkest) 0%, var(--bg-dark) 50%, var(--bg-base) 100%);
+  background: #F8FAFC;
   position: relative;
   overflow-x: hidden;
-}
-
-/* Animated Background Pattern - Neon Orbs */
-.event-dashboard::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 40% 60%, rgba(236, 72, 153, 0.08) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: 0;
-  animation: bgShift 20s ease-in-out infinite;
-}
-
-@keyframes bgShift {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.05); }
 }
 
 /* === TOP NAVIGATION BAR === */
@@ -41,35 +19,33 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: rgba(10, 14, 23, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .nav-back-btn {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: #4B5563;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
   border-radius: 12px;
-  transition: all 0.3s var(--ease-smooth);
+  transition: all 0.2s ease;
   font-weight: 500;
 }
 
 .nav-back-btn:hover {
-  background: var(--glass-hover);
-  color: var(--text-primary);
-  border-color: var(--primary);
+  background: #F8FAFC;
+  color: #0B1220;
+  border-color: #0B2A4A;
   transform: translateX(-3px);
 }
 
@@ -80,47 +56,46 @@
 }
 
 .nav-btn-rides {
-  background: var(--primary-bg);
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: #E0F2FE;
+  border: 1px solid #0EA5E9;
   border-radius: 12px;
   padding: 10px 18px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--primary-light);
+  color: #0B2A4A;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: 0 2px 10px rgba(6, 182, 212, 0.2);
+  transition: all 0.2s ease;
 }
 
 .nav-btn-rides:hover {
   transform: translateY(-2px);
-  box-shadow: var(--primary-glow);
-  background: var(--gradient-primary);
-  color: white;
+  background: #0B2A4A;
+  color: #FFFFFF;
 }
 
 .nav-btn-account {
-  background: var(--gradient-neon);
+  background: #0B2A4A;
   border: none;
   border-radius: 12px;
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: white;
+  color: #FFFFFF;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 10px;
-  transition: all 0.3s var(--ease-smooth);
-  box-shadow: var(--shadow-neon);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(11, 42, 74, 0.2);
 }
 
 .nav-btn-account:hover {
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: 0 0 40px rgba(139, 92, 246, 0.5), 0 0 60px rgba(6, 182, 212, 0.3);
+  transform: translateY(-2px);
+  background: #071F36;
+  box-shadow: 0 4px 12px rgba(11, 42, 74, 0.3);
 }
 
 .nav-avatar {
@@ -137,27 +112,27 @@
 }
 
 .nav-btn-login {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
   padding: 10px 20px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #4B5563;
   cursor: pointer;
-  transition: all 0.3s var(--ease-smooth);
+  transition: all 0.2s ease;
 }
 
 .nav-btn-login:hover {
-  background: var(--glass-hover);
-  border-color: var(--primary);
-  color: var(--primary-light);
+  background: #F8FAFC;
+  border-color: #0B2A4A;
+  color: #0B2A4A;
   transform: translateY(-2px);
 }
 
 /* === LEGENDARY HEADER === */
 .legendary-header {
-  background: var(--gradient-neon);
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
   padding: 32px 24px 40px;
   position: relative;
   overflow: hidden;
@@ -172,32 +147,9 @@
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 40%);
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 40%);
   pointer-events: none;
-}
-
-/* Floating Particles */
-.legendary-header::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px),
-    radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px);
-  background-size: 50px 50px, 30px 30px;
-  background-position: 0 0, 25px 25px;
-  animation: sparkle 4s linear infinite;
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-@keyframes sparkle {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50px); }
 }
 
 .header-content {
@@ -333,15 +285,15 @@
   align-items: center;
   gap: 10px;
   padding: 16px 28px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--glass-border);
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
   border-radius: 16px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #4B5563;
   cursor: pointer;
-  transition: all 0.4s var(--ease-spring);
-  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   position: relative;
   overflow: hidden;
 }
@@ -353,23 +305,23 @@
   left: 50%;
   width: 0;
   height: 3px;
-  background: var(--gradient-neon);
+  background: #0EA5E9;
   border-radius: 3px;
-  transition: all 0.3s var(--ease-smooth);
+  transition: all 0.2s ease;
   transform: translateX(-50%);
 }
 
 .legendary-tab:hover {
-  color: var(--text-primary);
+  color: #0B1220;
   transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--secondary);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  border-color: #0EA5E9;
 }
 
 .legendary-tab.active {
-  color: var(--primary-light);
-  border-color: var(--primary);
-  box-shadow: var(--primary-glow), var(--shadow-lg);
+  color: #0B2A4A;
+  border-color: #0EA5E9;
+  background: #E0F2FE;
 }
 
 .legendary-tab.active::after {
@@ -383,25 +335,25 @@
   min-width: 26px;
   height: 26px;
   padding: 0 8px;
-  background: var(--glass-bg);
+  background: #F3F4F6;
   border-radius: 13px;
   font-size: 13px;
   font-weight: 700;
-  transition: all 0.3s var(--ease-smooth);
+  transition: all 0.2s ease;
 }
 
 .legendary-tab.active .tab-count {
-  background: var(--gradient-neon);
-  color: white;
+  background: #0B2A4A;
+  color: #FFFFFF;
 }
 
 /* === CONFIRMED RIDES SECTION === */
 .confirmed-rides-section {
   margin: 28px 20px 0;
   padding: 24px;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(16, 185, 129, 0.05) 100%);
+  background: rgba(34, 197, 94, 0.08);
   border-radius: 24px;
-  border: 2px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(34, 197, 94, 0.3);
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.5s var(--ease-spring);
@@ -415,8 +367,8 @@
   right: 0;
   bottom: 0;
   background:
-    radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.2) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(16, 185, 129, 0.15) 0%, transparent 40%);
+    radial-gradient(circle at 10% 10%, rgba(34, 197, 94, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(34, 197, 94, 0.08) 0%, transparent 40%);
   pointer-events: none;
 }
 
@@ -479,13 +431,13 @@
 }
 
 .legendary-card {
-  background: var(--bg-elevated);
+  background: #FFFFFF;
   border-radius: 24px;
   padding: 24px;
   position: relative;
-  transition: all 0.4s var(--ease-spring);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow: visible;
 }
 
@@ -498,13 +450,13 @@
   height: 4px;
   border-radius: 24px 24px 0 0;
   opacity: 0;
-  transition: opacity 0.3s var(--ease-smooth);
+  transition: opacity 0.2s ease;
 }
 
 .legendary-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-neon), var(--shadow-lg);
-  border-color: var(--secondary);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: #0EA5E9;
 }
 
 .legendary-card:hover::before {
@@ -513,25 +465,25 @@
 
 /* Card Types */
 .legendary-card.offer-card::before {
-  background: var(--gradient-neon);
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
 }
 
 .legendary-card.request-card::before {
-  background: var(--gradient-secondary);
+  background: #0EA5E9;
 }
 
 .legendary-card.my-card {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.1) 50%, rgba(139, 92, 246, 0.05) 100%);
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  background: #E0F2FE;
+  border: 2px solid #0EA5E9;
 }
 
 .legendary-card.my-card:hover {
-  box-shadow: var(--secondary-glow), var(--shadow-lg);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
 }
 
 .legendary-card.matched-card {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.1) 50%, rgba(16, 185, 129, 0.05) 100%);
-  border: 2px solid rgba(16, 185, 129, 0.3);
+  background: rgba(34, 197, 94, 0.08);
+  border: 2px solid rgba(34, 197, 94, 0.3);
 }
 
 .legendary-card.full-card {
