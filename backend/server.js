@@ -65,12 +65,7 @@ async function sendSMS(phone, message) {
 
 // Generate 6-digit OTP
 function generateOTP() {
-  // Use real random OTP when Twilio is configured, otherwise use test code
-  if (SMS_PROVIDER === 'twilio' && twilioClient) {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  }
-  // Hardcoded for testing when using mock SMS
-  return '123456';
+  return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 // Generate session token
@@ -2005,19 +2000,13 @@ app.post('/api/auth/request-otp', async (req, res) => {
     const message = `Your Carpool verification code is: ${otp}. Valid for 5 minutes.`;
     await sendSMS(normalizedPhone, message);
     
-    // Build response
-    const response = { 
+    res.json({ 
       success: true, 
       message: 'OTP sent successfully',
-      is_new_user: !existingAccount
-    };
-    
-    // Only include debug OTP in mock mode (not production with Twilio)
-    if (SMS_PROVIDER === 'mock') {
-      response.debug_otp = otp;
-    }
-    
-    res.json(response);
+      is_new_user: !existingAccount,
+      // For development/testing, include OTP in response (remove in production!)
+      debug_otp: otp // Always show for local development
+    });
   } catch (error) {
     console.error('Error requesting OTP:', error);
     res.status(500).json({ message: 'Server error' });
