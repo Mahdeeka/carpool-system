@@ -16,6 +16,7 @@ import MyAccount from './pages/MyAccount';
 import MyRides from './pages/MyRides';
 import EventAdminDashboard from './pages/EventAdminDashboard';
 import InfoPage from './pages/InfoPage';
+import PublishRidePage from './pages/PublishRidePage';
 import './App.css';
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Route path="/my-rides" element={<MyRides />} />
             <Route path="/create-event" element={<CreateEvent />} />
             <Route path="/event/:eventCode" element={<EventDashboard />} />
+            <Route path="/event/:eventCode/publish" element={<PublishRidePage />} />
             <Route path="/event/:eventCode/admin" element={<EventAdminDashboard />} />
             <Route path="/role-selection" element={<RoleSelection />} />
             <Route path="/offer-carpool" element={<OfferCarpool />} />

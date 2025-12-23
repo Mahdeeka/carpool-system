@@ -1060,10 +1060,10 @@ function EventDashboard() {
             </div>
           </div>
           <div className="header-actions">
-            <button onClick={() => { resetForm(); setShowModal('offer'); }} className="legendary-btn legendary-btn-primary">
+            <button onClick={() => navigate(`/event/${eventCode}/publish?mode=offer`)} className="legendary-btn legendary-btn-primary">
               🚗 Offer a Ride
             </button>
-            <button onClick={() => { resetForm(); setShowModal('request'); }} className="legendary-btn legendary-btn-outline">
+            <button onClick={() => navigate(`/event/${eventCode}/publish?mode=request`)} className="legendary-btn legendary-btn-outline">
               🙋 Need a Ride
             </button>
           </div>
@@ -1158,7 +1158,7 @@ function EventDashboard() {
                 <span className="legendary-empty-icon">🚗</span>
                 <h3>No rides offered yet</h3>
                 <p>Be the first to offer a ride to this event!</p>
-                <button onClick={() => { resetForm(); setShowModal('offer'); }} className="legendary-btn legendary-btn-primary">
+                <button onClick={() => navigate(`/event/${eventCode}/publish?mode=offer`)} className="legendary-btn legendary-btn-primary">
                   Offer a Ride
                 </button>
               </div>
@@ -1291,7 +1291,7 @@ function EventDashboard() {
                 <span className="legendary-empty-icon">🙋</span>
                 <h3>No ride requests yet</h3>
                 <p>Looking for a ride? Post a request!</p>
-                <button onClick={() => { resetForm(); setShowModal('request'); }} className="legendary-btn legendary-btn-primary">
+                <button onClick={() => navigate(`/event/${eventCode}/publish?mode=request`)} className="legendary-btn legendary-btn-primary">
                   Request a Ride
                 </button>
               </div>
@@ -1470,209 +1470,171 @@ function EventDashboard() {
                     </div>
                   )}
 
-                  {/* SECTION 1: Personal Info */}
-                  <div className="form-section">
-                    <div className="form-section-header">
-                      <span className="form-section-icon">👤</span>
-                      <h4 className="form-section-title">Your Details</h4>
-                    </div>
+                  {/* SECTION 1: Personal Info - Compact */}
+<div className="form-section">
+  <div className="form-section-header">
+    <span className="form-section-icon">👤</span>
+    <h4 className="form-section-title">Your Details</h4>
+  </div>
 
-                    <div className="form-group">
-                      <div className="form-field-header">
-                        <label className="form-label">Name *</label>
-                        <label className="inline-toggle">
-                          <input type="checkbox" name="hideName" checked={formData.hideName} onChange={handleInputChange} />
-                          🙈 Hide
-                        </label>
-                      </div>
-                      <input type="text" name="name" className="form-input" value={formData.name} onChange={handleInputChange} placeholder="Your name" />
-                    </div>
+  <div className="form-group">
+    <div className="form-field-header">
+      <label className="form-label">Name</label>
+      <label className="inline-toggle">
+        <input type="checkbox" name="hideName" checked={formData.hideName} onChange={handleInputChange} />
+        <span>Hide</span>
+      </label>
+    </div>
+    <input type="text" name="name" className="form-input" value={formData.name} onChange={handleInputChange} placeholder="Your name" />
+  </div>
 
-                    <div className="form-row">
-                      <div className="form-group">
-                        <div className="form-field-header">
-                          <label className="form-label">Phone *</label>
-                          <label className="inline-toggle">
-                            <input type="checkbox" name="hidePhone" checked={formData.hidePhone} onChange={handleInputChange} />
-                            🙈
-                          </label>
-                        </div>
-                        <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleInputChange} placeholder="+972..." />
-                      </div>
-                      <div className="form-group">
-                        <div className="form-field-header">
-                          <label className="form-label">Email *</label>
-                          <label className="inline-toggle">
-                            <input type="checkbox" name="hideEmail" checked={formData.hideEmail} onChange={handleInputChange} />
-                            🙈
-                          </label>
-                        </div>
-                        <input type="email" name="email" className="form-input" value={formData.email} onChange={handleInputChange} placeholder="email@..." />
-                      </div>
-                    </div>
+  <div className="form-row">
+    <div className="form-group">
+      <div className="form-field-header">
+        <label className="form-label">Phone</label>
+        <label className="inline-toggle">
+          <input type="checkbox" name="hidePhone" checked={formData.hidePhone} onChange={handleInputChange} />
+          <span>Hide</span>
+        </label>
+      </div>
+      <input type="tel" name="phone" className="form-input" value={formData.phone} onChange={handleInputChange} placeholder="+972..." />
+    </div>
+    <div className="form-group">
+      <div className="form-field-header">
+        <label className="form-label">Email</label>
+        <label className="inline-toggle">
+          <input type="checkbox" name="hideEmail" checked={formData.hideEmail} onChange={handleInputChange} />
+          <span>Hide</span>
+        </label>
+      </div>
+      <input type="email" name="email" className="form-input" value={formData.email} onChange={handleInputChange} placeholder="email@..." />
+    </div>
+  </div>
 
-                    {(formData.hideName || formData.hidePhone || formData.hideEmail) && (
-                      <div className="info-banner warning">
-                        <span className="info-banner-icon">⚠️</span>
-                        <span>Hidden info shared after ride confirmed</span>
-                      </div>
-                    )}
-                  </div>
+  {/* Compact Gender Pills */}
+  <div className="form-group">
+    <label className="form-label">Gender</label>
+    <div className="pill-toggle-group">
+      <label className={`pill-toggle gender-male ${formData.gender === 'male' ? 'selected' : ''}`}>
+        <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleInputChange} />
+        <span className="pill-icon">♂️</span>
+        <span>Male</span>
+      </label>
+      <label className={`pill-toggle gender-female ${formData.gender === 'female' ? 'selected' : ''}`}>
+        <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleInputChange} />
+        <span className="pill-icon">♀️</span>
+        <span>Female</span>
+      </label>
+    </div>
+  </div>
 
-                  {/* SECTION 2: Trip Details */}
-                  <div className="form-section">
-                    <div className="form-section-header">
-                      <span className="form-section-icon">🚗</span>
-                      <h4 className="form-section-title">Trip Details</h4>
-                    </div>
+  {(formData.hideName || formData.hidePhone || formData.hideEmail) && (
+    <div className="info-banner warning">
+      <span className="info-banner-icon">🔒</span>
+      <span>Hidden info shared after confirmation</span>
+    </div>
+  )}
+</div>
 
-                    <div className="form-row compact-row">
-                      {(showModal === 'offer' || showModal === 'edit-offer') && (
-                        <div className="form-group">
-                          <label className="form-label">Seats</label>
-                          <select name="seats" className="form-select" value={formData.seats} onChange={handleInputChange}>
-                            {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n} seat{n > 1 ? 's' : ''}</option>)}
-                          </select>
-                        </div>
-                      )}
-                      <div className="form-group">
-                        <label className="form-label">Trip Type</label>
-                        <select name="tripType" className="form-select" value={formData.tripType} onChange={handleInputChange}>
-                          <option value="both">🔄 Round Trip</option>
-                          <option value="going">➡️ Going Only</option>
-                          <option value="return">⬅️ Return Only</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+{/* SECTION 3: Location - Compact */}
+<div className="form-section">
+  <div className="form-section-header">
+    <span className="form-section-icon">📍</span>
+    <h4 className="form-section-title">Pickup Location</h4>
+  </div>
 
-                  {/* SECTION 3: Location */}
-                  <div className="form-section">
-                    <div className="form-section-header">
-                      <span className="form-section-icon">📍</span>
-                      <h4 className="form-section-title">
-                        {(showModal === 'offer' || showModal === 'edit-offer') ? 'Pickup Location' : 'Where to pick you up?'}
-                      </h4>
-                    </div>
+  <div className="form-group">
+    <Suspense fallback={<input type="text" className="form-input" placeholder="Loading..." />}>
+      <MapLocationPicker
+        value={formData.pickupLocation}
+        onChange={(value) => setFormData(prev => ({ ...prev, pickupLocation: value }))}
+        onLocationSelect={(loc) => setFormData(prev => ({ ...prev, pickupLocation: loc.address, pickupLat: loc.lat, pickupLng: loc.lng }))}
+        placeholder="Search location..."
+      />
+    </Suspense>
+  </div>
 
-                    <div className="form-group">
-                      <Suspense fallback={
-                        <input type="text" className="form-input" value={formData.pickupLocation} onChange={(e) => setFormData(prev => ({ ...prev, pickupLocation: e.target.value }))} placeholder="Loading..." />
-                      }>
-                        <MapLocationPicker
-                          value={formData.pickupLocation}
-                          onChange={(value) => setFormData(prev => ({ ...prev, pickupLocation: value }))}
-                          onLocationSelect={(loc) => setFormData(prev => ({ ...prev, pickupLocation: loc.address, pickupLat: loc.lat, pickupLng: loc.lng }))}
-                          placeholder="Search location..."
-                        />
-                      </Suspense>
-                    </div>
+  {formData.pickupLat && formData.pickupLng && event?.event_location && (
+    <Suspense fallback={<LoadingPlaceholder />}>
+      <div className="map-preview-compact">
+        <RouteMap
+          origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
+          destination={event.event_location}
+          height="150px"
+          showDirections={true}
+          onRouteCalculated={handleRouteCalculated}
+        />
+      </div>
+      {routeDistance && (
+        <div className="info-banner info">
+          <span className="info-banner-icon">📏</span>
+          <span>{routeDistance.toFixed(1)} km • Max ₪{maxPayment.toFixed(0)}</span>
+        </div>
+      )}
+    </Suspense>
+  )}
 
-                    {/* Route Preview - compact */}
-                    {formData.pickupLat && formData.pickupLng && event?.event_location && (
-                      <Suspense fallback={<LoadingPlaceholder />}>
-                        <div className="map-preview-compact">
-                          <RouteMap
-                            origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
-                            destination={event.event_location}
-                            height="180px"
-                            showDirections={true}
-                            onRouteCalculated={handleRouteCalculated}
-                          />
-                        </div>
-                        {routeDistance && (
-                          <div className="info-banner info">
-                            <span className="info-banner-icon">📏</span>
-                            <span>{routeDistance.toFixed(1)} km • Max ₪{maxPayment.toFixed(0)}</span>
-                          </div>
-                        )}
-                      </Suspense>
-                    )}
-                  </div>
+  {/* Return location toggle */}
+  {(formData.tripType === 'both' || formData.tripType === 'return') && (
+    <>
+      <label className="inline-toggle" style={{ marginTop: '10px', padding: '8px 0' }}>
+        <input type="checkbox" name="sameReturnLocation" checked={formData.sameReturnLocation} onChange={handleInputChange} />
+        <span>Same location for return</span>
+      </label>
 
-                  {/* Return location - only if round trip */}
-                  {(formData.tripType === 'both' || formData.tripType === 'return') && (
-                    <div className="form-section">
-                      <div className="form-section-header">
-                        <span className="form-section-icon">🔄</span>
-                        <h4 className="form-section-title">Return Trip</h4>
-                      </div>
+      {!formData.sameReturnLocation && (
+        <div className="form-group" style={{ marginTop: '10px' }}>
+          <Suspense fallback={<input type="text" className="form-input" placeholder="Loading..." />}>
+            <MapLocationPicker
+              value={formData.returnLocation}
+              onChange={(value) => setFormData(prev => ({ ...prev, returnLocation: value }))}
+              onLocationSelect={(loc) => setFormData(prev => ({ ...prev, returnLocation: loc.address, returnLat: loc.lat, returnLng: loc.lng }))}
+              placeholder="Return pickup..."
+            />
+          </Suspense>
+        </div>
+      )}
+    </>
+  )}
+</div>
 
-                      <label className="inline-toggle" style={{ marginBottom: formData.sameReturnLocation ? 0 : 12 }}>
-                        <input type="checkbox" name="sameReturnLocation" checked={formData.sameReturnLocation} onChange={handleInputChange} />
-                        <span>Same pickup location for return</span>
-                      </label>
+  {/* SECTION 4: Preferences - Compact */}
+<div className="form-section">
+  <div className="form-section-header">
+    <span className="form-section-icon">⚙️</span>
+    <h4 className="form-section-title">Preferences</h4>
+  </div>
 
-                      {!formData.sameReturnLocation && (
-                        <div className="form-group">
-                          <Suspense fallback={<input type="text" className="form-input" placeholder="Loading..." />}>
-                            <MapLocationPicker
-                              value={formData.returnLocation}
-                              onChange={(value) => setFormData(prev => ({ ...prev, returnLocation: value }))}
-                              onLocationSelect={(loc) => setFormData(prev => ({ ...prev, returnLocation: loc.address, returnLat: loc.lat, returnLng: loc.lng }))}
-                              placeholder="Return pickup location..."
-                            />
-                          </Suspense>
-                        </div>
-                      )}
-                    </div>
-                  )}
+  {/* Car notes - only for offers */}
+  {(showModal === 'offer' || showModal === 'edit-offer') && (
+    <div className="form-group">
+      <label className="form-label">Notes</label>
+      <input type="text" name="description" className="form-input" value={formData.description} onChange={handleInputChange} placeholder="Blue Toyota, no smoking..." />
+    </div>
+  )}
 
-                  {/* SECTION 4: Preferences */}
-                  <div className="form-section">
-                    <div className="form-section-header">
-                      <span className="form-section-icon">⚙️</span>
-                      <h4 className="form-section-title">Preferences</h4>
-                    </div>
-
-                    {/* Car notes - only for offers */}
-                    {(showModal === 'offer' || showModal === 'edit-offer') && (
-                      <div className="form-group">
-                        <label className="form-label">Car / Notes</label>
-                        <input type="text" name="description" className="form-input" value={formData.description} onChange={handleInputChange} placeholder="e.g., Blue Toyota, no smoking" />
-                      </div>
-                    )}
-
-                    {/* Gender selection - compact cards */}
-                    <div className="form-group">
-                      <label className="form-label">Your Gender *</label>
-                      <div className="option-cards">
-                        <label className={`option-card ${formData.gender === 'male' ? 'selected' : ''}`}>
-                          <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleInputChange} />
-                          <div className="option-card-icon">♂️</div>
-                          <div className="option-card-label">Male</div>
-                        </label>
-                        <label className={`option-card ${formData.gender === 'female' ? 'selected' : ''}`}>
-                          <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleInputChange} />
-                          <div className="option-card-icon">♀️</div>
-                          <div className="option-card-label">Female</div>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Passenger preference - compact cards */}
-                    <div className="form-group">
-                      <label className="form-label">Who can join?</label>
-                      <div className="option-cards">
-                        <label className={`option-card ${formData.preference === 'any' ? 'selected' : ''}`}>
-                          <input type="radio" name="preference" value="any" checked={formData.preference === 'any'} onChange={handleInputChange} />
-                          <div className="option-card-icon">👥</div>
-                          <div className="option-card-label">Anyone</div>
-                        </label>
-                        <label className={`option-card ${formData.preference === 'male' ? 'selected' : ''}`}>
-                          <input type="radio" name="preference" value="male" checked={formData.preference === 'male'} onChange={handleInputChange} />
-                          <div className="option-card-icon">♂️</div>
-                          <div className="option-card-label">Males</div>
-                        </label>
-                        <label className={`option-card ${formData.preference === 'female' ? 'selected' : ''}`}>
-                          <input type="radio" name="preference" value="female" checked={formData.preference === 'female'} onChange={handleInputChange} />
-                          <div className="option-card-icon">♀️</div>
-                          <div className="option-card-label">Females</div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
+  {/* Who can join - Compact Pills */}
+  <div className="form-group">
+    <label className="form-label">Who can join?</label>
+    <div className="pill-toggle-group">
+      <label className={`pill-toggle ${formData.preference === 'any' ? 'selected' : ''}`}>
+        <input type="radio" name="preference" value="any" checked={formData.preference === 'any'} onChange={handleInputChange} />
+        <span className="pill-icon">👥</span>
+        <span>Anyone</span>
+      </label>
+      <label className={`pill-toggle gender-male ${formData.preference === 'male' ? 'selected' : ''}`}>
+        <input type="radio" name="preference" value="male" checked={formData.preference === 'male'} onChange={handleInputChange} />
+        <span className="pill-icon">♂️</span>
+        <span>Males</span>
+      </label>
+      <label className={`pill-toggle gender-female ${formData.preference === 'female' ? 'selected' : ''}`}>
+        <input type="radio" name="preference" value="female" checked={formData.preference === 'female'} onChange={handleInputChange} />
+        <span className="pill-icon">♀️</span>
+        <span>Females</span>
+      </label>
+    </div>
+  </div>
+</div>
                   {/* SECTION 5: Payment - Only for offers */}
                   {(showModal === 'offer' || showModal === 'edit-offer') && (
                     <div className="form-section" style={{ background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', borderColor: '#e9d5ff' }}>
