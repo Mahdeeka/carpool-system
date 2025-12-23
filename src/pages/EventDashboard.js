@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { requestOTP, verifyOTP, API_BASE_URL as API_URL } from '../services/api';
+import { QuickFilters, SortDropdown, useFiltersAndSort } from '../components/SearchFilters';
+import { UserRatingBadge } from '../components/RatingSystem';
+import { SuccessAnimation } from '../components/MicroInteractions';
 import './EventDashboard.css';
 
 // Lazy load heavy components for faster initial render
@@ -55,6 +58,11 @@ function EventDashboard() {
   // Track user's own posts
   const [myOfferIds, setMyOfferIds] = useState([]);
   const [myRequestIds, setMyRequestIds] = useState([]);
+
+  // Filter and sort state
+  const [filters, setFilters] = useState({});
+  const [sortBy, setSortBy] = useState('newest');
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -913,6 +921,54 @@ function EventDashboard() {
   const isMyOffer = (offer) => myOfferIds.includes(offer.offer_id);
   const isMyRequest = (request) => myRequestIds.includes(request.request_id);
 
+  // Filter and sort offers
+  const filteredOffers = useMemo(() => {
+    let result = [...offers];
+
+    // Apply filters
+    if (filters.tripType) {
+      result = result.filter(o => o.trip_type === filters.tripType);
+    }
+    if (filters.preference && filters.preference !== 'any') {
+      result = result.filter(o => o.preference === filters.preference || o.preference === 'any');
+    }
+    if (filters.payment) {
+      if (filters.payment === 'free') {
+        result = result.filter(o => o.payment_required === 'not_required');
+      } else if (filters.payment === 'optional') {
+        result = result.filter(o => o.payment_required === 'optional');
+      } else if (filters.payment === 'required') {
+        result = result.filter(o => o.payment_required === 'obligatory');
+      }
+    }
+    if (filters.seats) {
+      const minSeats = filters.seats === '4+' ? 4 : parseInt(filters.seats);
+      result = result.filter(o => {
+        const available = (o.total_seats || 0) - (o.confirmed_passengers?.length || 0);
+        return available >= minSeats;
+      });
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'seats_available':
+          const aSeats = (a.total_seats || 0) - (a.confirmed_passengers?.length || 0);
+          const bSeats = (b.total_seats || 0) - (b.confirmed_passengers?.length || 0);
+          return bSeats - aSeats;
+        case 'price_low':
+          return (parseFloat(a.payment_amount) || 0) - (parseFloat(b.payment_amount) || 0);
+        case 'price_high':
+          return (parseFloat(b.payment_amount) || 0) - (parseFloat(a.payment_amount) || 0);
+        case 'newest':
+        default:
+          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      }
+    });
+
+    return result;
+  }, [offers, filters, sortBy]);
+
   const getSeatsDisplay = (offer) => {
     const total = offer.total_seats || 0;
     const confirmed = offer.confirmed_passengers?.length || 0;
@@ -1152,18 +1208,49 @@ function EventDashboard() {
       {/* Legendary Content */}
       <div className="legendary-content">
         {activeTab === 'offers' && (
-          <div className="legendary-cards-grid">
-            {offers.length === 0 ? (
-              <div className="legendary-empty-state">
-                <span className="legendary-empty-icon">🚗</span>
-                <h3>No rides offered yet</h3>
-                <p>Be the first to offer a ride to this event!</p>
-                <button onClick={() => navigate(`/event/${eventCode}/publish?mode=offer`)} className="legendary-btn legendary-btn-primary">
-                  Offer a Ride
-                </button>
+          <>
+            {/* Search Filters */}
+            {offers.length > 0 && (
+              <div className="filters-section">
+                <QuickFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  sortValue={sortBy}
+                  onSortChange={setSortBy}
+                  showSort={true}
+                />
+                {Object.keys(filters).some(k => filters[k]) && (
+                  <div className="filter-results-info">
+                    Showing {filteredOffers.length} of {offers.length} rides
+                    <button className="clear-filters-btn" onClick={() => setFilters({})}>
+                      Clear filters
+                    </button>
+                  </div>
+                )}
               </div>
-            ) : (
-              offers.map((offer, index) => {
+            )}
+
+            <div className="legendary-cards-grid">
+              {filteredOffers.length === 0 && offers.length > 0 ? (
+                <div className="legendary-empty-state">
+                  <span className="legendary-empty-icon">🔍</span>
+                  <h3>No rides match your filters</h3>
+                  <p>Try adjusting your filters to see more rides</p>
+                  <button onClick={() => setFilters({})} className="legendary-btn legendary-btn-secondary">
+                    Clear Filters
+                  </button>
+                </div>
+              ) : offers.length === 0 ? (
+                <div className="legendary-empty-state">
+                  <span className="legendary-empty-icon">🚗</span>
+                  <h3>No rides offered yet</h3>
+                  <p>Be the first to offer a ride to this event!</p>
+                  <button onClick={() => navigate(`/event/${eventCode}/publish?mode=offer`)} className="legendary-btn legendary-btn-primary">
+                    Offer a Ride
+                  </button>
+                </div>
+              ) : (
+                filteredOffers.map((offer, index) => {
                 const seats = getSeatsDisplay(offer);
                 const isMine = isMyOffer(offer);
                 const isFull = seats.available <= 0;
@@ -1281,7 +1368,8 @@ function EventDashboard() {
                 );
               })
             )}
-          </div>
+            </div>
+          </>
         )}
 
         {activeTab === 'requests' && (

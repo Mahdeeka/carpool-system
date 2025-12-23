@@ -4,6 +4,8 @@ import { useApp } from '../contexts/AppContext';
 import { API_BASE_URL as API_URL } from '../services/api';
 import RouteWithDetour from '../components/RouteWithDetour';
 import { SkeletonMyRidesPage } from '../components/SkeletonLoader';
+import { NoOffersEmptyState, NoJoinedRidesEmptyState, NoRequestsEmptyState } from '../components/EmptyState';
+import { PullToRefresh } from '../components/MicroInteractions';
 import './MyRides.css';
 
 // localStorage keys for tracking user's rides
@@ -327,27 +329,10 @@ function MyRides() {
         {activeTab === 'driving' ? (
           <div className="driving-section">
             {myOffers.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">🚗</div>
-                <h3>No rides offered yet</h3>
-                <p>Start sharing rides with others! When you offer a ride, it will appear here with all passenger details.</p>
-                {!isAuthenticated && (
-                  <p style={{ fontSize: '13px', color: '#dc2626', marginTop: '8px', fontWeight: '500' }}>
-                    ⚠️ Please login to see your offers
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
-                  <button onClick={() => navigate('/')} className="btn btn-primary">
-                    🚗 Offer a Ride
-                  </button>
-                  <button 
-                    onClick={() => { setLoading(true); fetchMyOffers().finally(() => setLoading(false)); }} 
-                    className="btn btn-secondary"
-                  >
-                    🔄 Refresh
-                  </button>
-                </div>
-              </div>
+              <NoOffersEmptyState
+                isAuthenticated={isAuthenticated}
+                onRefresh={() => { setLoading(true); fetchMyOffers().finally(() => setLoading(false)); }}
+              />
             ) : (
               <div className="offers-list">
                 {myOffers.map((offer) => (
@@ -582,27 +567,10 @@ function MyRides() {
         ) : activeTab === 'passenger' ? (
           <div className="passenger-section">
             {myJoinedRides.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">🙋</div>
-                <h3>No rides joined yet</h3>
-                <p>Looking for a ride? Request to join a carpool and it will appear here once confirmed!</p>
-                {!isAuthenticated && (
-                  <p style={{ fontSize: '13px', color: '#dc2626', marginTop: '8px', fontWeight: '500' }}>
-                    ⚠️ Please login to see your joined rides
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
-                  <button onClick={() => navigate('/')} className="btn btn-primary">
-                    🙋 Ask for a Ride
-                  </button>
-                  <button 
-                    onClick={() => { setLoading(true); fetchMyJoinedRides().finally(() => setLoading(false)); }} 
-                    className="btn btn-secondary"
-                  >
-                    🔄 Refresh
-                  </button>
-                </div>
-              </div>
+              <NoJoinedRidesEmptyState
+                isAuthenticated={isAuthenticated}
+                onRefresh={() => { setLoading(true); fetchMyJoinedRides().finally(() => setLoading(false)); }}
+              />
             ) : (
               <div className="joined-rides-list">
                 {myJoinedRides.map((ride, idx) => (
@@ -711,27 +679,10 @@ function MyRides() {
         ) : activeTab === 'requests' ? (
           <div className="requests-section">
             {myRequests.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">📋</div>
-                <h3>No requests sent yet</h3>
-                <p>When you request to join a ride, it will appear here with its status.</p>
-                {!isAuthenticated && (
-                  <p style={{ fontSize: '13px', color: '#dc2626', marginTop: '8px', fontWeight: '500' }}>
-                    ⚠️ Please login to see your requests
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
-                  <button onClick={() => navigate('/')} className="btn btn-primary">
-                    🙋 Find a Ride
-                  </button>
-                  <button 
-                    onClick={() => { setLoading(true); fetchMyRequests().finally(() => setLoading(false)); }} 
-                    className="btn btn-secondary"
-                  >
-                    🔄 Refresh
-                  </button>
-                </div>
-              </div>
+              <NoRequestsEmptyState
+                isAuthenticated={isAuthenticated}
+                onRefresh={() => { setLoading(true); fetchMyRequests().finally(() => setLoading(false)); }}
+              />
             ) : (
               <div className="requests-list">
                 {myRequests.map((request, idx) => (

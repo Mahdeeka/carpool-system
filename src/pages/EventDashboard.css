@@ -415,6 +415,43 @@
   z-index: 1;
 }
 
+/* === FILTERS SECTION === */
+.filters-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E5E7EB;
+}
+
+.filter-results-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 0;
+  margin-top: 12px;
+  border-top: 1px solid #E5E7EB;
+  font-size: 14px;
+  color: #4B5563;
+}
+
+.clear-filters-btn {
+  background: transparent;
+  border: none;
+  color: #0EA5E9;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.clear-filters-btn:hover {
+  background: #E0F2FE;
+  color: #0B2A4A;
+}
+
 /* === LEGENDARY CARDS === */
 .legendary-cards-grid {
   display: flex;
