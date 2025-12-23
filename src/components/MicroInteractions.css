@@ -1,0 +1,664 @@
+/* ========================================
+   MICRO-INTERACTIONS & ANIMATIONS
+   Brand Colors: #0B2A4A, #0EA5E9, #F8FAFC
+   ======================================== */
+
+/* ========================================
+   SUCCESS ANIMATION
+   ======================================== */
+.success-animation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: overlay-fade-in 0.2s ease;
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.success-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.success-circle {
+  width: 100px;
+  height: 100px;
+}
+
+.success-checkmark {
+  width: 100%;
+  height: 100%;
+}
+
+.checkmark-circle {
+  stroke: #22C55E;
+  stroke-width: 2;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: circle-draw 0.6s ease-in-out forwards;
+}
+
+.checkmark-check {
+  stroke: #22C55E;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: check-draw 0.3s 0.4s ease-in-out forwards;
+}
+
+@keyframes circle-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes check-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.success-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: #22C55E;
+  animation: message-appear 0.3s 0.5s ease-out both;
+}
+
+@keyframes message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   ERROR ANIMATION
+   ======================================== */
+.error-animation-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: overlay-fade-in 0.2s ease;
+}
+
+.error-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.error-circle {
+  width: 100px;
+  height: 100px;
+}
+
+.error-x {
+  width: 100%;
+  height: 100%;
+}
+
+.x-circle {
+  stroke: #EF4444;
+  stroke-width: 2;
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: circle-draw 0.6s ease-in-out forwards;
+}
+
+.x-line {
+  stroke: #EF4444;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 28;
+  stroke-dashoffset: 28;
+  animation: x-draw 0.3s 0.4s ease-in-out forwards;
+}
+
+@keyframes x-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.error-message {
+  font-size: 18px;
+  font-weight: 600;
+  color: #EF4444;
+  animation: message-appear 0.3s 0.5s ease-out both;
+}
+
+/* ========================================
+   CONFETTI BURST
+   ======================================== */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 10001;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  left: var(--confetti-left);
+  width: var(--confetti-size);
+  height: var(--confetti-size);
+  background: var(--confetti-color);
+  border-radius: 2px;
+  transform: rotate(var(--confetti-rotation));
+  animation: confetti-fall 3s var(--confetti-delay) ease-out forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(var(--confetti-rotation)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh) rotate(calc(var(--confetti-rotation) + 720deg)) scale(0.5);
+  }
+}
+
+/* ========================================
+   PULL TO REFRESH
+   ======================================== */
+.pull-to-refresh-container {
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pull-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 60px;
+  transition: opacity 0.2s ease;
+}
+
+.pull-spinner {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease;
+}
+
+.pull-arrow {
+  font-size: 20px;
+  color: #0EA5E9;
+}
+
+.spinner-loading {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #0EA5E9;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.pull-text {
+  font-size: 13px;
+  color: #4B5563;
+  font-weight: 500;
+}
+
+.pull-content {
+  transition: transform 0.2s ease;
+}
+
+.pull-indicator.refreshing .pull-spinner {
+  animation: none;
+}
+
+/* ========================================
+   SWIPEABLE CARD
+   ======================================== */
+.swipeable-card-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-action {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.swipe-action.left {
+  right: 0;
+  background: linear-gradient(90deg, transparent, #EF4444);
+}
+
+.swipe-action.right {
+  left: 0;
+  background: linear-gradient(270deg, transparent, #22C55E);
+}
+
+.swipe-action.visible {
+  opacity: 1;
+}
+
+.swipeable-card {
+  position: relative;
+  background: #FFFFFF;
+  transition: transform 0.3s ease;
+  z-index: 1;
+}
+
+.swipeable-card.swiping {
+  transition: none;
+}
+
+/* ========================================
+   RIPPLE EFFECT
+   ======================================== */
+.ripple-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0);
+  animation: ripple-expand 0.6s ease-out forwards;
+}
+
+@keyframes ripple-expand {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   ANIMATED COUNTER
+   ======================================== */
+.animated-counter {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ========================================
+   PULSE BUTTON
+   ======================================== */
+.pulse-button {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pulse-button.primary {
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(11, 42, 74, 0.3);
+}
+
+.pulse-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(11, 42, 74, 0.4);
+}
+
+.pulse-button.secondary {
+  background: #FFFFFF;
+  color: #0B2A4A;
+  border: 1px solid #E5E7EB;
+}
+
+.pulse-button.secondary:hover {
+  border-color: #0EA5E9;
+  color: #0EA5E9;
+}
+
+.pulse-button.success {
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+  color: #FFFFFF;
+}
+
+.pulse-button.danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: #FFFFFF;
+}
+
+/* Pulse animation for attention */
+.pulse-button.pulse {
+  animation: button-pulse 2s ease-in-out infinite;
+}
+
+@keyframes button-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(11, 42, 74, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 32px rgba(14, 165, 233, 0.5);
+  }
+}
+
+/* ========================================
+   SHAKE ANIMATION
+   ======================================== */
+.shake-animation {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+/* ========================================
+   LOADING DOTS
+   ======================================== */
+.loading-dots {
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.loading-dots .dot {
+  animation: dot-bounce 1.4s ease-in-out infinite;
+  opacity: 0;
+}
+
+.loading-dots .dot:nth-child(1) { animation-delay: 0s; }
+.loading-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dot-bounce {
+  0%, 60%, 100% { opacity: 0; }
+  30% { opacity: 1; }
+}
+
+/* ========================================
+   FLOATING ACTION BUTTON
+   ======================================== */
+.fab {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(135deg, #0B2A4A 0%, #0EA5E9 100%);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 28px;
+  box-shadow: 0 8px 24px rgba(11, 42, 74, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.fab.bottom-right {
+  bottom: max(24px, env(safe-area-inset-bottom));
+  right: 24px;
+}
+
+.fab.bottom-center {
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.fab.bottom-left {
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 24px;
+}
+
+.fab:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(11, 42, 74, 0.5);
+}
+
+.fab.bottom-center:hover {
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.fab-icon {
+  font-size: 24px;
+  transition: transform 0.3s ease;
+}
+
+.fab.expanded .fab-icon {
+  transform: rotate(45deg);
+}
+
+.fab-label {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ========================================
+   UTILITY ANIMATION CLASSES
+   ======================================== */
+
+/* Fade in */
+.fade-in {
+  animation: fade-in 0.3s ease forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Fade in up */
+.fade-in-up {
+  animation: fade-in-up 0.4s ease forwards;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade in down */
+.fade-in-down {
+  animation: fade-in-down 0.4s ease forwards;
+}
+
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale in */
+.scale-in {
+  animation: scale-in 0.3s ease forwards;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Slide in left */
+.slide-in-left {
+  animation: slide-in-left 0.4s ease forwards;
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide in right */
+.slide-in-right {
+  animation: slide-in-right 0.4s ease forwards;
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Bounce */
+.bounce {
+  animation: bounce 0.5s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Pop */
+.pop {
+  animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Staggered children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up 0.4s ease forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.45s; }
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  .success-animation-overlay,
+  .error-animation-overlay {
+    background: rgba(17, 24, 39, 0.95);
+  }
+
+  .swipeable-card {
+    background: #1F2937;
+  }
+
+  .pull-text {
+    color: #9CA3AF;
+  }
+
+  .ripple {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .pulse-button.secondary {
+    background: #374151;
+    border-color: #4B5563;
+    color: #E5E7EB;
+  }
+}
+
+/* ========================================
+   REDUCED MOTION
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
