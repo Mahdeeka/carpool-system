@@ -61,7 +61,7 @@ function PublishRidePage() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`${API_URL}/events/${eventCode}`);
+        const response = await fetch(`${API_URL}/event/${eventCode}`);
         if (response.ok) {
           const data = await response.json();
           setEvent(data);
@@ -186,6 +186,32 @@ function PublishRidePage() {
       const token = localStorage.getItem('authToken');
       const endpoint = isOffer ? 'carpool/offer' : 'carpool/request';
       
+      // Build locations array as expected by backend
+      const locations = [];
+      const returnLoc = formData.sameReturnLocation ? formData.pickupLocation : formData.returnLocation;
+      
+      if (formData.tripType === 'going' || formData.tripType === 'both') {
+        locations.push({
+          location_address: formData.pickupLocation,
+          lat: formData.pickupLat,
+          lng: formData.pickupLng,
+          trip_direction: 'going',
+          time_type: 'flexible',
+          specific_time: null,
+        });
+      }
+      
+      if (formData.tripType === 'return' || formData.tripType === 'both') {
+        locations.push({
+          location_address: returnLoc,
+          lat: formData.sameReturnLocation ? formData.pickupLat : formData.returnLat,
+          lng: formData.sameReturnLocation ? formData.pickupLng : formData.returnLng,
+          trip_direction: 'return',
+          time_type: 'flexible',
+          specific_time: null,
+        });
+      }
+      
       const payload = {
         event_id: event.event_id,
         name: formData.name,
@@ -193,29 +219,22 @@ function PublishRidePage() {
         email: formData.email,
         gender: formData.gender,
         trip_type: formData.tripType,
-        pickup_location: formData.pickupLocation,
-        pickup_lat: formData.pickupLat,
-        pickup_lng: formData.pickupLng,
         preference: formData.preference,
         description: formData.description,
         hide_name: formData.hideName,
         hide_phone: formData.hidePhone,
         hide_email: formData.hideEmail,
+        privacy: 'public',
+        locations,
       };
 
       if (isOffer) {
         payload.total_seats = parseInt(formData.seats);
         payload.payment_required = formData.paymentRequired;
-        payload.payment_amount = formData.paymentAmount ? parseFloat(formData.paymentAmount) : null;
-        payload.payment_method = formData.paymentMethod;
+        payload.payment_amount = formData.paymentRequired !== 'not_required' ? parseFloat(formData.paymentAmount) : null;
+        payload.payment_method = formData.paymentRequired !== 'not_required' ? formData.paymentMethod : null;
       } else {
-        payload.passenger_count = formData.passengerCount;
-      }
-
-      if (!formData.sameReturnLocation && formData.returnLocation) {
-        payload.return_location = formData.returnLocation;
-        payload.return_lat = formData.returnLat;
-        payload.return_lng = formData.returnLng;
+        payload.passenger_count = formData.passengerCount || 1;
       }
 
       const response = await fetch(`${API_URL}/${endpoint}`, {
