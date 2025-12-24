@@ -1,13 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { updateAccount, deleteCarpoolOffer, deleteCarpoolRequest, API_BASE_URL as API_URL } from '../services/api';
 import './MyAccount.css';
 
+// Skeleton Loading Component
+const SkeletonCard = () => (
+  <div className="skeleton-card">
+    <div className="skeleton-header">
+      <div className="skeleton-line title"></div>
+      <div className="skeleton-line badge"></div>
+    </div>
+    <div className="skeleton-line text"></div>
+    <div className="skeleton-line text"></div>
+    <div className="skeleton-line text"></div>
+  </div>
+);
+
+const SkeletonLoader = () => (
+  <div className="loading-state">
+    <SkeletonCard />
+    <SkeletonCard />
+    <SkeletonCard />
+  </div>
+);
+
 function MyAccount() {
   const navigate = useNavigate();
   const { authData, setAuthData, isAuthenticated, authLoading, logout, showToast } = useApp();
-  
+
   const [activeTab, setActiveTab] = useState('events');
   const [events, setEvents] = useState([]);
   const [offers, setOffers] = useState([]);
@@ -16,30 +37,20 @@ function MyAccount() {
   const [loading, setLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: '', email: '' });
-  
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       navigate('/login', { state: { returnTo: '/my-account' } });
     }
   }, [isAuthenticated, authLoading, navigate]);
-  
+
   // Load user data
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadUserData();
-      setProfileForm({
-        name: authData?.name || '',
-        email: authData?.email || ''
-      });
-    }
-  }, [isAuthenticated, authData]);
-  
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      
+
       // Fetch all data in parallel
       const [eventsRes, offersRes, ridesRes, requestsRes] = await Promise.all([
         fetch(`${API_URL}/auth/my-events`, {
@@ -55,7 +66,7 @@ function MyAccount() {
           headers: { 'Authorization': `Bearer ${token}` }
         }).then(r => r.json()).catch(() => ({ requests: [] }))
       ]);
-      
+
       setEvents(eventsRes.events || []);
       setOffers(offersRes.offers || []);
       setRides(ridesRes.rides || []);
@@ -66,8 +77,18 @@ function MyAccount() {
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, [showToast]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadUserData();
+      setProfileForm({
+        name: authData?.name || '',
+        email: authData?.email || ''
+      });
+    }
+  }, [isAuthenticated, authData, loadUserData]);
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
@@ -79,10 +100,10 @@ function MyAccount() {
       showToast(error.message || 'Failed to update profile', 'error');
     }
   };
-  
+
   const handleDeleteOffer = async (offerId) => {
     if (!window.confirm('Are you sure you want to delete this offer?')) return;
-    
+
     try {
       await deleteCarpoolOffer(offerId);
       setOffers(offers.filter(o => o.offer_id !== offerId));
@@ -91,10 +112,10 @@ function MyAccount() {
       showToast('Failed to delete offer', 'error');
     }
   };
-  
+
   const handleDeleteRequest = async (requestId) => {
     if (!window.confirm('Are you sure you want to cancel this request?')) return;
-    
+
     try {
       await deleteCarpoolRequest(requestId);
       setRequests(requests.filter(r => r.id !== requestId));
@@ -103,53 +124,59 @@ function MyAccount() {
       showToast('Failed to cancel request', 'error');
     }
   };
-  
+
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
 
-  const getStatusBadge = (status) => {
-    const styles = {
-      confirmed: { background: '#dcfce7', color: '#166534' },
-      pending: { background: '#fef3c7', color: '#92400e' },
-      rejected: { background: '#fee2e2', color: '#991b1b' },
-      active: { background: '#dbeafe', color: '#1e40af' },
+  const getStatusClass = (status) => {
+    const map = {
+      confirmed: 'confirmed',
+      pending: 'pending',
+      rejected: 'rejected',
+      active: 'active',
     };
-    return styles[status] || { background: '#f3f4f6', color: '#374151' };
+    return map[status] || 'pending';
   };
-  
+
   if (authLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚗</div>
-          <p>Loading...</p>
+      <div className="my-account-container">
+        <div className="loading-spinner-container">
+          <div className="loading-spinner"></div>
+          <p>Loading your account...</p>
         </div>
       </div>
     );
   }
-  
+
   if (!isAuthenticated) {
     return null;
   }
 
+  // Calculate stats
+  const confirmedRides = rides.filter(r => r.status === 'confirmed').length;
+  const pendingRequests = requests.filter(r => r.status === 'pending').length;
+  const totalSeatsOffered = offers.reduce((sum, o) => sum + (o.total_seats || 0), 0);
+
   return (
     <div className="my-account-container">
+      {/* Gradient Header */}
       <div className="account-header">
         <button className="back-btn" onClick={() => navigate('/')}>
-          ← Back to Home
+          ← Home
         </button>
         <h1>My Account</h1>
       </div>
-      
+
       {/* Profile Section */}
       <div className="profile-section">
         <div className="profile-card">
           <div className="profile-avatar">
             {authData?.name?.charAt(0)?.toUpperCase() || '?'}
           </div>
-          
+
           {editingProfile ? (
             <form onSubmit={handleUpdateProfile} className="profile-edit-form">
               <div className="form-group">
@@ -159,6 +186,7 @@ function MyAccount() {
                   className="form-input"
                   value={profileForm.name}
                   onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                  placeholder="Your name"
                 />
               </div>
               <div className="form-group">
@@ -168,6 +196,7 @@ function MyAccount() {
                   className="form-input"
                   value={profileForm.email}
                   onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  placeholder="your@email.com"
                 />
               </div>
               <div className="form-group">
@@ -181,63 +210,93 @@ function MyAccount() {
                 <small className="form-hint">Phone number cannot be changed</small>
               </div>
               <div className="profile-actions">
-                <button type="submit" className="btn btn-primary">Save</button>
+                <button type="submit" className="btn btn-primary">Save Changes</button>
                 <button type="button" className="btn btn-secondary" onClick={() => setEditingProfile(false)}>Cancel</button>
               </div>
             </form>
           ) : (
-            <div className="profile-info">
-              <h2>{authData?.name}</h2>
-              <p className="profile-phone">📱 {authData?.phone}</p>
-              <p className="profile-email">✉️ {authData?.email}</p>
+            <>
+              <div className="profile-info">
+                <h2>{authData?.name || 'User'}</h2>
+                <div className="profile-details">
+                  <div className="profile-detail-item">
+                    <span className="icon">📱</span>
+                    <span className="value">{authData?.phone}</span>
+                  </div>
+                  {authData?.email && (
+                    <div className="profile-detail-item">
+                      <span className="icon">✉️</span>
+                      <span className="value">{authData?.email}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats Section */}
+              <div className="profile-stats">
+                <div className="stat-item">
+                  <div className="stat-value">{events.length}</div>
+                  <div className="stat-label">Events</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-value">{offers.length}</div>
+                  <div className="stat-label">Rides</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-value">{confirmedRides}</div>
+                  <div className="stat-label">Joined</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-value">{totalSeatsOffered}</div>
+                  <div className="stat-label">Seats</div>
+                </div>
+              </div>
+
               <div className="profile-actions">
                 <button className="btn btn-secondary" onClick={() => setEditingProfile(true)}>
                   ✏️ Edit Profile
                 </button>
                 <button className="btn btn-danger" onClick={handleLogout}>
-                  Logout
+                  🚪 Logout
                 </button>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
-      
+
       {/* Tabs */}
       <div className="account-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'events' ? 'active' : ''}`}
           onClick={() => setActiveTab('events')}
         >
-          📅 Events ({events.length})
+          📅 Events <span className="tab-count">{events.length}</span>
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'offers' ? 'active' : ''}`}
           onClick={() => setActiveTab('offers')}
         >
-          🚗 Driving ({offers.length})
+          🚗 Driving <span className="tab-count">{offers.length}</span>
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'rides' ? 'active' : ''}`}
           onClick={() => setActiveTab('rides')}
         >
-          🎫 As Passenger ({rides.length})
+          🎫 Passenger <span className="tab-count">{rides.length}</span>
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('requests')}
         >
-          📋 Requests ({requests.length})
+          📋 Requests {pendingRequests > 0 && <span className="tab-count">{pendingRequests}</span>}
         </button>
       </div>
-      
+
       {/* Content */}
       <div className="account-content">
         {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading your data...</p>
-          </div>
+          <SkeletonLoader />
         ) : activeTab === 'events' ? (
           /* EVENTS TAB */
           <div className="events-list">
@@ -254,23 +313,16 @@ function MyAccount() {
               events.map(event => (
                 <div key={event.event_id} className="item-card event-card">
                   <div className="item-header">
-                    <div className="event-badge">{event.event_name}</div>
+                    <div className="event-badge">📅 {event.event_name}</div>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                      <span style={{
-                        background: event.is_creator ? '#dbeafe' : '#dcfce7',
-                        color: event.is_creator ? '#1e40af' : '#166534',
-                        padding: '4px 8px',
-                        borderRadius: '12px',
-                        fontSize: '11px',
-                        fontWeight: '600'
-                      }}>
+                      <span className={`status-pill ${event.is_creator ? 'active' : 'confirmed'}`}>
                         {event.is_creator ? '👑 Creator' : '✓ Joined'}
                       </span>
                     </div>
                   </div>
                   <div className="item-body">
                     <div className="item-detail">
-                      <span className="detail-label">📅 Date:</span>
+                      <span className="detail-label">📅 Date</span>
                       <span>
                         {event.event_date && new Date(event.event_date).toLocaleDateString('en-US', {
                           weekday: 'short', month: 'short', day: 'numeric'
@@ -278,7 +330,7 @@ function MyAccount() {
                       </span>
                     </div>
                     <div className="item-detail">
-                      <span className="detail-label">📍 Location:</span>
+                      <span className="detail-label">📍 Location</span>
                       <span>{event.event_location}</span>
                     </div>
                     {event.stats && (
@@ -290,20 +342,20 @@ function MyAccount() {
                   </div>
                   <div className="item-actions">
                     {event.is_creator && (
-                      <button 
+                      <button
                         className="btn btn-primary btn-sm"
                         onClick={() => navigate(`/event/${event.event_code}/admin`)}
                       >
                         ⚙️ Manage
                       </button>
                     )}
-                    <button 
+                    <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => navigate(`/event/${event.event_code}`)}
                     >
                       🚗 Open
                     </button>
-                    <button 
+                    <button
                       className="copy-btn-small"
                       onClick={() => {
                         navigator.clipboard.writeText(`${window.location.origin}/event/${event.event_code}`);
@@ -316,7 +368,7 @@ function MyAccount() {
                 </div>
               ))
             )}
-            <div style={{ textAlign: 'center', marginTop: '20px' }}>
+            <div style={{ textAlign: 'center', marginTop: '24px' }}>
               <button className="btn btn-primary" onClick={() => navigate('/create-event')}>
                 ✨ Create New Event
               </button>
@@ -329,53 +381,53 @@ function MyAccount() {
               <div className="empty-state">
                 <div className="empty-icon">🚗</div>
                 <h3>No Rides Offered</h3>
-                <p>You haven't offered any rides yet.</p>
+                <p>You haven't offered any rides yet. Start driving to help others!</p>
               </div>
             ) : (
               offers.map(offer => (
                 <div key={offer.offer_id} className="item-card">
                   <div className="item-header">
-                    <div className="event-badge">{offer.event_name || 'Event'}</div>
-                    <span style={{
-                      ...getStatusBadge(offer.status),
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '600'
-                    }}>
-                      {offer.status}
+                    <div className="event-badge">🚗 {offer.event_name || 'Event'}</div>
+                    <span className={`status-pill ${getStatusClass(offer.status)}`}>
+                      {offer.status || 'Active'}
                     </span>
                   </div>
                   <div className="item-body">
                     {offer.event_date && (
                       <div className="item-detail">
-                        <span className="detail-label">📅 Date:</span>
-                        <span>{new Date(offer.event_date).toLocaleDateString()}</span>
+                        <span className="detail-label">📅 Date</span>
+                        <span>{new Date(offer.event_date).toLocaleDateString('en-US', {
+                          weekday: 'short', month: 'short', day: 'numeric'
+                        })}</span>
                       </div>
                     )}
                     <div className="item-detail">
-                      <span className="detail-label">🪑 Seats:</span>
-                      <span>{offer.available_seats || offer.total_seats} / {offer.total_seats} available</span>
+                      <span className="detail-label">🪑 Seats</span>
+                      <span style={{ fontWeight: 600 }}>
+                        {offer.available_seats || offer.total_seats} / {offer.total_seats} available
+                      </span>
                     </div>
                     <div className="item-detail">
-                      <span className="detail-label">🔄 Trip:</span>
-                      <span>{offer.trip_type === 'both' ? 'Round Trip' : offer.trip_type}</span>
+                      <span className="detail-label">🔄 Trip</span>
+                      <span>{offer.trip_type === 'both' ? 'Round Trip' : offer.trip_type === 'going' ? 'Going Only' : 'Return Only'}</span>
                     </div>
                     {offer.confirmed_passengers > 0 && (
                       <div className="item-detail">
-                        <span className="detail-label">👥 Passengers:</span>
-                        <span style={{ color: '#059669', fontWeight: 600 }}>{offer.confirmed_passengers} confirmed</span>
+                        <span className="detail-label">👥 Passengers</span>
+                        <span style={{ color: '#059669', fontWeight: 700 }}>
+                          {offer.confirmed_passengers} confirmed
+                        </span>
                       </div>
                     )}
                   </div>
                   <div className="item-actions">
-                    <button 
+                    <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => navigate(`/event/${offer.event_code}`)}
                     >
                       View Event
                     </button>
-                    <button 
+                    <button
                       className="btn btn-danger btn-sm"
                       onClick={() => handleDeleteOffer(offer.offer_id)}
                     >
@@ -393,27 +445,21 @@ function MyAccount() {
               <div className="empty-state">
                 <div className="empty-icon">🎫</div>
                 <h3>No Rides Yet</h3>
-                <p>You haven't joined any rides as a passenger.</p>
+                <p>You haven't joined any rides as a passenger yet.</p>
               </div>
             ) : (
               rides.map((ride, idx) => (
                 <div key={ride.join_request_id || idx} className="item-card">
                   <div className="item-header">
-                    <div className="event-badge">{ride.event_name || 'Event'}</div>
-                    <span style={{
-                      ...getStatusBadge(ride.status),
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '600'
-                    }}>
+                    <div className="event-badge">🚗 {ride.event_name || 'Event'}</div>
+                    <span className={`status-pill ${getStatusClass(ride.status)}`}>
                       {ride.status === 'confirmed' ? '✅ Confirmed' : ride.status}
                     </span>
                   </div>
                   <div className="item-body">
                     {ride.event_date && (
                       <div className="item-detail">
-                        <span className="detail-label">📅 Date:</span>
+                        <span className="detail-label">📅 Date</span>
                         <span>
                           {new Date(ride.event_date).toLocaleDateString('en-US', {
                             weekday: 'short', month: 'short', day: 'numeric'
@@ -422,20 +468,20 @@ function MyAccount() {
                       </div>
                     )}
                     <div className="item-detail">
-                      <span className="detail-label">👤 Driver:</span>
-                      <span style={{ fontWeight: 600 }}>{ride.driver_name}</span>
+                      <span className="detail-label">👤 Driver</span>
+                      <span style={{ fontWeight: 700 }}>{ride.driver_name}</span>
                     </div>
                     {ride.driver_phone && (
                       <div className="item-detail">
-                        <span className="detail-label">📱 Phone:</span>
-                        <span>
+                        <span className="detail-label">📱 Contact</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           {ride.driver_phone}
-                          <a href={`tel:${ride.driver_phone}`} style={{ marginLeft: '8px' }}>📞</a>
-                          <a 
-                            href={`https://wa.me/${ride.driver_phone?.replace(/\D/g, '')}`} 
-                            target="_blank" 
+                          <a href={`tel:${ride.driver_phone}`} style={{ fontSize: '18px' }}>📞</a>
+                          <a
+                            href={`https://wa.me/${ride.driver_phone?.replace(/\D/g, '')}`}
+                            target="_blank"
                             rel="noopener noreferrer"
-                            style={{ marginLeft: '4px' }}
+                            style={{ fontSize: '18px' }}
                           >
                             💬
                           </a>
@@ -444,20 +490,20 @@ function MyAccount() {
                     )}
                     {ride.pickup_location && (
                       <div className="item-detail">
-                        <span className="detail-label">📍 Pickup:</span>
+                        <span className="detail-label">📍 Pickup</span>
                         <span>{ride.pickup_location}</span>
                       </div>
                     )}
                     {ride.event_location && (
                       <div className="item-detail">
-                        <span className="detail-label">🎯 Destination:</span>
+                        <span className="detail-label">🎯 Destination</span>
                         <span>{ride.event_location}</span>
                       </div>
                     )}
                   </div>
                   <div className="item-actions">
                     {ride.event_code && (
-                      <button 
+                      <button
                         className="btn btn-secondary btn-sm"
                         onClick={() => navigate(`/event/${ride.event_code}`)}
                       >
@@ -482,23 +528,17 @@ function MyAccount() {
               requests.map((request, idx) => (
                 <div key={request.id || idx} className="item-card">
                   <div className="item-header">
-                    <div className="event-badge">{request.event_name || 'Event'}</div>
-                    <span style={{
-                      ...getStatusBadge(request.status),
-                      padding: '4px 10px',
-                      borderRadius: '12px',
-                      fontSize: '11px',
-                      fontWeight: '600'
-                    }}>
-                      {request.status === 'confirmed' ? '✅ Confirmed' : 
-                       request.status === 'pending' ? '⏳ Pending' : 
+                    <div className="event-badge">📋 {request.event_name || 'Event'}</div>
+                    <span className={`status-pill ${getStatusClass(request.status)}`}>
+                      {request.status === 'confirmed' ? '✅ Confirmed' :
+                       request.status === 'pending' ? '⏳ Pending' :
                        request.status === 'rejected' ? '❌ Rejected' : request.status}
                     </span>
                   </div>
                   <div className="item-body">
                     {request.event_date && (
                       <div className="item-detail">
-                        <span className="detail-label">📅 Date:</span>
+                        <span className="detail-label">📅 Date</span>
                         <span>
                           {new Date(request.event_date).toLocaleDateString('en-US', {
                             weekday: 'short', month: 'short', day: 'numeric'
@@ -507,31 +547,33 @@ function MyAccount() {
                       </div>
                     )}
                     <div className="item-detail">
-                      <span className="detail-label">👤 Driver:</span>
+                      <span className="detail-label">👤 Driver</span>
                       <span>{request.driver_name}</span>
                     </div>
                     {request.pickup_location && (
                       <div className="item-detail">
-                        <span className="detail-label">📍 Pickup:</span>
+                        <span className="detail-label">📍 Pickup</span>
                         <span>{request.pickup_location}</span>
                       </div>
                     )}
                     {request.message && (
                       <div className="item-detail">
-                        <span className="detail-label">💬 Message:</span>
+                        <span className="detail-label">💬 Message</span>
                         <span style={{ fontSize: '13px', color: '#64748b' }}>{request.message}</span>
                       </div>
                     )}
                     <div className="item-detail">
-                      <span className="detail-label">📅 Sent:</span>
+                      <span className="detail-label">📅 Sent</span>
                       <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                        {new Date(request.created_at).toLocaleDateString()}
+                        {new Date(request.created_at).toLocaleDateString('en-US', {
+                          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        })}
                       </span>
                     </div>
                   </div>
                   <div className="item-actions">
                     {request.event_code && (
-                      <button 
+                      <button
                         className="btn btn-secondary btn-sm"
                         onClick={() => navigate(`/event/${request.event_code}`)}
                       >
@@ -539,11 +581,11 @@ function MyAccount() {
                       </button>
                     )}
                     {request.status === 'pending' && (
-                      <button 
+                      <button
                         className="btn btn-danger btn-sm"
                         onClick={() => handleDeleteRequest(request.id)}
                       >
-                        Cancel
+                        Cancel Request
                       </button>
                     )}
                   </div>
@@ -553,6 +595,15 @@ function MyAccount() {
           </div>
         )}
       </div>
+
+      {/* Quick Action FAB */}
+      <button
+        className="quick-action-fab"
+        onClick={() => navigate('/create-event')}
+        title="Create new event"
+      >
+        +
+      </button>
     </div>
   );
 }
