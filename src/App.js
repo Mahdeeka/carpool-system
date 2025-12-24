@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import EventCodeEntry from './pages/EventCodeEntry';
 import EventDashboard from './pages/EventDashboard';
 import RoleSelection from './pages/RoleSelection';
@@ -77,12 +78,13 @@ const GlobalComponents = ({ children }) => {
 
 function App() {
   return (
-    <PWAProvider>
-      <AppProvider>
-        <Router>
-          <GlobalComponents>
-            <div className="App">
-              <Routes>
+    <ErrorBoundary>
+      <PWAProvider>
+        <AppProvider>
+          <Router>
+            <GlobalComponents>
+              <div className="App">
+                <Routes>
                 <Route path="/" element={<EventCodeEntry />} />
                 <Route path="/info" element={<InfoPage />} />
                 <Route path="/login" element={<Login />} />
@@ -103,10 +105,11 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </div>
-          </GlobalComponents>
-        </Router>
-      </AppProvider>
-    </PWAProvider>
+            </GlobalComponents>
+          </Router>
+        </AppProvider>
+      </PWAProvider>
+    </ErrorBoundary>
   );
 }
 

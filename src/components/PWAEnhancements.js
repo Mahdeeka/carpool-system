@@ -322,7 +322,6 @@ export const useShare = () => {
         return true;
       } catch (err) {
         if (err.name !== 'AbortError') {
-          console.error('Share failed:', err);
         }
         return false;
       }

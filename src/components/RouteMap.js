@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import './RouteMap.css';
 
-const GOOGLE_API_KEY = 'AIzaSyDnWINn8Mh5rx7KvlIgIZA37c0DQo9eimk';
+const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 function RouteMap({ 
   origin,           // { address, lat, lng } or just address string
@@ -88,7 +88,6 @@ function RouteMap({
         return null;
       }
     } catch (err) {
-      console.error('Geocoding error:', err);
       return null;
     }
   }, []);
@@ -228,14 +227,12 @@ function RouteMap({
     }
 
     try {
-      console.log('Calculating route from:', origin, 'to:', destination);
       const originLatLng = await getLatLng(origin);
       const destLatLng = await getLatLng(destination);
 
       if (!isMounted.current) return;
 
       if (!originLatLng) {
-        console.error('Failed to geocode origin:', origin);
         setError('לא ניתן למצוא את מיקום האיסוף');
         setIsLoading(false);
         showMarkers();
@@ -243,15 +240,12 @@ function RouteMap({
       }
 
       if (!destLatLng) {
-        console.error('Failed to geocode destination:', destination);
         setError('לא ניתן למצוא את מיקום היעד');
         setIsLoading(false);
         showMarkers();
         return;
       }
 
-      console.log('Origin coordinates:', originLatLng.lat(), originLatLng.lng());
-      console.log('Destination coordinates:', destLatLng.lat(), destLatLng.lng());
 
       // Prepare waypoints
       const waypointLatLngs = [];
@@ -356,12 +350,10 @@ function RouteMap({
             setRouteInfo(info);
             onRouteCalculated?.(info);
           } catch (err) {
-            console.error('Error rendering directions:', err);
             setError('שגיאה בהצגת המסלול');
             showMarkers();
           }
         } else {
-          console.error('Directions request failed:', status, result);
           
           // If REQUEST_DENIED, use fallback calculation instead of showing error
           if (status === 'REQUEST_DENIED') {
@@ -431,7 +423,6 @@ function RouteMap({
       });
     } catch (err) {
       if (!isMounted.current) return;
-      console.error('Route calculation error:', err);
       setError('שגיאה בחישוב המסלול');
       setIsLoading(false);
       showMarkers();
@@ -478,7 +469,6 @@ function RouteMap({
       mapReadyRef.current = true;
       setIsLoading(false);
     } catch (err) {
-      console.error('Failed to initialize Google Maps:', err);
       setError('Failed to load map');
       setIsLoading(false);
       return;

@@ -72,7 +72,6 @@ function MyAccount() {
       setRides(ridesRes.rides || []);
       setRequests(requestsRes.requests || []);
     } catch (error) {
-      console.error('Error loading data:', error);
       showToast('Failed to load your data', 'error');
     } finally {
       setLoading(false);

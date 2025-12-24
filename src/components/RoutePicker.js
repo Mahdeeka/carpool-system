@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import './RoutePicker.css';
 
-const GOOGLE_API_KEY = 'AIzaSyDnWINn8Mh5rx7KvlIgIZA37c0DQo9eimk';
+const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 function RoutePicker({
   origin,
@@ -43,7 +43,6 @@ function RoutePicker({
         return { lat, lng: lng };
       }
     } catch (err) {
-      console.error('Geocoding error:', err);
     }
     return null;
   }, []);
@@ -185,7 +184,6 @@ function RoutePicker({
         drawFallbackRoute(originCoords, destCoords);
       }
     } catch (err) {
-      console.error('Route calculation error:', err);
       setError('שגיאה בחישוב המסלול');
     } finally {
       setIsLoading(false);
@@ -301,7 +299,6 @@ function RoutePicker({
         });
       }
     } catch (err) {
-      console.error('Reverse geocode error:', err);
     }
   };
 

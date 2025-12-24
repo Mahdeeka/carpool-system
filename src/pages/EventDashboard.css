@@ -1165,7 +1165,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 2000;
+  z-index: 35;
   padding: 0;
   animation: fadeIn 0.3s var(--ease-smooth);
 }

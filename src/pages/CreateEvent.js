@@ -59,7 +59,6 @@ function CreateEvent() {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      console.log('Creating event with token:', token ? token.substring(0, 10) + '...' : 'none');
       
       if (!token) {
         setError('Please login to create an event');

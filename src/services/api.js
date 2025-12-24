@@ -55,7 +55,6 @@ const apiCall = async (endpoint, options = {}, timeout = DEFAULT_TIMEOUT) => {
 
     return data;
   } catch (error) {
-    console.error('API Error:', error);
     throw error;
   }
 };
