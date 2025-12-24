@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import './RouteWithDetour.css';
 
-const GOOGLE_API_KEY = 'AIzaSyDnWINn8Mh5rx7KvlIgIZA37c0DQo9eimk';
+const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 function RouteWithDetour({
   origin,
@@ -38,7 +38,6 @@ function RouteWithDetour({
         return { lat, lng: lng };
       }
     } catch (err) {
-      console.error('Geocoding error:', err);
     }
     return null;
   }, []);
@@ -376,7 +375,6 @@ function RouteWithDetour({
         }
       });
     } catch (err) {
-      console.error('Route calculation error:', err);
       setError('שגיאה בחישוב המסלול');
       setIsLoading(false);
     }

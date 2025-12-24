@@ -114,7 +114,6 @@ function EventPage() {
       const data = await response.json();
       return data.success;
     } catch (err) {
-      console.error('Failed to register event join:', err);
       return false;
     }
   };

@@ -90,7 +90,6 @@ function Login() {
         }
       }).catch(err => {
         // User cancelled or API not available
-        console.log('OTP auto-read not available:', err);
       });
       
       return () => {

@@ -58,7 +58,6 @@ function EventAdminDashboard() {
       });
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching event:', err);
       setError('Failed to load event data');
       setLoading(false);
     }

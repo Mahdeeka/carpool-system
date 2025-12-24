@@ -202,7 +202,7 @@
   bottom: 0;
   background: rgba(11, 18, 32, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 1000;
+  z-index: 30;
   display: flex;
   align-items: flex-end;
   justify-content: center;

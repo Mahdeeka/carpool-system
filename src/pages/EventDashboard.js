@@ -60,6 +60,7 @@ function EventDashboard() {
   // Filter and sort state
   const [filters, setFilters] = useState({});
   const [sortBy, setSortBy] = useState('newest');
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -181,7 +182,6 @@ function EventDashboard() {
       setNeedsCode(false);
       return data;
     } catch (err) {
-      console.error('Error fetching event:', err);
       setError('Failed to load event');
       setLoading(false);
       return null;
@@ -194,7 +194,6 @@ function EventDashboard() {
       const data = await response.json();
       setOffers(data.offers || []);
     } catch (err) {
-      console.error('Error fetching offers:', err);
     }
   }, [eventCode]);
 
@@ -204,7 +203,6 @@ function EventDashboard() {
       const data = await response.json();
       setRequests(data.requests || []);
     } catch (err) {
-      console.error('Error fetching requests:', err);
     }
   }, [eventCode]);
 
@@ -234,13 +232,11 @@ function EventDashboard() {
         const eventRides = (data.rides || []).filter(ride => 
           ride.event_id === event.event_id && ride.status === 'confirmed'
         );
-        console.log('My confirmed joined rides for this event:', eventRides);
         setMyJoinedRides(eventRides);
       } else {
         setMyJoinedRides([]);
       }
     } catch (err) {
-      console.error('Error fetching my joined rides:', err);
       setMyJoinedRides([]);
     }
   }, [isAuthenticated, event?.event_id]);
@@ -249,22 +245,8 @@ function EventDashboard() {
     try {
       const response = await fetch(`${API_URL}/carpool/offer/${offerId}/join-requests`);
       const data = await response.json();
-      console.log('Join requests data received:', data.requests);
-      console.log('First request details:', data.requests?.[0]);
-      if (data.requests && data.requests.length > 0) {
-        data.requests.forEach((req, index) => {
-          console.log(`Request ${index}:`, {
-            name: req.name,
-            pickup_location: req.pickup_location,
-            pickup_lat: req.pickup_lat,
-            pickup_lng: req.pickup_lng,
-            hasPickupLocation: !!(req.pickup_location && req.pickup_lat && req.pickup_lng)
-          });
-        });
-      }
       setJoinRequests(data.requests || []);
-    } catch (err) {
-      console.error('Error fetching join requests:', err);
+    } catch {
       setJoinRequests([]);
     }
   };
@@ -304,9 +286,7 @@ function EventDashboard() {
             'Authorization': `Bearer ${token}`
           }
         });
-        console.log('User registered as event participant');
       } catch (err) {
-        console.error('Failed to register event participation:', err);
       }
     };
     
@@ -574,7 +554,6 @@ function EventDashboard() {
         showToast(responseData.message || 'Failed to publish', 'error');
       }
     } catch (err) {
-      console.error('Error publishing:', err);
       const errorMessage = err.message?.includes('timed out')
         ? 'Request timed out. Please check your connection and try again.'
         : 'Error publishing. Please try again.';
@@ -604,7 +583,6 @@ function EventDashboard() {
         setSubmitting(false);
       }
     } catch (err) {
-      console.error('OTP verification error:', err);
       const errorMessage = err.message?.includes('timed out')
         ? 'Request timed out. Please check your connection and try again.'
         : 'Verification failed. Please try again.';
@@ -693,7 +671,6 @@ function EventDashboard() {
         showToast(result.message || 'Failed to send verification code', 'error');
       }
     } catch (err) {
-      console.error('Error requesting OTP:', err);
       const errorMessage = err.message?.includes('timed out')
         ? 'Request timed out. Please check your connection and try again.'
         : 'Failed to send verification code. Please try again.';
@@ -727,7 +704,6 @@ function EventDashboard() {
         showToast('Failed to delete', 'error');
       }
     } catch (err) {
-      console.error('Error deleting:', err);
       showToast('Error deleting. Please try again.', 'error');
     }
   };
@@ -783,9 +759,6 @@ function EventDashboard() {
 
   // Submit join request
   const handleSubmitJoinRequest = async () => {
-    console.log('=== SUBMIT JOIN REQUEST START ===');
-    console.log('formData:', formData);
-    console.log('joinPickupLocation:', joinPickupLocation);
     
     if (!formData.name || !formData.phone || !formData.email) {
       showToast('Please fill in your contact details', 'error');
@@ -794,16 +767,11 @@ function EventDashboard() {
 
     // More detailed validation with logging
     if (!joinPickupLocation) {
-      console.error('joinPickupLocation is null or undefined');
       showToast('Please select a pickup location on the route', 'error');
       return;
     }
     
     if (joinPickupLocation.lat == null || joinPickupLocation.lng == null) {
-      console.error('joinPickupLocation coordinates are null:', {
-        lat: joinPickupLocation.lat,
-        lng: joinPickupLocation.lng
-      });
       showToast('Please select a valid pickup location with coordinates', 'error');
       return;
     }
@@ -822,12 +790,6 @@ function EventDashboard() {
         message: joinMessage || '',
       };
       
-      console.log('=== REQUEST BODY ===');
-      console.log('pickup_location:', requestBody.pickup_location);
-      console.log('pickup_lat:', requestBody.pickup_lat, '(type:', typeof requestBody.pickup_lat, ')');
-      console.log('pickup_lng:', requestBody.pickup_lng, '(type:', typeof requestBody.pickup_lng, ')');
-      console.log('message:', requestBody.message);
-      console.log('Full requestBody:', JSON.stringify(requestBody, null, 2));
       
       const response = await fetch(`${API_URL}/carpool/offer/${selectedOffer.offer_id}/request-join`, {
         method: 'POST',
@@ -836,7 +798,6 @@ function EventDashboard() {
       });
 
       const responseData = await response.json();
-      console.log('Server response:', responseData);
 
       if (response.ok) {
         showToast('Request sent! The driver will be notified.', 'success');
@@ -852,7 +813,6 @@ function EventDashboard() {
         showToast(responseData.message || 'Failed to send request', 'error');
       }
     } catch (err) {
-      console.error('Error requesting to join:', err);
       const errorMessage = err.message?.includes('timed out')
         ? 'Request timed out. Please check your connection and try again.'
         : 'Error sending request. Please try again.';
@@ -886,7 +846,6 @@ function EventDashboard() {
         showToast('Failed to accept request', 'error');
       }
     } catch (err) {
-      console.error('Error accepting:', err);
       showToast('Error accepting request', 'error');
     }
   };
@@ -904,7 +863,6 @@ function EventDashboard() {
         showToast('Failed to decline request', 'error');
       }
     } catch (err) {
-      console.error('Error rejecting:', err);
       showToast('Error declining request', 'error');
     }
   };
@@ -1903,7 +1861,6 @@ function EventDashboard() {
                       destination={event.event_location}
                       selectedPickup={joinPickupLocation}
                       onPickupSelect={(location) => {
-                        console.log('RoutePicker selected location:', location);
                         setJoinPickupLocation(location);
                       }}
                       height="350px"
@@ -1924,7 +1881,6 @@ function EventDashboard() {
                         value={joinPickupLocation?.address || ''}
                         onChange={() => {}}
                         onLocationSelect={(location) => {
-                          console.log('MapLocationPicker selected location:', location);
                           setJoinPickupLocation(location);
                         }}
                         placeholder="הזן כתובת איסוף..."
@@ -2176,27 +2132,11 @@ function EventDashboard() {
                       
                       {/* Show route with detour if pickup location is available */}
                       {(() => {
-                        // More lenient check - check if any pickup data exists
                         const hasPickupLocation = req.pickup_location || (req.pickup_lat != null && req.pickup_lng != null);
                         const hasPickupCoords = req.pickup_lat != null && req.pickup_lng != null;
                         const hasOrigin = selectedOffer.locations?.[0]?.location_address;
                         const hasDestination = event?.event_location;
-                        
-                        console.log('RouteWithDetour conditions for request:', req.name, {
-                          hasPickupLocation,
-                          hasPickupCoords,
-                          hasOrigin,
-                          hasDestination,
-                          pickupLocation: req.pickup_location,
-                          pickupLat: req.pickup_lat,
-                          pickupLng: req.pickup_lng,
-                          pickupLatType: typeof req.pickup_lat,
-                          pickupLngType: typeof req.pickup_lng,
-                          origin: selectedOffer.locations?.[0]?.location_address,
-                          destination: event?.event_location,
-                          fullRequest: req
-                        });
-                        
+
                         if (hasPickupCoords && hasOrigin && hasDestination) {
                           return (
                             <div style={{ marginTop: '16px', marginBottom: '16px' }}>

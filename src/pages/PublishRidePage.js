@@ -1,11 +1,11 @@
-import React, { useState, useEffect, lazy, Suspense, Component } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { requestOTP, verifyOTP, API_BASE_URL as API_URL } from '../services/api';
 import './PublishRidePage.css';
 
 // Error boundary to catch map component errors
-class MapErrorBoundary extends Component {
+class MapErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false };
@@ -15,8 +15,8 @@ class MapErrorBoundary extends Component {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
-    console.error('Map component error:', error, errorInfo);
+  componentDidCatch() {
+    // Error logging removed for production
   }
 
   render() {
@@ -89,8 +89,9 @@ function PublishRidePage() {
     passengerCount: 1,
   });
   
-  const [routeDistance, setRouteDistance] = useState(null);
-  const [maxPayment, setMaxPayment] = useState(0);
+  // eslint-disable-next-line no-unused-vars
+  const [maxPayment, _setMaxPayment] = useState(0);
+  // Note: Route distance tracking disabled until RouteMap is re-enabled
 
   // Fetch event data
   useEffect(() => {
@@ -142,12 +143,8 @@ function PublishRidePage() {
     }));
   };
 
-  const handleRouteCalculated = (routeInfo) => {
-    if (routeInfo?.distance) {
-      setRouteDistance(routeInfo.distance);
-      setMaxPayment(Math.ceil(routeInfo.distance * 0.7 * 1.5));
-    }
-  };
+  // Note: handleRouteCalculated disabled until RouteMap is re-enabled
+  // Will be used to calculate max payment based on distance
 
   const handleOtpChange = (idx, value) => {
     // Handle paste of full OTP

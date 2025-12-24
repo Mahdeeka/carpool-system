@@ -5,39 +5,22 @@ import { API_BASE_URL as API_URL } from '../services/api';
 import RouteWithDetour from '../components/RouteWithDetour';
 import { SkeletonMyRidesPage } from '../components/SkeletonLoader';
 import { NoOffersEmptyState, NoJoinedRidesEmptyState, NoRequestsEmptyState } from '../components/EmptyState';
-import { PullToRefresh } from '../components/MicroInteractions';
 import './MyRides.css';
-
-// localStorage keys for tracking user's rides
-const STORAGE_KEYS = {
-  MY_OFFERS: 'carpool_my_offers',
-  MY_REQUESTS: 'carpool_my_requests',
-  USER_PROFILE: 'carpool_user_profile',
-};
 
 function MyRides() {
   const navigate = useNavigate();
   const { showToast, authData, isAuthenticated } = useApp();
-  
+
   const [activeTab, setActiveTab] = useState('driving');
   const [myOffers, setMyOffers] = useState([]);
   const [myJoinedRides, setMyJoinedRides] = useState([]);
-  const [myRequests, setMyRequests] = useState([]); // Join requests I've sent
+  const [myRequests, setMyRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOffer, setExpandedOffer] = useState(null);
-
-  // Helper function to get offer IDs from localStorage (kept for debugging)
-  // eslint-disable-next-line no-unused-vars
-  const getMyOfferIds = () => {
-    const saved = localStorage.getItem(STORAGE_KEYS.MY_OFFERS);
-    console.log('My offer IDs from localStorage:', saved);
-    return saved ? JSON.parse(saved) : [];
-  };
 
   // Fetch event details by event_id
   const fetchEventDetails = async (eventId) => {
     try {
-      // First check localStorage
       const savedEventData = localStorage.getItem('eventData');
       if (savedEventData) {
         const parsed = JSON.parse(savedEventData);
@@ -45,10 +28,8 @@ function MyRides() {
           return parsed;
         }
       }
-      // If not found, we'd need an API to fetch by ID
       return null;
-    } catch (error) {
-      console.error('Error fetching event details:', error);
+    } catch {
       return null;
     }
   };
@@ -59,41 +40,34 @@ function MyRides() {
       setMyOffers([]);
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
         setMyOffers([]);
         return;
       }
-      
-      console.log('Fetching my offers via authenticated API...');
+
       const response = await fetch(`${API_URL}/auth/my-offers`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) {
-        console.error('Failed to fetch my offers:', response.status);
         setMyOffers([]);
         return;
       }
-      
+
       const data = await response.json();
-      console.log('Got my offers:', data);
-      
       const offersWithDetails = [];
-      
+
       for (const offer of (data.offers || [])) {
         try {
-          // Get join requests for this offer
           const requestsRes = await fetch(`${API_URL}/carpool/offer/${offer.offer_id}/join-requests`);
           const requestsData = await requestsRes.json();
-          
-          // Get event details
           const eventDetails = await fetchEventDetails(offer.event_id);
-          
+
           offersWithDetails.push({
             ...offer,
             joinRequests: requestsData.requests || [],
@@ -101,15 +75,13 @@ function MyRides() {
             pendingPassengers: (requestsData.requests || []).filter(r => r.status === 'pending'),
             eventDetails
           });
-        } catch (error) {
-          console.error('Error fetching offer details:', offer.offer_id, error);
+        } catch {
+          // Continue with other offers if one fails
         }
       }
-      
-      console.log('Final offers with details:', offersWithDetails);
+
       setMyOffers(offersWithDetails);
-    } catch (error) {
-      console.error('Error fetching my offers:', error);
+    } catch {
       setMyOffers([]);
     }
   }, [isAuthenticated]);
@@ -120,31 +92,27 @@ function MyRides() {
       setMyJoinedRides([]);
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
         setMyJoinedRides([]);
         return;
       }
-      
-      console.log('Fetching joined rides for authenticated user...');
+
       const response = await fetch(`${API_URL}/auth/my-joined-rides`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) {
-        console.error('Failed to fetch joined rides:', response.status);
         setMyJoinedRides([]);
         return;
       }
-      
+
       const data = await response.json();
-      console.log('Got joined rides:', data);
-      
-      // Transform the data for display
+
       const rides = (data.rides || []).map(ride => ({
         join_request_id: ride.join_request_id,
         offer_id: ride.offer_id,
@@ -168,11 +136,9 @@ function MyRides() {
         created_at: ride.created_at,
         confirmed_at: ride.confirmed_at
       }));
-      
-      console.log('Transformed rides:', rides);
+
       setMyJoinedRides(rides);
-    } catch (error) {
-      console.error('Error fetching joined rides:', error);
+    } catch {
       setMyJoinedRides([]);
     }
   }, [isAuthenticated]);
@@ -183,32 +149,28 @@ function MyRides() {
       setMyRequests([]);
       return;
     }
-    
+
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
         setMyRequests([]);
         return;
       }
-      
-      console.log('Fetching my join requests...');
+
       const response = await fetch(`${API_URL}/auth/my-join-requests`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (!response.ok) {
-        console.error('Failed to fetch join requests:', response.status);
         setMyRequests([]);
         return;
       }
-      
+
       const data = await response.json();
-      console.log('Got my join requests:', data);
       setMyRequests(data.requests || []);
-    } catch (error) {
-      console.error('Error fetching join requests:', error);
+    } catch {
       setMyRequests([]);
     }
   }, [isAuthenticated]);
@@ -233,7 +195,7 @@ function MyRides() {
         showToast('Passenger confirmed!', 'success');
         await fetchMyOffers();
       }
-    } catch (error) {
+    } catch {
       showToast('Failed to accept passenger', 'error');
     }
   };
@@ -247,29 +209,32 @@ function MyRides() {
         showToast('Request declined', 'success');
         await fetchMyOffers();
       }
-    } catch (error) {
+    } catch {
       showToast('Failed to decline request', 'error');
     }
   };
 
-  // Debug: Show what's in localStorage and state
-  useEffect(() => {
-    console.log('=== MyRides Debug ===');
-    console.log('isAuthenticated:', isAuthenticated);
-    console.log('authData:', authData);
-    console.log('MY_OFFERS:', localStorage.getItem(STORAGE_KEYS.MY_OFFERS));
-    console.log('MY_REQUESTS:', localStorage.getItem(STORAGE_KEYS.MY_REQUESTS));
-    console.log('USER_PROFILE:', localStorage.getItem(STORAGE_KEYS.USER_PROFILE));
-    console.log('authToken:', localStorage.getItem('authToken') ? 'EXISTS' : 'MISSING');
-  }, [isAuthenticated, authData]);
-  
-  // Debug: Log fetched data
-  useEffect(() => {
-    console.log('=== MyRides Data ===');
-    console.log('myOffers:', myOffers.length, myOffers);
-    console.log('myJoinedRides:', myJoinedRides.length, myJoinedRides);
-    console.log('myRequests:', myRequests.length, myRequests);
-  }, [myOffers, myJoinedRides, myRequests]);
+  const handleCancelRequest = async (requestId) => {
+    if (!window.confirm('Cancel this join request?')) return;
+
+    try {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${API_URL}/carpool/join-request/${requestId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        showToast('Request cancelled', 'success');
+        await fetchMyRequests();
+      } else {
+        showToast('Failed to cancel request', 'error');
+      }
+    } catch {
+      showToast('Failed to cancel request', 'error');
+    }
+  };
 
   if (loading) {
     return (
@@ -287,36 +252,35 @@ function MyRides() {
           <button onClick={() => navigate(-1)} className="back-btn">
             ← Back
           </button>
-          <h1>🚗 My Rides</h1>
+          <h1>My Rides</h1>
         </div>
-        
+
         {isAuthenticated && (
-          <button 
+          <button
             onClick={() => navigate('/my-account')}
             className="account-btn"
           >
-            <span className="avatar">{authData?.name?.charAt(0)?.toUpperCase()}</span>
-            {authData?.name?.split(' ')[0]}
+            <span className="avatar">{authData?.name?.charAt(0)?.toUpperCase() || '?'}</span>
+            {authData?.name?.split(' ')[0] || 'Account'}
           </button>
         )}
       </div>
 
-
       {/* Tabs */}
       <div className="rides-tabs">
-        <button 
+        <button
           className={`tab ${activeTab === 'driving' ? 'active' : ''}`}
           onClick={() => setActiveTab('driving')}
         >
           🚗 My Offers ({myOffers.length})
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'passenger' ? 'active' : ''}`}
           onClick={() => setActiveTab('passenger')}
         >
           ✅ Confirmed ({myJoinedRides.length})
         </button>
-        <button 
+        <button
           className={`tab ${activeTab === 'requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('requests')}
         >
@@ -352,7 +316,7 @@ function MyRides() {
                           )}
                         </div>
                       </div>
-                      <button 
+                      <button
                         className="expand-btn"
                         onClick={() => setExpandedOffer(expandedOffer === offer.offer_id ? null : offer.offer_id)}
                       >
@@ -399,7 +363,7 @@ function MyRides() {
                                 </div>
                               </div>
                               <div className="passenger-actions">
-                                <a 
+                                <a
                                   href={`https://wa.me/${passenger.phone?.replace(/\D/g, '')}?text=Hi! I'm your driver for the carpool.`}
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -441,13 +405,13 @@ function MyRides() {
                                 </div>
                               </div>
                               <div className="request-actions">
-                                <button 
+                                <button
                                   className="btn btn-success btn-sm"
                                   onClick={() => handleAcceptPassenger(offer.offer_id, passenger.id)}
                                 >
                                   ✅ Accept
                                 </button>
-                                <button 
+                                <button
                                   className="btn btn-danger btn-sm"
                                   onClick={() => handleRejectPassenger(offer.offer_id, passenger.id)}
                                 >
@@ -464,21 +428,13 @@ function MyRides() {
                     {expandedOffer === offer.offer_id && (
                       <div className="expanded-details">
                         <h4>🗺️ Route with Passengers</h4>
-                        
+
                         {offer.locations?.[0]?.location_address ? (
                           <div className="route-map-container">
                             {offer.confirmedPassengers.length > 0 ? (
-                              // Show route with all pickup points
                               offer.confirmedPassengers.map((passenger, idx) => {
                                 const hasPickupCoords = passenger.pickup_lat != null && passenger.pickup_lng != null;
-                                console.log('Passenger pickup data:', {
-                                  name: passenger.name,
-                                  pickup_location: passenger.pickup_location,
-                                  pickup_lat: passenger.pickup_lat,
-                                  pickup_lng: passenger.pickup_lng,
-                                  hasPickupCoords
-                                });
-                                
+
                                 if (hasPickupCoords) {
                                   return (
                                     <div key={idx} className="passenger-route">
@@ -586,7 +542,7 @@ function MyRides() {
                         {ride.status === 'confirmed' ? '✅ Confirmed' : ride.status === 'pending' ? '⏳ Pending' : ride.status}
                       </span>
                     </div>
-                    
+
                     <div className="ride-details">
                       <div className="detail-row">
                         <span className="detail-label">📅 Event:</span>
@@ -613,9 +569,9 @@ function MyRides() {
                         <span>
                           {ride.driverPhone}
                           <a href={`tel:${ride.driverPhone}`} style={{ marginLeft: '8px', textDecoration: 'none' }}>📞</a>
-                          <a 
-                            href={`https://wa.me/${ride.driverPhone?.replace(/\D/g, '')}`} 
-                            target="_blank" 
+                          <a
+                            href={`https://wa.me/${ride.driverPhone?.replace(/\D/g, '')}`}
+                            target="_blank"
                             rel="noopener noreferrer"
                             style={{ marginLeft: '8px', textDecoration: 'none' }}
                           >
@@ -642,7 +598,7 @@ function MyRides() {
                         </div>
                       )}
                     </div>
-                    
+
                     {/* Show route if we have locations */}
                     {ride.offerLocations?.[0]?.location_address && ride.eventLocation && ride.pickupLocation && (
                       <div style={{ marginTop: '16px' }}>
@@ -660,10 +616,10 @@ function MyRides() {
                         />
                       </div>
                     )}
-                    
+
                     <div className="ride-actions" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
                       {ride.eventCode && (
-                        <button 
+                        <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => navigate(`/event/${ride.eventCode}`)}
                         >
@@ -698,7 +654,7 @@ function MyRides() {
                         {request.status === 'confirmed' ? '✅ Confirmed' : request.status === 'pending' ? '⏳ Pending' : request.status === 'rejected' ? '❌ Rejected' : request.status}
                       </span>
                     </div>
-                    
+
                     <div className="ride-details">
                       {request.event_date && (
                         <div className="detail-row">
@@ -744,10 +700,10 @@ function MyRides() {
                         })}</span>
                       </div>
                     </div>
-                    
+
                     <div className="ride-actions" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
                       {request.event_code && (
-                        <button 
+                        <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => navigate(`/event/${request.event_code}`)}
                         >
@@ -755,14 +711,9 @@ function MyRides() {
                         </button>
                       )}
                       {request.status === 'pending' && (
-                        <button 
+                        <button
                           className="btn btn-ghost btn-sm"
-                          onClick={() => {
-                            if (window.confirm('Cancel this join request?')) {
-                              // TODO: Add cancel request API call
-                              showToast('Cancel functionality coming soon', 'info');
-                            }
-                          }}
+                          onClick={() => handleCancelRequest(request.id)}
                           style={{ color: '#ef4444' }}
                         >
                           ❌ Cancel Request

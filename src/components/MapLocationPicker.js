@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import './MapLocationPicker.css';
 
-const GOOGLE_API_KEY = 'AIzaSyDnWINn8Mh5rx7KvlIgIZA37c0DQo9eimk';
+const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
 // Default center on Israel
 const ISRAEL_CENTER = { lat: 32.0853, lng: 34.7818 };
@@ -78,7 +78,6 @@ function MapModal({ isOpen, onClose, onConfirm, initialLocation, mapsAvailable }
           reverseGeocode(position.lat(), position.lng());
         });
       } catch (error) {
-        console.error('Failed to initialize map:', error);
       }
     }, 100);
 
@@ -121,7 +120,6 @@ function MapModal({ isOpen, onClose, onConfirm, initialLocation, mapsAvailable }
         });
       }
     } catch (error) {
-      console.error('Reverse geocode error:', error);
     }
   };
 
@@ -157,7 +155,6 @@ function MapModal({ isOpen, onClose, onConfirm, initialLocation, mapsAvailable }
         setIsLocating(false);
       },
       (error) => {
-        console.error('Geolocation error:', error);
         alert('לא הצלחנו לאתר את המיקום שלך. אנא ודא שנתת הרשאה לגישה למיקום.');
         setIsLocating(false);
       },
@@ -343,7 +340,6 @@ class GooglePlacesInput extends React.Component {
         }
       });
     } catch (error) {
-      console.error('Failed to initialize Places Autocomplete:', error);
     }
   }
 
@@ -481,14 +477,12 @@ function MapLocationPicker({
             onLocationSelect?.(location);
           }
         } catch (error) {
-          console.error('Reverse geocode error:', error);
         }
         
         setIsLocating(false);
       },
       (error) => {
         if (!isMounted.current) return;
-        console.error('Geolocation error:', error);
         alert('לא הצלחנו לאתר את המיקום שלך. אנא ודא שנתת הרשאה לגישה למיקום.');
         setIsLocating(false);
       },
