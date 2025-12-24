@@ -10,6 +10,28 @@ const LandingPage = () => {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const heroRef = useRef(null);
 
+  // Define data first before using in effects
+  const testimonials = [
+    {
+      quote: "Trempi transformed my daily commute into a networking opportunity. I've made genuine friendships and saved over $300 monthly!",
+      author: 'Sarah M.',
+      role: 'Marketing Manager',
+      avatar: '👩‍💼',
+    },
+    {
+      quote: "As someone who cares deeply about the environment, Trempi lets me reduce my carbon footprint while meeting like-minded people.",
+      author: 'David K.',
+      role: 'Environmental Scientist',
+      avatar: '👨‍🔬',
+    },
+    {
+      quote: "The best decision I made was joining Trempi. My commute is now the highlight of my day!",
+      author: 'Lisa T.',
+      role: 'Software Engineer',
+      avatar: '👩‍💻',
+    },
+  ];
+
   // Intersection Observer for scroll animations
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -51,12 +73,11 @@ const LandingPage = () => {
 
   // Auto-rotate testimonials
   useEffect(() => {
-    const testimonialsCount = testimonials.length;
     const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonialsCount);
+      setActiveTestimonial((prev) => (prev + 1) % 3);
     }, 5000);
     return () => clearInterval(interval);
-  }, [testimonials.length]);
+  }, []);
 
   const benefits = [
     {
@@ -87,27 +108,6 @@ const LandingPage = () => {
     { step: 2, title: 'Share Code', description: 'Invite others with a simple event code', icon: '🔗' },
     { step: 3, title: 'Match & Ride', description: 'Get matched with the perfect ride', icon: '🚗' },
     { step: 4, title: 'Connect', description: 'Meet new people, save money, help earth', icon: '✨' },
-  ];
-
-  const testimonials = [
-    {
-      quote: "Trempi transformed my daily commute into a networking opportunity. I've made genuine friendships and saved over $300 monthly!",
-      author: 'Sarah M.',
-      role: 'Marketing Manager',
-      avatar: '👩‍💼',
-    },
-    {
-      quote: "As someone who cares deeply about the environment, Trempi lets me reduce my carbon footprint while meeting like-minded people.",
-      author: 'David K.',
-      role: 'Environmental Scientist',
-      avatar: '👨‍🔬',
-    },
-    {
-      quote: "The best decision I made was joining Trempi. My commute is now the highlight of my day!",
-      author: 'Lisa T.',
-      role: 'Software Engineer',
-      avatar: '👩‍💻',
-    },
   ];
 
   const impactStats = [
