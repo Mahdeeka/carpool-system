@@ -18,6 +18,7 @@ import MyRides from './pages/MyRides';
 import EventAdminDashboard from './pages/EventAdminDashboard';
 import InfoPage from './pages/InfoPage';
 import PublishRidePage from './pages/PublishRidePage';
+import LandingPage from './pages/LandingPage';
 import Onboarding, { WelcomeBanner, useOnboarding } from './components/Onboarding';
 import { PWAProvider, OfflineIndicator, InstallBanner } from './components/PWAEnhancements';
 import './App.css';
@@ -87,6 +88,7 @@ function App() {
                 <Routes>
                 <Route path="/" element={<EventCodeEntry />} />
                 <Route path="/info" element={<InfoPage />} />
+                <Route path="/landing" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/my-account" element={<MyAccount />} />
                 <Route path="/my-rides" element={<MyRides />} />
