@@ -89,9 +89,18 @@ function PublishRidePage() {
     passengerCount: 1,
   });
   
-  // eslint-disable-next-line no-unused-vars
-  const [maxPayment, _setMaxPayment] = useState(0);
-  // Note: Route distance tracking disabled until RouteMap is re-enabled
+  const [routeDistance, setRouteDistance] = useState(null);
+  const [maxPayment, setMaxPayment] = useState(0);
+
+  const handleRouteCalculated = (routeInfo) => {
+    if (routeInfo?.distance) {
+      const distance = typeof routeInfo.distance === 'string' 
+        ? parseFloat(routeInfo.distance) 
+        : routeInfo.distance;
+      setRouteDistance(distance);
+      setMaxPayment(Math.ceil(distance * 0.7 * 1.5));
+    }
+  };
 
   // Fetch event data
   useEffect(() => {
