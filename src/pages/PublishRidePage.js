@@ -41,8 +41,7 @@ class MapErrorBoundary extends Component {
 
 // Lazy load map components
 const MapLocationPicker = lazy(() => import('../components/MapLocationPicker'));
-// RouteMap disabled temporarily to fix blank page issue
-// const RouteMap = lazy(() => import('../components/RouteMap'));
+const RouteMap = lazy(() => import('../components/RouteMap'));
 
 function PublishRidePage() {
   const { eventCode } = useParams();
@@ -638,23 +637,25 @@ function PublishRidePage() {
                 </MapErrorBoundary>
               </div>
 
-              {/* Route Preview - temporarily disabled to fix blank page issue */}
-              {formData.pickupLat && formData.pickupLng && (
-                <div className="location-confirmed" style={{
-                  padding: '12px 16px',
-                  background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05))',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(34, 197, 94, 0.3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  marginTop: '8px'
-                }}>
-                  <span style={{ fontSize: '20px' }}>✅</span>
-                  <div>
-                    <div style={{ fontWeight: '600', color: '#22c55e', fontSize: '14px' }}>Location Selected</div>
-                    <div style={{ fontSize: '13px', color: '#666', marginTop: '2px' }}>{formData.pickupLocation}</div>
-                  </div>
+              {/* Route Preview */}
+              {formData.pickupLat && formData.pickupLng && event?.event_location && (
+                <div className="route-preview">
+                  <MapErrorBoundary>
+                    <Suspense fallback={<div className="map-loading">Loading route...</div>}>
+                      <RouteMap
+                        origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
+                        destination={event.event_location}
+                      height="200px"
+                      showDirections={true}
+                      onRouteCalculated={handleRouteCalculated}
+                      />
+                    </Suspense>
+                  </MapErrorBoundary>
+                  {routeDistance && (
+                    <div className="route-info">
+                      <span>📏 {routeDistance.toFixed(1)} km to {event?.event_name}</span>
+                    </div>
+                  )}
                 </div>
               )}
 

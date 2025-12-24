@@ -2,9 +2,7 @@ import React, { useState, useEffect, useCallback, lazy, Suspense, useMemo } from
 import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { requestOTP, verifyOTP, API_BASE_URL as API_URL } from '../services/api';
-import { QuickFilters, SortDropdown, useFiltersAndSort } from '../components/SearchFilters';
-import { UserRatingBadge } from '../components/RatingSystem';
-import { SuccessAnimation } from '../components/MicroInteractions';
+import { QuickFilters } from '../components/SearchFilters';
 import './EventDashboard.css';
 
 // Lazy load heavy components for faster initial render
@@ -62,8 +60,6 @@ function EventDashboard() {
   // Filter and sort state
   const [filters, setFilters] = useState({});
   const [sortBy, setSortBy] = useState('newest');
-  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
