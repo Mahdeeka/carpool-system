@@ -1056,11 +1056,119 @@
   .otp-inputs-large {
     gap: 8px;
   }
-  
+
   .otp-input-large {
     width: 44px;
     height: 56px;
     font-size: 24px;
+  }
+
+  .form-section-header h2 {
+    font-size: 18px;
+  }
+
+  .publish-btn-large {
+    padding: 16px 28px;
+    font-size: 15px;
+  }
+
+  .location-input-group {
+    padding: 14px;
+  }
+}
+
+/* Very small screens (iPhone SE, etc.) */
+@media (max-width: 380px) {
+  .publish-progress {
+    padding: 12px;
+    gap: 4px;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .progress-step span {
+    font-size: 9px;
+  }
+
+  .progress-line {
+    width: 16px;
+  }
+
+  .form-card {
+    padding: 16px 12px;
+    border-radius: 16px;
+  }
+
+  .form-section-header h2 {
+    font-size: 16px;
+  }
+
+  .form-input-modern {
+    padding: 12px 14px;
+    font-size: 15px;
+  }
+
+  .gender-option {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .gender-icon {
+    font-size: 24px;
+  }
+
+  .gender-option span:last-child {
+    font-size: 11px;
+  }
+
+  .trip-option {
+    padding: 10px 6px;
+  }
+
+  .trip-option span:first-child {
+    font-size: 20px;
+  }
+
+  .trip-option span:last-child {
+    font-size: 9px;
+  }
+
+  .seat-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .payment-option {
+    padding: 10px 6px;
+  }
+
+  .payment-option span:first-child {
+    font-size: 18px;
+  }
+
+  .payment-option span:last-child {
+    font-size: 9px;
+  }
+
+  .otp-input-large {
+    width: 38px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .otp-inputs-large {
+    gap: 6px;
+  }
+
+  .publish-btn-large {
+    padding: 14px 24px;
+    font-size: 14px;
+    border-radius: 12px;
   }
 }
 

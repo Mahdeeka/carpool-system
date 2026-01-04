@@ -921,6 +921,84 @@
   }
 }
 
+/* Very small screens (iPhone SE, etc.) */
+@media (max-width: 380px) {
+  .account-header {
+    padding: 16px 12px 60px;
+  }
+
+  .account-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .profile-section {
+    padding: 0 12px;
+    margin-top: -45px;
+  }
+
+  .profile-avatar {
+    width: 70px;
+    height: 70px;
+    font-size: 28px;
+  }
+
+  .profile-info h2 {
+    font-size: 1.1rem;
+  }
+
+  .profile-details {
+    gap: 6px;
+  }
+
+  .profile-detail-item {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .profile-stats {
+    grid-template-columns: 1fr 1fr;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .stat-item {
+    padding: 10px 6px;
+  }
+
+  .stat-value {
+    font-size: 18px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .profile-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .account-tabs {
+    padding: 16px 12px 10px;
+    gap: 4px;
+  }
+
+  .account-tabs .tab-btn {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .account-content {
+    padding: 0 12px;
+  }
+}
+
 /* Large screens */
 @media (min-width: 768px) {
   .account-header {

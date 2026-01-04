@@ -343,8 +343,8 @@ function Login() {
             
             <div className="form-group">
               <label className="form-label">Gender *</label>
-              <div className="radio-group" style={{ display: 'flex', gap: '12px' }}>
-                <label className="radio-option" style={{ flex: 1 }}>
+              <div className="radio-group radio-group-horizontal">
+                <label className="radio-option">
                   <input
                     type="radio"
                     name="gender"
@@ -354,7 +354,7 @@ function Login() {
                   />
                   <span>♂️ Male</span>
                 </label>
-                <label className="radio-option" style={{ flex: 1 }}>
+                <label className="radio-option">
                   <input
                     type="radio"
                     name="gender"
@@ -382,13 +382,12 @@ function Login() {
             
             <button
               type="button"
-              className="btn btn-secondary btn-block"
+              className="btn btn-secondary btn-block mt-12"
               onClick={() => {
                 setStep('phone');
                 setName('');
                 setEmail('');
               }}
-              style={{ marginTop: '12px' }}
             >
               ← Back
             </button>

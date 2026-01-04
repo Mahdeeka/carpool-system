@@ -45,33 +45,23 @@ function EventCodeEntry() {
   return (
     <div className="event-code-page">
       {/* User Menu - Top Right */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        zIndex: 100
-      }}>
+      <div className="user-menu-container">
         {isAuthenticated ? (
           <div className="user-menu">
-            <button 
+            <button
               className="user-menu-btn"
               onClick={() => navigate('/my-account')}
             >
               <span className="user-avatar-small">
                 {authData?.name?.charAt(0)?.toUpperCase()}
               </span>
-              <span>{authData?.name?.split(' ')[0]}</span>
+              <span className="user-menu-name">{authData?.name?.split(' ')[0]}</span>
             </button>
           </div>
         ) : (
-          <button 
-            className="btn btn-outline"
+          <button
+            className="btn btn-outline login-header-btn"
             onClick={() => navigate('/login')}
-            style={{ 
-              background: 'rgba(255,255,255,0.15)',
-              borderColor: 'rgba(255,255,255,0.5)',
-              color: 'white'
-            }}
           >
             Login / Sign Up
           </button>
@@ -87,36 +77,18 @@ function EventCodeEntry() {
         
         {/* Welcome back message for logged in users */}
         {isAuthenticated && (
-          <div style={{
-            background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
-            border: '1px solid #86efac',
-            borderRadius: 'var(--radius)',
-            padding: '14px 16px',
-            marginBottom: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ fontWeight: 600, color: '#065f46', fontSize: '14px' }}>
+          <div className="welcome-banner">
+            <div className="welcome-banner-content">
+              <p className="welcome-banner-title">
                 👋 Welcome, {authData?.name?.split(' ')[0]}!
-              </div>
-              <div style={{ fontSize: '12px', color: '#047857' }}>
+              </p>
+              <p className="welcome-banner-subtitle">
                 Logged in
-              </div>
+              </p>
             </div>
-            <button 
+            <button
+              className="welcome-banner-btn"
               onClick={() => navigate('/my-account')}
-              style={{
-                background: '#059669',
-                color: 'white',
-                border: 'none',
-                padding: '10px 16px',
-                borderRadius: '8px',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
             >
               My Account →
             </button>
@@ -165,19 +137,13 @@ function EventCodeEntry() {
         
         {/* Login prompt for non-logged in users */}
         {!isAuthenticated && (
-          <div style={{
-            marginTop: '24px',
-            paddingTop: '20px',
-            borderTop: '1px solid var(--gray-200)',
-            textAlign: 'center'
-          }}>
-            <p style={{ fontSize: '13px', color: 'var(--gray-500)', marginBottom: '12px' }}>
+          <div className="login-prompt-section">
+            <p className="login-prompt-text">
               Create an account to manage your rides across devices
             </p>
-            <button 
+            <button
               onClick={() => navigate('/login')}
               className="btn btn-secondary"
-              style={{ fontSize: '14px' }}
             >
               📱 Login with Phone
             </button>

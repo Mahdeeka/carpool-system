@@ -235,8 +235,8 @@ function OfferCarpool() {
   const showReturnLocations = formData.tripType === 'return' || formData.tripType === 'both';
 
   return (
-    <div className="container" style={{ paddingTop: '40px', paddingBottom: '40px' }}>
-      <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div className="container form-page-container">
+      <div className="card form-page-card">
         <div className="card-header">
           Offer Carpool - {eventData.eventName}
         </div>
@@ -413,8 +413,8 @@ function OfferCarpool() {
                       height="300px"
                     />
                   ) : (
-                    <div style={{ padding: '20px', background: '#fef3c7', borderRadius: '8px', textAlign: 'center', direction: 'rtl' }}>
-                      <p style={{ margin: 0, color: '#92400e' }}>⚠️ לא הוגדר מיקום לאירוע. המפה תוצג לאחר הגדרת יעד האירוע.</p>
+                    <div className="warning-banner">
+                      <p>⚠️ לא הוגדר מיקום לאירוע. המפה תוצג לאחר הגדרת יעד האירוע.</p>
                     </div>
                   )}
                 </div>
@@ -507,8 +507,8 @@ function OfferCarpool() {
                       height="300px"
                     />
                   ) : (
-                    <div style={{ padding: '20px', background: '#fef3c7', borderRadius: '8px', textAlign: 'center', direction: 'rtl' }}>
-                      <p style={{ margin: 0, color: '#92400e' }}>⚠️ לא הוגדר מיקום לאירוע. המפה תוצג לאחר הגדרת יעד האירוע.</p>
+                    <div className="warning-banner">
+                      <p>⚠️ לא הוגדר מיקום לאירוע. המפה תוצג לאחר הגדרת יעד האירוע.</p>
                     </div>
                   )}
                 </div>
@@ -624,7 +624,7 @@ function OfferCarpool() {
           </div>
           
           {/* Submit Buttons */}
-          <div style={{ display: 'flex', gap: '12px', marginTop: '32px' }}>
+          <div className="form-buttons-row">
             <button
               type="button"
               className="btn btn-secondary"

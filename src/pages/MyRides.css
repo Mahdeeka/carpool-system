@@ -737,86 +737,180 @@
     flex-wrap: wrap;
     gap: 12px;
   }
-  
+
   .header-left h1 {
     font-size: 1.1rem;
   }
-  
+
   .rides-tabs {
     padding: 16px;
     gap: 6px;
   }
-  
+
   .rides-tabs .tab {
     padding: 12px 16px;
     font-size: 13px;
   }
-  
+
   .rides-content {
     padding: 0 16px 16px;
   }
-  
+
   .offer-header,
   .ride-header {
     padding: 16px 18px;
     flex-wrap: wrap;
     gap: 12px;
   }
-  
+
   .route-summary {
     padding: 14px 18px;
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .route-arrow {
     transform: rotate(90deg);
     margin: 4px 0;
   }
-  
+
   .passengers-section {
     padding: 16px 18px;
   }
-  
+
   .passenger-card {
     flex-direction: column;
     align-items: flex-start;
     gap: 14px;
     padding: 16px;
   }
-  
+
   .passenger-actions,
   .request-actions {
     width: 100%;
     justify-content: flex-end;
   }
-  
+
   .expanded-details {
     padding: 18px;
   }
-  
-  .passengers-table th,
-  .passengers-table td {
-    padding: 10px 12px;
-    font-size: 12px;
+
+  /* Convert table to card layout on mobile */
+  .passengers-table {
+    display: block;
   }
-  
+
+  .passengers-table thead {
+    display: none;
+  }
+
+  .passengers-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .passengers-table tr {
+    display: flex;
+    flex-direction: column;
+    background: #F8FAFC;
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid #E5E7EB;
+  }
+
+  .passengers-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border: none;
+    font-size: 14px;
+  }
+
+  .passengers-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #4B5563;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
   .ride-details {
     padding: 16px 18px;
   }
-  
+
   .detail-row {
     flex-direction: column;
     gap: 4px;
     padding: 8px 0;
   }
-  
+
   .detail-row .detail-label {
     min-width: auto;
   }
-  
+
   .ride-actions {
     padding: 16px 18px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 400px) {
+  .my-rides-header {
+    padding: 12px;
+  }
+
+  .header-left {
+    gap: 10px;
+  }
+
+  .header-left h1 {
+    font-size: 1rem;
+  }
+
+  .back-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .account-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .account-btn .avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .rides-tabs {
+    padding: 12px;
+  }
+
+  .rides-tabs .tab {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .rides-content {
+    padding: 0 12px 12px;
+  }
+
+  .empty-state {
+    padding: 40px 16px;
+  }
+
+  .empty-state .empty-icon {
+    font-size: 48px;
+  }
+
+  .empty-state h3 {
+    font-size: 1.1rem;
+  }
+
+  .empty-state p {
+    font-size: 14px;
   }
 }
 

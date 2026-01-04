@@ -556,6 +556,61 @@
   .filter-panel-footer {
     flex-direction: column;
   }
+
+  .filter-chip {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .filter-panel-header {
+    padding: 16px 20px;
+  }
+
+  .filter-panel-body {
+    padding: 16px 20px;
+  }
+
+  .filter-section-title {
+    font-size: 13px;
+  }
+
+  .filter-option {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .search-input {
+    padding: 12px 40px;
+    font-size: 14px;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 380px) {
+  .filter-toggle-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .filter-chip {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .filter-panel-header h3 {
+    font-size: 16px;
+  }
+
+  .filter-option {
+    padding: 7px 12px;
+    font-size: 11px;
+  }
+
+  .reset-btn,
+  .apply-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
 }
 
 /* ========================================

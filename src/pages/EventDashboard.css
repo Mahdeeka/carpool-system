@@ -1825,6 +1825,70 @@
 }
 
 /* === RESPONSIVE ADJUSTMENTS === */
+@media (max-width: 600px) {
+  /* Make tabs horizontally scrollable on mobile */
+  .legendary-tabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 16px;
+    gap: 8px;
+  }
+
+  .legendary-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .legendary-tab {
+    flex-shrink: 0;
+    padding: 12px 18px;
+    font-size: 14px;
+  }
+
+  /* Hide tab text on very small screens, show only icon + count */
+  .tab-text {
+    display: none;
+  }
+
+  /* Top nav adjustments */
+  .legendary-top-nav {
+    padding: 10px 12px;
+  }
+
+  .nav-back-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .nav-btn-rides {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .nav-btn-account {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .nav-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  /* Header adjustments */
+  .event-meta {
+    gap: 8px;
+  }
+
+  .event-meta span {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
 @media (max-width: 480px) {
   .legendary-header {
     padding: 24px 16px 36px;
@@ -1846,32 +1910,94 @@
   }
 
   .legendary-tabs {
-    padding: 0 16px;
+    padding: 0 12px;
     gap: 6px;
+    margin-top: -20px;
   }
 
   .legendary-tab {
-    padding: 14px 20px;
-    font-size: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  .tab-count {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    font-size: 11px;
   }
 
   .legendary-content {
-    padding: 24px 16px 120px;
+    padding: 24px 12px 120px;
   }
 
   .legendary-card {
-    padding: 20px;
-    border-radius: 20px;
+    padding: 16px;
+    border-radius: 16px;
   }
 
   .legendary-avatar {
-    width: 48px;
-    height: 48px;
-    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
   }
 
   .legendary-modal-body {
-    padding: 20px;
+    padding: 16px;
+  }
+
+  /* Card header improvements for small screens */
+  .card-header-info h3 {
+    font-size: 15px;
+  }
+
+  .card-header-info p {
+    font-size: 12px;
+  }
+
+  /* Action buttons stack on very small screens */
+  .legendary-card-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legendary-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Very small screens (iPhone SE, etc.) */
+@media (max-width: 360px) {
+  .legendary-header {
+    padding: 20px 12px 32px;
+  }
+
+  .event-info h1 {
+    font-size: 1.35rem;
+  }
+
+  .legendary-tabs {
+    padding: 0 8px;
+  }
+
+  .legendary-tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .legendary-content {
+    padding: 20px 10px 120px;
+  }
+
+  .legendary-card {
+    padding: 14px;
+  }
+
+  .legendary-btn {
+    padding: 14px 24px;
+    font-size: 14px;
   }
 }
 
