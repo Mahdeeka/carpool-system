@@ -1126,6 +1126,22 @@ function AdminPanel() {
     navigate(`/admin?tab=${tab}`);
   };
 
+  // Show loading spinner while checking auth
+  if (loading && !isAuthenticated) {
+    return (
+      <div className="admin-login-page">
+        <div className="admin-login-card">
+          <div className="admin-login-logo">TREMPI</div>
+          <h1>Admin Panel</h1>
+          <p>Loading...</p>
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+            <div className="spinner"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Login Form
   if (!isAuthenticated) {
     return (
