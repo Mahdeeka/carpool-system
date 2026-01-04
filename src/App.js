@@ -65,6 +65,7 @@ function App() {
                 <Route path="/need-carpool" element={<NeedCarpool />} />
                 <Route path="/driver-dashboard" element={<DriverDashboard />} />
                 <Route path="/passenger-dashboard" element={<PassengerDashboard />} />
+                <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/create-event" element={<CreateEvent />} />
                 <Route path="/admin/dashboard/:eventId" element={<AdminDashboard />} />
