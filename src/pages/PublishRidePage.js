@@ -145,7 +145,7 @@ function PublishRidePage() {
   const sendOtp = async () => {
     setOtpSending(true);
     try {
-      const response = await fetch(`${API_URL}/auth/send-otp`, {
+      const response = await fetch(`${API_URL}/auth/request-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: formData.phone })
@@ -153,9 +153,9 @@ function PublishRidePage() {
       const data = await response.json();
       
       if (response.ok) {
-        setIsNewUser(!data.account_exists);
+        setIsNewUser(data.is_new_user);
         setOtpStep('verify');
-        showToast('OTP sent to your phone', 'success');
+        showToast('Verification code sent!', 'success');
       } else {
         throw new Error(data.message || 'Failed to send OTP');
       }
