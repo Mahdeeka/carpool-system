@@ -113,19 +113,33 @@ function Login() {
     try {
       const response = await requestOTP(phone);
       setIsNewUser(response.is_new_user);
-      setStep(response.is_new_user ? 'register' : 'otp');
-      setCountdown(60);
       
-      // Show different message based on account status
-      if (response.account_exists) {
+      if (response.requires_registration) {
+        // New user - show registration form, OTP not sent yet
+        setStep('register');
+        showToast('Please fill in your details to create an account', 'info');
+      } else if (response.otp_sent) {
+        // Existing user - OTP was sent
+        setStep('otp');
+        setCountdown(60);
         showToast('Welcome back! Login code sent.', 'success');
+        
+        if (response.debug_otp) {
+          setDebugOtp(response.debug_otp);
+        }
+      } else if (response.account_exists) {
+        // Fallback for old API response format
+        setStep('otp');
+        setCountdown(60);
+        showToast('Welcome back! Login code sent.', 'success');
+        
+        if (response.debug_otp) {
+          setDebugOtp(response.debug_otp);
+        }
       } else {
-        showToast('Verification code sent! Create your account.', 'success');
-      }
-      
-      // For development - show debug OTP
-      if (response.debug_otp) {
-        setDebugOtp(response.debug_otp);
+        // New user fallback
+        setStep('register');
+        showToast('Please fill in your details to create an account', 'info');
       }
     } catch (error) {
       const errorMessage = error.message || 'Failed to send OTP';
@@ -216,17 +230,23 @@ function Login() {
       return;
     }
     
-    // Now request OTP for new registration
+    // Now request OTP for new registration - include registration data
     setLoading(true);
     
     try {
-      const response = await requestOTP(phone);
-      setStep('otp');
-      setCountdown(60);
-      showToast('OTP sent to your phone', 'success');
+      const response = await requestOTP(phone, name, email, gender);
       
-      if (response.debug_otp) {
-        setDebugOtp(response.debug_otp);
+      if (response.otp_sent) {
+        setStep('otp');
+        setCountdown(60);
+        showToast('Verification code sent!', 'success');
+        
+        if (response.debug_otp) {
+          setDebugOtp(response.debug_otp);
+        }
+      } else if (response.requires_registration) {
+        // Should not happen here since we already have registration data
+        showToast('Please fill in all registration details', 'error');
       }
     } catch (error) {
       const errorMessage = error.message || 'Failed to send OTP';
