@@ -4,6 +4,9 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// Database module
+const database = require('./database');
+
 // Environment check
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -105,34 +108,400 @@ function generateSessionToken() {
   return crypto.randomBytes(32).toString('hex');
 }
 
-// Check if PostgreSQL is configured
-let pool = null;
+// Check if PostgreSQL is configured and initialize database
 let useDatabase = false;
 
-// For now, force in-memory storage since database schema needs updates
-// Set USE_DATABASE=true in environment to enable database
-if (process.env.DATABASE_URL && process.env.USE_DATABASE === 'true') {
-  const { Pool } = require('pg');
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
-  });
-  
-  // Test database connection
-  pool.query('SELECT NOW()', (err, res) => {
-    if (err) {
-      console.error('❌ Database connection error:', err);
-      console.log('📦 Falling back to in-memory storage');
-      useDatabase = false;
-    } else {
-      console.log('✅ Database connected:', res.rows[0].now);
-      useDatabase = true;
+async function initializeDatabaseConnection() {
+  if (process.env.DATABASE_URL) {
+    const pool = database.initDatabase();
+    if (pool) {
+      const tablesCreated = await database.createTables();
+      if (tablesCreated) {
+        useDatabase = true;
+        console.log('✅ Using PostgreSQL database - data will persist!');
+        
+        // Log current stats
+        const stats = await database.getStats();
+        if (stats) {
+          console.log(`📊 Database stats: ${stats.accounts} accounts, ${stats.events} events, ${stats.offers} offers`);
+        }
+      }
     }
-  });
-} else {
-  console.log('📦 Using in-memory storage');
-  console.log('💡 Data will be lost when server restarts');
+  }
+  
+  if (!useDatabase) {
+    console.log('📦 Using in-memory storage');
+    console.log('💡 Data will be lost when server restarts');
+    console.log('💡 Set DATABASE_URL to enable PostgreSQL persistence');
+  }
 }
+
+// Initialize database (async)
+initializeDatabaseConnection();
+
+// =======================
+// DATABASE HELPER FUNCTIONS
+// These use PostgreSQL when available, otherwise fall back to in-memory
+// =======================
+
+const dbHelpers = {
+  // Accounts
+  async createAccount(account) {
+    if (useDatabase) {
+      return await database.createAccount(account);
+    }
+    db.accounts.push(account);
+    return account;
+  },
+  
+  async findAccountByPhone(phone) {
+    if (useDatabase) {
+      return await database.findAccountByPhone(phone);
+    }
+    return db.accounts.find(a => a.phone === phone);
+  },
+  
+  async findAccountById(accountId) {
+    if (useDatabase) {
+      return await database.findAccountById(accountId);
+    }
+    return db.accounts.find(a => a.account_id === accountId);
+  },
+  
+  async updateAccount(accountId, updates) {
+    if (useDatabase) {
+      return await database.updateAccount(accountId, updates);
+    }
+    const account = db.accounts.find(a => a.account_id === accountId);
+    if (account) {
+      Object.assign(account, updates, { updated_at: new Date() });
+    }
+    return account;
+  },
+  
+  async getAllAccounts() {
+    if (useDatabase) {
+      return await database.getAllAccounts();
+    }
+    return db.accounts;
+  },
+  
+  // Sessions
+  async createSession(session) {
+    if (useDatabase) {
+      return await database.createSession(session);
+    }
+    db.sessions.push(session);
+    return session;
+  },
+  
+  async findSessionByToken(token) {
+    if (useDatabase) {
+      return await database.findSessionByToken(token);
+    }
+    return db.sessions.find(s => s.token === token && new Date(s.expires_at) > new Date());
+  },
+  
+  async deleteSession(token) {
+    if (useDatabase) {
+      return await database.deleteSession(token);
+    }
+    const index = db.sessions.findIndex(s => s.token === token);
+    if (index > -1) db.sessions.splice(index, 1);
+  },
+  
+  async deleteSessionsByAccountId(accountId) {
+    if (useDatabase) {
+      return await database.deleteSessionsByAccountId(accountId);
+    }
+    db.sessions = db.sessions.filter(s => s.account_id !== accountId);
+  },
+  
+  // OTP
+  async createOTP(otpData) {
+    if (useDatabase) {
+      return await database.createOTP(otpData);
+    }
+    db.otp_codes.push(otpData);
+    return otpData;
+  },
+  
+  async findValidOTP(phone, otp) {
+    if (useDatabase) {
+      return await database.findValidOTP(phone, otp);
+    }
+    return db.otp_codes.find(
+      o => o.phone === phone && o.otp === otp && new Date(o.expires_at) > new Date() && !o.verified
+    );
+  },
+  
+  async findRecentOTP(phone) {
+    if (useDatabase) {
+      return await database.findRecentOTP(phone);
+    }
+    return db.otp_codes.find(o => o.phone === phone && new Date(o.expires_at) > new Date());
+  },
+  
+  async markOTPVerified(otpRecord) {
+    if (useDatabase) {
+      return await database.markOTPVerified(otpRecord.id);
+    }
+    otpRecord.verified = true;
+  },
+  
+  // Events
+  async createEvent(event) {
+    if (useDatabase) {
+      return await database.createEvent(event);
+    }
+    db.events.push(event);
+    return event;
+  },
+  
+  async findEventByCode(eventCode) {
+    if (useDatabase) {
+      return await database.findEventByCode(eventCode);
+    }
+    return db.events.find(e => e.event_code === eventCode);
+  },
+  
+  async findEventById(eventId) {
+    if (useDatabase) {
+      return await database.findEventById(eventId);
+    }
+    return db.events.find(e => e.event_id === eventId);
+  },
+  
+  async getAllEvents() {
+    if (useDatabase) {
+      return await database.getAllEvents();
+    }
+    return db.events;
+  },
+  
+  async updateEvent(eventId, updates) {
+    if (useDatabase) {
+      return await database.updateEvent(eventId, updates);
+    }
+    const event = db.events.find(e => e.event_id === eventId);
+    if (event) {
+      Object.assign(event, updates, { updated_at: new Date() });
+    }
+    return event;
+  },
+  
+  async deleteEvent(eventId) {
+    if (useDatabase) {
+      return await database.deleteEvent(eventId);
+    }
+    const index = db.events.findIndex(e => e.event_id === eventId);
+    if (index > -1) db.events.splice(index, 1);
+  },
+  
+  // Offers
+  async createOffer(offer) {
+    if (useDatabase) {
+      return await database.createOffer(offer);
+    }
+    db.carpool_offers.push(offer);
+    return offer;
+  },
+  
+  async findOfferById(offerId) {
+    if (useDatabase) {
+      return await database.findOfferById(offerId);
+    }
+    return db.carpool_offers.find(o => o.offer_id === offerId);
+  },
+  
+  async findOffersByEventId(eventId) {
+    if (useDatabase) {
+      return await database.findOffersByEventId(eventId);
+    }
+    return db.carpool_offers.filter(o => o.event_id === eventId);
+  },
+  
+  async findOffersByAccountId(accountId) {
+    if (useDatabase) {
+      return await database.findOffersByAccountId(accountId);
+    }
+    return db.carpool_offers.filter(o => o.owner_account_id === accountId);
+  },
+  
+  async getAllOffers() {
+    if (useDatabase) {
+      return await database.getAllOffers();
+    }
+    return db.carpool_offers;
+  },
+  
+  async updateOffer(offerId, updates) {
+    if (useDatabase) {
+      return await database.updateOffer(offerId, updates);
+    }
+    const offer = db.carpool_offers.find(o => o.offer_id === offerId);
+    if (offer) {
+      Object.assign(offer, updates, { updated_at: new Date() });
+    }
+    return offer;
+  },
+  
+  async deleteOffer(offerId) {
+    if (useDatabase) {
+      return await database.deleteOffer(offerId);
+    }
+    const index = db.carpool_offers.findIndex(o => o.offer_id === offerId);
+    if (index > -1) db.carpool_offers.splice(index, 1);
+  },
+  
+  // Requests
+  async createRequest(request) {
+    if (useDatabase) {
+      return await database.createRequest(request);
+    }
+    db.carpool_requests.push(request);
+    return request;
+  },
+  
+  async findRequestById(requestId) {
+    if (useDatabase) {
+      return await database.findRequestById(requestId);
+    }
+    return db.carpool_requests.find(r => r.request_id === requestId);
+  },
+  
+  async findRequestsByEventId(eventId) {
+    if (useDatabase) {
+      return await database.findRequestsByEventId(eventId);
+    }
+    return db.carpool_requests.filter(r => r.event_id === eventId);
+  },
+  
+  async findRequestsByAccountId(accountId) {
+    if (useDatabase) {
+      return await database.findRequestsByAccountId(accountId);
+    }
+    return db.carpool_requests.filter(r => r.owner_account_id === accountId);
+  },
+  
+  async getAllRequests() {
+    if (useDatabase) {
+      return await database.getAllRequests();
+    }
+    return db.carpool_requests;
+  },
+  
+  async updateRequest(requestId, updates) {
+    if (useDatabase) {
+      return await database.updateRequest(requestId, updates);
+    }
+    const request = db.carpool_requests.find(r => r.request_id === requestId);
+    if (request) {
+      Object.assign(request, updates, { updated_at: new Date() });
+    }
+    return request;
+  },
+  
+  async deleteRequest(requestId) {
+    if (useDatabase) {
+      return await database.deleteRequest(requestId);
+    }
+    const index = db.carpool_requests.findIndex(r => r.request_id === requestId);
+    if (index > -1) db.carpool_requests.splice(index, 1);
+  },
+  
+  // Join Requests
+  async createJoinRequest(joinRequest) {
+    if (useDatabase) {
+      return await database.createJoinRequest(joinRequest);
+    }
+    // For in-memory, join requests are stored in the offer's join_requests array
+    const offer = db.carpool_offers.find(o => o.offer_id === joinRequest.offer_id);
+    if (offer) {
+      if (!offer.join_requests) offer.join_requests = [];
+      offer.join_requests.push(joinRequest);
+    }
+    return joinRequest;
+  },
+  
+  async findJoinRequestById(joinId) {
+    if (useDatabase) {
+      return await database.findJoinRequestById(joinId);
+    }
+    for (const offer of db.carpool_offers) {
+      if (offer.join_requests) {
+        const jr = offer.join_requests.find(j => j.join_id === joinId);
+        if (jr) return jr;
+      }
+    }
+    return null;
+  },
+  
+  async findJoinRequestsByOfferId(offerId) {
+    if (useDatabase) {
+      return await database.findJoinRequestsByOfferId(offerId);
+    }
+    const offer = db.carpool_offers.find(o => o.offer_id === offerId);
+    return offer?.join_requests || [];
+  },
+  
+  async findJoinRequestsByAccountId(accountId) {
+    if (useDatabase) {
+      return await database.findJoinRequestsByAccountId(accountId);
+    }
+    const results = [];
+    for (const offer of db.carpool_offers) {
+      if (offer.join_requests) {
+        results.push(...offer.join_requests.filter(j => j.account_id === accountId));
+      }
+    }
+    return results;
+  },
+  
+  async getAllJoinRequests() {
+    if (useDatabase) {
+      return await database.getAllJoinRequests();
+    }
+    const results = [];
+    for (const offer of db.carpool_offers) {
+      if (offer.join_requests) {
+        results.push(...offer.join_requests);
+      }
+    }
+    return results;
+  },
+  
+  async updateJoinRequest(joinId, updates) {
+    if (useDatabase) {
+      return await database.updateJoinRequest(joinId, updates);
+    }
+    for (const offer of db.carpool_offers) {
+      if (offer.join_requests) {
+        const jr = offer.join_requests.find(j => j.join_id === joinId);
+        if (jr) {
+          Object.assign(jr, updates, { updated_at: new Date() });
+          return jr;
+        }
+      }
+    }
+    return null;
+  },
+  
+  async deleteJoinRequest(joinId) {
+    if (useDatabase) {
+      return await database.deleteJoinRequest(joinId);
+    }
+    for (const offer of db.carpool_offers) {
+      if (offer.join_requests) {
+        const index = offer.join_requests.findIndex(j => j.join_id === joinId);
+        if (index > -1) {
+          offer.join_requests.splice(index, 1);
+          return;
+        }
+      }
+    }
+  }
+};
 
 // Middleware - CORS configuration - Allow all origins for now
 app.use(cors({
@@ -2126,7 +2495,7 @@ app.post('/api/auth/request-otp', async (req, res) => {
     // Normalize phone number to E.164 format (+972...)
     const normalizedPhone = formatPhoneNumber(phone);
     
-    // Check if there's a recent OTP (prevent spam)
+    // Check if there's a recent OTP (prevent spam) - use in-memory for rate limiting
     const recentOTP = db.otp_codes.find(
       o => o.phone === normalizedPhone && 
       o.expires_at > new Date() && 
@@ -2147,20 +2516,24 @@ app.post('/api/auth/request-otp', async (req, res) => {
     // Store OTP (expires in 5 minutes)
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     
-    // Remove any existing OTPs for this phone
+    // Remove any existing OTPs for this phone (in-memory)
     db.otp_codes = db.otp_codes.filter(o => o.phone !== normalizedPhone);
     
-    db.otp_codes.push({
+    // Store in both in-memory (for rate limiting) and database (for persistence)
+    const otpData = {
       id: otpId,
       phone: normalizedPhone,
       otp: otp,
       created_at: new Date(),
       expires_at: expiresAt,
       verified: false
-    });
+    };
+    
+    db.otp_codes.push(otpData);
+    await dbHelpers.createOTP(otpData);
     
     // Check if account exists with this phone number
-    const existingAccount = db.accounts.find(a => a.phone === normalizedPhone);
+    const existingAccount = await dbHelpers.findAccountByPhone(normalizedPhone);
     
     // Send SMS
     const message = existingAccount 
@@ -2208,13 +2581,18 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     // Secret dev OTP: 111111 works in ALL environments for testing
     const isSecretDevOTP = otp === '111111';
     
-    // Find valid OTP
-    const otpRecord = db.otp_codes.find(
+    // Find valid OTP (check both in-memory and database)
+    let otpRecord = db.otp_codes.find(
       o => o.phone === normalizedPhone && 
       o.otp === otp && 
       o.expires_at > new Date() &&
       !o.verified
     );
+    
+    // Also check database if not found in memory
+    if (!otpRecord && useDatabase) {
+      otpRecord = await dbHelpers.findValidOTP(normalizedPhone, otp);
+    }
     
     if (!otpRecord && !isDevelopmentBypass && !isSecretDevOTP) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
@@ -2223,14 +2601,17 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     // Mark OTP as verified (if it exists)
     if (otpRecord) {
       otpRecord.verified = true;
+      if (useDatabase) {
+        await dbHelpers.markOTPVerified(otpRecord);
+      }
     } else if (isDevelopmentBypass) {
       console.log(`🔓 Development OTP bypass used for phone: ${normalizedPhone}`);
     } else if (isSecretDevOTP) {
       console.log(`🔐 Secret dev OTP used for phone: ${normalizedPhone}`);
     }
     
-    // Check if account exists
-    let account = db.accounts.find(a => a.phone === normalizedPhone);
+    // Check if account exists (use database)
+    let account = await dbHelpers.findAccountByPhone(normalizedPhone);
     
     if (!account) {
       // New user - require name, email, and gender
@@ -2262,13 +2643,14 @@ app.post('/api/auth/verify-otp', async (req, res) => {
         created_at: new Date(),
         updated_at: new Date()
       };
-      db.accounts.push(account);
+      
+      // Save to database
+      await dbHelpers.createAccount(account);
       console.log(`✅ New account created: ${account.name} (${account.phone}, ${account.gender})`);
     } else {
       // Update existing account with gender if provided
       if (gender && (gender === 'male' || gender === 'female')) {
-        account.gender = gender;
-        account.updated_at = new Date();
+        account = await dbHelpers.updateAccount(account.account_id, { gender });
       }
     }
     
@@ -2279,15 +2661,20 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     
     // Remove old sessions for this account
     db.sessions = db.sessions.filter(s => s.account_id !== account.account_id);
+    await dbHelpers.deleteSessionsByAccountId(account.account_id);
     
-    db.sessions.push({
+    // Create new session
+    const sessionData = {
       session_id: sessionId,
       account_id: account.account_id,
       token: sessionToken,
       created_at: new Date(),
       expires_at: expiresAt,
       last_used: new Date()
-    });
+    };
+    
+    db.sessions.push(sessionData);
+    await dbHelpers.createSession(sessionData);
     
     res.json({
       success: true,
@@ -2308,7 +2695,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 });
 
 // Verify session token (middleware helper)
-function authenticateToken(req, res, next) {
+async function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -2316,9 +2703,15 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ message: 'Authentication required' });
   }
 
-  const session = db.sessions.find(
-    s => s.token === token && s.expires_at > new Date()
+  // Check in-memory first, then database
+  let session = db.sessions.find(
+    s => s.token === token && new Date(s.expires_at) > new Date()
   );
+  
+  // If not in memory, check database
+  if (!session && useDatabase) {
+    session = await dbHelpers.findSessionByToken(token);
+  }
 
   if (!session) {
     return res.status(401).json({ message: 'Invalid or expired session' });
@@ -2327,8 +2720,9 @@ function authenticateToken(req, res, next) {
   // Update last used
   session.last_used = new Date();
 
-  // Get account
-  const account = db.accounts.find(a => a.account_id === session.account_id);
+  // Get account from database
+  let account = await dbHelpers.findAccountById(session.account_id);
+  
   if (!account) {
     return res.status(401).json({ message: 'Account not found' });
   }
