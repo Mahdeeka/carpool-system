@@ -32,15 +32,17 @@ function OfferCarpool() {
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate('/login', { state: { returnTo: location.pathname } });
-    }
+    // TEMP DISABLED FOR TESTING - uncomment for production
+    // if (!authLoading && !isAuthenticated) {
+    //   navigate('/login', { state: { returnTo: location.pathname } });
+    // }
   }, [isAuthenticated, authLoading, navigate, location]);
 
   useEffect(() => {
-    if (!eventData) {
-      navigate('/');
-    }
+    // TEMP DISABLED FOR TESTING - uncomment for production
+    // if (!eventData) {
+    //   navigate('/');
+    // }
   }, [eventData, navigate]);
 
   // Pre-fill form with auth data
@@ -175,7 +177,7 @@ function OfferCarpool() {
       }
 
       const offerData = {
-        event_id: eventData.eventId,
+        event_id: displayEventData.eventId,
         name: formData.name,
         phone: formData.phone,
         email: formData.email,
@@ -207,7 +209,13 @@ function OfferCarpool() {
     }
   };
 
-  if (!eventData) return null;
+  // TEMP: Use mock data for testing if no event is set
+  const displayEventData = eventData || {
+    eventName: 'Demo Event - Test Mode',
+    eventLocation: 'Tel Aviv, Israel',
+    eventId: 'demo-event-123'
+  };
+  
   if (authLoading) {
     return (
       <div className="offer-ride-page">
@@ -218,7 +226,8 @@ function OfferCarpool() {
       </div>
     );
   }
-  if (!isAuthenticated) return null;
+  // TEMP DISABLED FOR TESTING
+  // if (!isAuthenticated) return null;
 
   const showGoingLocations = formData.tripType === 'going' || formData.tripType === 'both';
   const showReturnLocations = formData.tripType === 'return' || formData.tripType === 'both';
@@ -232,7 +241,7 @@ function OfferCarpool() {
         </button>
         <div className="offer-ride-header-info">
           <span className="offer-ride-badge">🚗 Offer a Ride</span>
-          <h1>{eventData.eventName}</h1>
+          <h1>{displayEventData.eventName}</h1>
         </div>
       </header>
 
@@ -243,7 +252,7 @@ function OfferCarpool() {
           <div className="offer-ride-destination-icon">📍</div>
           <div className="offer-ride-destination-text">
             <h3>Event Destination</h3>
-            <p>{eventData.eventLocation || 'Location not specified'}</p>
+            <p>{displayEventData.eventLocation || 'Location not specified'}</p>
           </div>
         </div>
 
@@ -445,12 +454,12 @@ function OfferCarpool() {
               </button>
 
               {/* Route Preview for Going */}
-              {formData.goingLocations.some(loc => loc.address && loc.address.trim()) && eventData.eventLocation && (
+              {formData.goingLocations.some(loc => loc.address && loc.address.trim()) && displayEventData.eventLocation && (
                 <div className="offer-ride-route-preview">
                   <h4>🗺️ Route Preview to Event</h4>
                   <RouteMap
                     origin={formData.goingLocations.find(loc => loc.address && loc.address.trim())?.address}
-                    destination={eventData.eventLocation}
+                    destination={displayEventData.eventLocation}
                     waypoints={formData.goingLocations
                       .filter(loc => loc.address && loc.address.trim())
                       .slice(1)
@@ -550,11 +559,11 @@ function OfferCarpool() {
               </button>
 
               {/* Route Preview for Return */}
-              {formData.returnLocations.some(loc => loc.address && loc.address.trim()) && eventData.eventLocation && (
+              {formData.returnLocations.some(loc => loc.address && loc.address.trim()) && displayEventData.eventLocation && (
                 <div className="offer-ride-route-preview">
                   <h4>🗺️ Route Preview from Event</h4>
                   <RouteMap
-                    origin={eventData.eventLocation}
+                    origin={displayEventData.eventLocation}
                     destination={formData.returnLocations.find(loc => loc.address && loc.address.trim())?.address}
                     waypoints={formData.returnLocations
                       .filter(loc => loc.address && loc.address.trim())
