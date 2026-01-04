@@ -148,10 +148,10 @@ app.use(express.json());
 // RATE LIMITING
 // =======================
 
-// General API rate limit
+// General API rate limit - more lenient in development
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: isProduction ? 100 : 1000, // 100 in prod, 1000 in dev
   message: { message: 'Too many requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -160,7 +160,7 @@ const generalLimiter = rateLimit({
 // Strict rate limit for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 auth requests per windowMs
+  max: isProduction ? 10 : 100, // 10 in prod, 100 in dev
   message: { message: 'Too many authentication attempts, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -169,7 +169,7 @@ const authLimiter = rateLimit({
 // Rate limit for creating resources
 const createLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 50, // Limit each IP to 50 creates per hour
+  max: isProduction ? 50 : 500, // 50 in prod, 500 in dev
   message: { message: 'Too many resources created, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,
