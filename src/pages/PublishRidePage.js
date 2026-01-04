@@ -15,11 +15,18 @@ const ArrowLeftIcon = () => (
   </svg>
 );
 
+// Close Icon for modal
+const CloseIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 6L6 18M6 6l12 12"/>
+  </svg>
+);
+
 function PublishRidePage() {
   const { eventCode } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { showToast, authData } = useApp();
+  const { showToast, authData, setAuthData } = useApp();
 
   const mode = searchParams.get('mode') || 'offer';
   const isOffer = mode === 'offer';
@@ -48,6 +55,14 @@ function PublishRidePage() {
     paymentAmount: '',
     paymentMethod: 'cash',
   });
+
+  // OTP verification states
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpStep, setOtpStep] = useState('sending'); // 'sending', 'verify', 'register'
+  const [otp, setOtp] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
 
   // Fetch event
   useEffect(() => {
@@ -126,19 +141,79 @@ function PublishRidePage() {
     }
   }, []);
 
-  const handlePublish = async () => {
-    if (!formData.name || !formData.phone || !formData.gender) {
-      showToast('Please fill in all required fields', 'error');
-      return;
+  // Send OTP to phone
+  const sendOtp = async () => {
+    setOtpSending(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formData.phone })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setIsNewUser(!data.account_exists);
+        setOtpStep('verify');
+        showToast('OTP sent to your phone', 'success');
+      } else {
+        throw new Error(data.message || 'Failed to send OTP');
+      }
+    } catch (error) {
+      showToast(error.message, 'error');
+      setShowOtpModal(false);
+    } finally {
+      setOtpSending(false);
     }
-    if (!formData.pickupLocation) {
-      showToast('Please select your pickup location', 'error');
-      return;
-    }
+  };
 
+  // Verify OTP and login/register
+  const verifyOtp = async () => {
+    if (otp.length !== 6) {
+      showToast('Please enter 6-digit OTP', 'error');
+      return;
+    }
+    
+    setOtpVerifying(true);
+    try {
+      const response = await fetch(`${API_URL}/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: formData.phone,
+          otp,
+          name: formData.name,
+          email: formData.email,
+          gender: formData.gender
+        })
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Save auth data
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authAccount', JSON.stringify(data.account));
+        setAuthData(data.account);
+        
+        showToast('Verified successfully!', 'success');
+        setShowOtpModal(false);
+        
+        // Now publish the ride
+        await publishRide(data.token);
+      } else {
+        throw new Error(data.message || 'Invalid OTP');
+      }
+    } catch (error) {
+      showToast(error.message, 'error');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  // Actual publish function
+  const publishRide = async (token) => {
     setSubmitting(true);
     try {
-      const token = localStorage.getItem('authToken');
       const endpoint = isOffer ? 'carpool/offer' : 'carpool/request';
 
       const payload = {
@@ -163,7 +238,7 @@ function PublishRidePage() {
       if (isOffer) {
         payload.total_seats = parseInt(formData.seats);
         payload.payment_required = formData.paymentRequired;
-        payload.payment_amount = formData.paymentRequired !== 'not_required' 
+        payload.payment_amount = formData.paymentRequired === 'obligatory' 
           ? parseFloat(formData.paymentAmount) || 0 
           : null;
         payload.payment_method = formData.paymentRequired !== 'not_required' 
@@ -183,7 +258,7 @@ function PublishRidePage() {
       });
 
       if (response.ok) {
-        showToast(isOffer ? 'Ride published!' : 'Request sent!', 'success');
+        showToast(isOffer ? '🎉 Ride published!' : '🎉 Request sent!', 'success');
         navigate(`/event/${eventCode}`);
       } else {
         const data = await response.json();
@@ -193,6 +268,36 @@ function PublishRidePage() {
       showToast(error.message, 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Handle publish button click
+  const handlePublish = async () => {
+    // Validate form
+    if (!formData.name || !formData.phone || !formData.gender) {
+      showToast('Please fill in all required fields', 'error');
+      return;
+    }
+    if (!formData.pickupLocation) {
+      showToast('Please select your pickup location', 'error');
+      return;
+    }
+    if (!formData.email) {
+      showToast('Please enter your email', 'error');
+      return;
+    }
+
+    const token = localStorage.getItem('authToken');
+    
+    // If user is logged in, publish directly
+    if (authData && token) {
+      await publishRide(token);
+    } else {
+      // User not logged in - start OTP flow
+      setShowOtpModal(true);
+      setOtpStep('sending');
+      setOtp('');
+      sendOtp();
     }
   };
 
@@ -246,7 +351,7 @@ function PublishRidePage() {
         <div className="pr-destination">
           <div className="pr-destination-icon">📍</div>
           <div className="pr-destination-info">
-            <span className="pr-destination-label">Event Location</span>
+            <span className="pr-destination-label">{event?.event_name}</span>
             <div className="pr-destination-address">{event?.event_location}</div>
           </div>
         </div>
@@ -606,6 +711,70 @@ function PublishRidePage() {
           </button>
         </div>
       </footer>
+
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div className="pr-otp-overlay">
+          <div className="pr-otp-modal">
+            <button 
+              className="pr-otp-close" 
+              onClick={() => setShowOtpModal(false)}
+              aria-label="Close"
+            >
+              <CloseIcon />
+            </button>
+
+            {otpStep === 'sending' && (
+              <div className="pr-otp-content">
+                <div className="pr-otp-icon">📱</div>
+                <h3>Sending Verification Code</h3>
+                <p>We're sending a code to <strong>{formData.phone}</strong></p>
+                <div className="pr-otp-spinner"></div>
+              </div>
+            )}
+
+            {otpStep === 'verify' && (
+              <div className="pr-otp-content">
+                <div className="pr-otp-icon">🔐</div>
+                <h3>Enter Verification Code</h3>
+                <p>
+                  {isNewUser 
+                    ? "We'll create your account after verification"
+                    : "Enter the code sent to your phone"
+                  }
+                </p>
+                
+                <input
+                  type="text"
+                  className="pr-otp-input"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  maxLength={6}
+                  autoFocus
+                />
+                
+                <div className="pr-otp-actions">
+                  <button 
+                    className="pr-otp-resend"
+                    onClick={sendOtp}
+                    disabled={otpSending}
+                  >
+                    {otpSending ? 'Sending...' : 'Resend Code'}
+                  </button>
+                  <button 
+                    className="pr-otp-verify"
+                    onClick={verifyOtp}
+                    disabled={otpVerifying || otp.length !== 6}
+                  >
+                    {otpVerifying ? 'Verifying...' : 'Verify & Publish'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
