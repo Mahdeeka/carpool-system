@@ -13,6 +13,7 @@ function PassengerDashboard() {
   const [confirmedMatch, setConfirmedMatch] = useState(null);
   const [requestDetails, setRequestDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState({}); // Track loading state per action
 
   useEffect(() => {
     if (!userData || userData.role !== 'passenger' || !eventData) {
@@ -42,32 +43,41 @@ function PassengerDashboard() {
   };
 
   const handleSendRequest = async (offerId) => {
+    setActionLoading(prev => ({ ...prev, [`join_${offerId}`]: true }));
     try {
       await sendJoinRequest(userData.requestId, offerId);
       showToast('Join request sent!', 'success');
-      loadData();
+      await loadData();
     } catch (error) {
-      showToast('Failed to send request', 'error');
+      showToast(error.message || 'Failed to send request', 'error');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`join_${offerId}`]: false }));
     }
   };
 
   const handleAcceptInvitation = async (matchId) => {
+    setActionLoading(prev => ({ ...prev, [`accept_${matchId}`]: true }));
     try {
       await acceptInvitation(userData.requestId, matchId);
       showToast('Invitation accepted!', 'success');
-      loadData();
+      await loadData();
     } catch (error) {
-      showToast('Failed to accept invitation', 'error');
+      showToast(error.message || 'Failed to accept invitation', 'error');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`accept_${matchId}`]: false }));
     }
   };
 
   const handleRejectInvitation = async (matchId) => {
+    setActionLoading(prev => ({ ...prev, [`reject_${matchId}`]: true }));
     try {
       await rejectInvitation(userData.requestId, matchId);
       showToast('Invitation rejected', 'info');
-      loadData();
+      await loadData();
     } catch (error) {
-      showToast('Failed to reject invitation', 'error');
+      showToast(error.message || 'Failed to reject invitation', 'error');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`reject_${matchId}`]: false }));
     }
   };
 
@@ -168,10 +178,12 @@ function PassengerDashboard() {
                     <div className="contact-item">🚦 {offer.trip_type}</div>
                   </div>
                   <div className="list-item-footer">
-                    <button className="btn btn-primary" 
+                    <button
+                      className="btn btn-primary"
                       onClick={() => handleSendRequest(offer.offer_id)}
-                      disabled={offer.available_seats === 0}>
-                      Request to Join
+                      disabled={offer.available_seats === 0 || actionLoading[`join_${offer.offer_id}`]}
+                    >
+                      {actionLoading[`join_${offer.offer_id}`] ? 'Sending...' : 'Request to Join'}
                     </button>
                     <a href={getWhatsAppLink(offer.driver_phone)}
                       className="whatsapp-btn" target="_blank" rel="noopener noreferrer">
@@ -206,13 +218,19 @@ function PassengerDashboard() {
                     <div className="contact-item">📍 {invitation.location}</div>
                   </div>
                   <div className="list-item-footer">
-                    <button className="btn btn-success" 
-                      onClick={() => handleAcceptInvitation(invitation.match_id)}>
-                      ✓ Accept
+                    <button
+                      className="btn btn-success"
+                      onClick={() => handleAcceptInvitation(invitation.match_id)}
+                      disabled={actionLoading[`accept_${invitation.match_id}`] || actionLoading[`reject_${invitation.match_id}`]}
+                    >
+                      {actionLoading[`accept_${invitation.match_id}`] ? 'Accepting...' : '✓ Accept'}
                     </button>
-                    <button className="btn btn-danger"
-                      onClick={() => handleRejectInvitation(invitation.match_id)}>
-                      ✗ Decline
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleRejectInvitation(invitation.match_id)}
+                      disabled={actionLoading[`accept_${invitation.match_id}`] || actionLoading[`reject_${invitation.match_id}`]}
+                    >
+                      {actionLoading[`reject_${invitation.match_id}`] ? 'Declining...' : '✗ Decline'}
                     </button>
                     <a href={getWhatsAppLink(invitation.driver_phone)}
                       className="whatsapp-btn" target="_blank" rel="noopener noreferrer">

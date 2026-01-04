@@ -13,6 +13,7 @@ function DriverDashboard() {
   const [confirmedMatches, setConfirmedMatches] = useState([]);
   const [offerDetails, setOfferDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState({}); // Track loading state per action
 
   useEffect(() => {
     if (!userData || userData.role !== 'driver' || !eventData) {
@@ -45,31 +46,40 @@ function DriverDashboard() {
   };
 
   const handleAcceptRequest = async (requestId) => {
+    setActionLoading(prev => ({ ...prev, [`accept_${requestId}`]: true }));
     try {
       await acceptRequest(userData.offerId, requestId);
       showToast('Request accepted!', 'success');
-      loadData();
+      await loadData();
     } catch (error) {
-      showToast('Failed to accept request', 'error');
+      showToast(error.message || 'Failed to accept request', 'error');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`accept_${requestId}`]: false }));
     }
   };
 
   const handleRejectRequest = async (requestId) => {
+    setActionLoading(prev => ({ ...prev, [`reject_${requestId}`]: true }));
     try {
       await rejectRequest(userData.offerId, requestId);
       showToast('Request rejected', 'info');
-      loadData();
+      await loadData();
     } catch (error) {
-      showToast('Failed to reject request', 'error');
+      showToast(error.message || 'Failed to reject request', 'error');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`reject_${requestId}`]: false }));
     }
   };
 
   const handleSendInvitation = async (requestId) => {
+    setActionLoading(prev => ({ ...prev, [`invite_${requestId}`]: true }));
     try {
       await sendInvitation(userData.offerId, requestId);
       showToast('Invitation sent!', 'success');
     } catch (error) {
-      showToast('Failed to send invitation', 'error');
+      showToast(error.message || 'Failed to send invitation', 'error');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`invite_${requestId}`]: false }));
     }
   };
 
@@ -188,13 +198,21 @@ function DriverDashboard() {
                   </div>
                   {request.status === 'pending' && (
                     <div className="list-item-footer">
-                      <button className="btn btn-success" onClick={() => handleAcceptRequest(request.request_id)}>
-                        ✓ Accept
+                      <button
+                        className="btn btn-success"
+                        onClick={() => handleAcceptRequest(request.request_id)}
+                        disabled={actionLoading[`accept_${request.request_id}`] || actionLoading[`reject_${request.request_id}`]}
+                      >
+                        {actionLoading[`accept_${request.request_id}`] ? 'Accepting...' : '✓ Accept'}
                       </button>
-                      <button className="btn btn-danger" onClick={() => handleRejectRequest(request.request_id)}>
-                        ✗ Reject
+                      <button
+                        className="btn btn-danger"
+                        onClick={() => handleRejectRequest(request.request_id)}
+                        disabled={actionLoading[`accept_${request.request_id}`] || actionLoading[`reject_${request.request_id}`]}
+                      >
+                        {actionLoading[`reject_${request.request_id}`] ? 'Rejecting...' : '✗ Reject'}
                       </button>
-                      <a href={getWhatsAppLink(request.passenger_phone)} 
+                      <a href={getWhatsAppLink(request.passenger_phone)}
                         className="whatsapp-btn" target="_blank" rel="noopener noreferrer">
                         💬 WhatsApp
                       </a>
@@ -225,8 +243,12 @@ function DriverDashboard() {
                     <div className="contact-item">📍 {passenger.locations?.map(l => l.location_address).join(', ')}</div>
                   </div>
                   <div className="list-item-footer">
-                    <button className="btn btn-primary" onClick={() => handleSendInvitation(passenger.request_id)}>
-                      Send Invitation
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleSendInvitation(passenger.request_id)}
+                      disabled={actionLoading[`invite_${passenger.request_id}`]}
+                    >
+                      {actionLoading[`invite_${passenger.request_id}`] ? 'Sending...' : 'Send Invitation'}
                     </button>
                   </div>
                 </div>

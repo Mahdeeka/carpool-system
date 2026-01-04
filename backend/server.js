@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
+
+// Environment check
+const isProduction = process.env.NODE_ENV === 'production';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -104,13 +108,65 @@ if (process.env.DATABASE_URL && process.env.USE_DATABASE === 'true') {
 
 // Middleware - CORS configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*', // Allow frontend URL or all origins
+  origin: isProduction ? process.env.FRONTEND_URL : (process.env.FRONTEND_URL || '*'),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// =======================
+// RATE LIMITING
+// =======================
+
+// General API rate limit
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: { message: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Strict rate limit for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 auth requests per windowMs
+  message: { message: 'Too many authentication attempts, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limit for creating resources
+const createLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // Limit each IP to 50 creates per hour
+  message: { message: 'Too many resources created, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply general rate limiting to all routes
+app.use('/api/', generalLimiter);
+
+// =======================
+// STANDARDIZED ERROR HANDLING
+// =======================
+
+// Error response helper
+function sendError(res, status, message, details = null) {
+  const response = { success: false, message };
+  if (details && !isProduction) {
+    response.details = details;
+  }
+  return res.status(status).json(response);
+}
+
+// Success response helper
+function sendSuccess(res, data = {}, message = 'Success') {
+  return res.json({ success: true, message, ...data });
+}
 
 // Generate random event code
 function generateEventCode() {
@@ -506,7 +562,7 @@ app.post('/api/event', async (req, res) => {
 });
 
 // Legacy admin endpoint (kept for backward compatibility)
-app.post('/api/admin/event', async (req, res) => {
+app.post('/api/admin/event', authenticateToken, createLimiter, async (req, res) => {
   try {
     const { eventName, eventDate, eventLocation } = req.body;
     const eventCode = generateEventCode();
@@ -538,7 +594,7 @@ app.post('/api/admin/event', async (req, res) => {
   }
 });
 
-app.get('/api/admin/event/:eventId/stats', async (req, res) => {
+app.get('/api/admin/event/:eventId/stats', authenticateToken, requireEventAdmin, async (req, res) => {
   try {
     const { eventId } = req.params;
     
@@ -818,26 +874,41 @@ app.get('/api/carpool/offer/:offerId/requests', async (req, res) => {
   }
 });
 
-app.post('/api/carpool/offer/:offerId/accept-request', async (req, res) => {
+app.post('/api/carpool/offer/:offerId/accept-request', authenticateToken, async (req, res) => {
   try {
     const { offerId } = req.params;
     const { request_id } = req.body;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to manage this offer' });
+    }
+
+    // Check if seats are available before accepting
+    const offer = db.carpool_offers.find(o => o.offer_id === offerId);
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+
+    if (offer.available_seats <= 0) {
+      return res.status(400).json({ message: 'No seats available' });
+    }
+
     if (useDatabase && pool) {
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        
+
         await client.query(
           'UPDATE matches SET status = $1, confirmed_at = NOW() WHERE offer_id = $2 AND request_id = $3',
           ['confirmed', offerId, request_id]
         );
-        
+
         await client.query(
-          'UPDATE carpool_offers SET available_seats = available_seats - 1 WHERE offer_id = $1',
+          'UPDATE carpool_offers SET available_seats = GREATEST(available_seats - 1, 0) WHERE offer_id = $1',
           [offerId]
         );
-        
+
         await client.query('COMMIT');
         res.json({ success: true });
       } catch (error) {
@@ -853,8 +924,8 @@ app.post('/api/carpool/offer/:offerId/accept-request', async (req, res) => {
         match.status = 'confirmed';
         match.confirmed_at = new Date();
       }
-      const offer = db.carpool_offers.find(o => o.offer_id === offerId);
-      if (offer) {
+      // Safe decrement - never go below 0
+      if (offer.available_seats > 0) {
         offer.available_seats -= 1;
       }
       res.json({ success: true });
@@ -865,11 +936,16 @@ app.post('/api/carpool/offer/:offerId/accept-request', async (req, res) => {
   }
 });
 
-app.post('/api/carpool/offer/:offerId/reject-request', async (req, res) => {
+app.post('/api/carpool/offer/:offerId/reject-request', authenticateToken, async (req, res) => {
   try {
     const { offerId } = req.params;
     const { request_id } = req.body;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to manage this offer' });
+    }
+
     if (useDatabase && pool) {
       await pool.query(
         'UPDATE matches SET status = $1 WHERE offer_id = $2 AND request_id = $3',
@@ -882,7 +958,7 @@ app.post('/api/carpool/offer/:offerId/reject-request', async (req, res) => {
         match.status = 'rejected';
       }
     }
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error rejecting request:', error);
@@ -927,12 +1003,17 @@ app.get('/api/carpool/passengers', async (req, res) => {
   }
 });
 
-app.post('/api/carpool/offer/:offerId/send-invitation', async (req, res) => {
+app.post('/api/carpool/offer/:offerId/send-invitation', authenticateToken, async (req, res) => {
   try {
     const { offerId } = req.params;
     const { request_id } = req.body;
     const matchId = generateId('match');
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to manage this offer' });
+    }
+
     if (useDatabase && pool) {
       // Get driver and passenger IDs
       const offerResult = await pool.query('SELECT driver_id FROM carpool_offers WHERE offer_id = $1', [offerId]);
@@ -1351,7 +1432,7 @@ app.post('/api/carpool/request/:requestId/reject-invitation', async (req, res) =
 // ADMIN APIS
 // =======================
 
-app.get('/api/admin/event/:eventId/drivers', async (req, res) => {
+app.get('/api/admin/event/:eventId/drivers', authenticateToken, requireEventAdmin, async (req, res) => {
   try {
     const { eventId } = req.params;
     
@@ -1382,7 +1463,7 @@ app.get('/api/admin/event/:eventId/drivers', async (req, res) => {
   }
 });
 
-app.get('/api/admin/event/:eventId/passengers', async (req, res) => {
+app.get('/api/admin/event/:eventId/passengers', authenticateToken, requireEventAdmin, async (req, res) => {
   try {
     const { eventId } = req.params;
     
@@ -1416,7 +1497,7 @@ app.get('/api/admin/event/:eventId/passengers', async (req, res) => {
   }
 });
 
-app.get('/api/admin/event/:eventId/matches', async (req, res) => {
+app.get('/api/admin/event/:eventId/matches', authenticateToken, requireEventAdmin, async (req, res) => {
   try {
     const { eventId } = req.params;
     
@@ -1463,12 +1544,12 @@ app.get('/api/admin/event/:eventId/matches', async (req, res) => {
   }
 });
 
-app.post('/api/admin/event/:eventId/send-reminders', async (req, res) => {
+app.post('/api/admin/event/:eventId/send-reminders', authenticateToken, requireEventAdmin, async (req, res) => {
   console.log('Sending reminders for event:', req.params.eventId);
   res.json({ success: true, reminders_sent: 0 });
 });
 
-app.get('/api/admin/event/:eventId/export', async (req, res) => {
+app.get('/api/admin/event/:eventId/export', authenticateToken, requireEventAdmin, async (req, res) => {
   res.json({ success: true, download_url: '/exports/data.csv' });
 });
 
@@ -1477,11 +1558,16 @@ app.get('/api/admin/event/:eventId/export', async (req, res) => {
 // =======================
 
 // Update offer
-app.put('/api/carpool/offer/:offerId', async (req, res) => {
+app.put('/api/carpool/offer/:offerId', authenticateToken, async (req, res) => {
   try {
     const { offerId } = req.params;
     const { name, phone, email, total_seats, description, trip_type, preference, locations } = req.body;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to update this offer' });
+    }
+
     if (useDatabase && pool) {
       const client = await pool.connect();
       try {
@@ -1573,10 +1659,15 @@ app.put('/api/carpool/offer/:offerId', async (req, res) => {
 });
 
 // Delete offer
-app.delete('/api/carpool/offer/:offerId', async (req, res) => {
+app.delete('/api/carpool/offer/:offerId', authenticateToken, async (req, res) => {
   try {
     const { offerId } = req.params;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to delete this offer' });
+    }
+
     if (useDatabase && pool) {
       const client = await pool.connect();
       try {
@@ -1606,11 +1697,16 @@ app.delete('/api/carpool/offer/:offerId', async (req, res) => {
 });
 
 // Update request
-app.put('/api/carpool/request/:requestId', async (req, res) => {
+app.put('/api/carpool/request/:requestId', authenticateToken, async (req, res) => {
   try {
     const { requestId } = req.params;
     const { name, phone, email, trip_type, preference, locations } = req.body;
-    
+
+    // Verify ownership
+    if (!isRequestOwner(req.account, requestId)) {
+      return res.status(403).json({ message: 'Not authorized to update this request' });
+    }
+
     if (useDatabase && pool) {
       const client = await pool.connect();
       try {
@@ -1700,10 +1796,15 @@ app.put('/api/carpool/request/:requestId', async (req, res) => {
 });
 
 // Delete request
-app.delete('/api/carpool/request/:requestId', async (req, res) => {
+app.delete('/api/carpool/request/:requestId', authenticateToken, async (req, res) => {
   try {
     const { requestId } = req.params;
-    
+
+    // Verify ownership
+    if (!isRequestOwner(req.account, requestId)) {
+      return res.status(403).json({ message: 'Not authorized to delete this request' });
+    }
+
     if (useDatabase && pool) {
       const client = await pool.connect();
       try {
@@ -1831,16 +1932,21 @@ app.post('/api/carpool/offer/:offerId/request-join', async (req, res) => {
 });
 
 // Get join requests for an offer (driver view)
-app.get('/api/carpool/offer/:offerId/join-requests', async (req, res) => {
+app.get('/api/carpool/offer/:offerId/join-requests', authenticateToken, async (req, res) => {
   try {
     const { offerId } = req.params;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to view these requests' });
+    }
+
     const requests = db.join_requests
       .filter(jr => jr.offer_id === offerId)
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    
+
     console.log(`Found ${requests.length} join requests for offer ${offerId}:`, requests);
-    
+
     res.json({ requests });
   } catch (error) {
     console.error('Error getting join requests:', error);
@@ -1849,34 +1955,43 @@ app.get('/api/carpool/offer/:offerId/join-requests', async (req, res) => {
 });
 
 // Accept join request (driver action)
-app.post('/api/carpool/offer/:offerId/accept-join/:requestId', async (req, res) => {
+app.post('/api/carpool/offer/:offerId/accept-join/:requestId', authenticateToken, async (req, res) => {
   try {
     const { offerId, requestId } = req.params;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to manage this offer' });
+    }
+
     const joinRequest = db.join_requests.find(
       jr => jr.id === requestId && jr.offer_id === offerId
     );
-    
+
     if (!joinRequest) {
       return res.status(404).json({ message: 'Join request not found' });
     }
-    
+
     // Check if offer has available seats
     const offer = db.carpool_offers.find(o => o.offer_id === offerId);
+    if (!offer) {
+      return res.status(404).json({ message: 'Offer not found' });
+    }
+
     const confirmedCount = db.join_requests.filter(
       jr => jr.offer_id === offerId && jr.status === 'confirmed'
     ).length;
-    
+
     if (confirmedCount >= offer.total_seats) {
       return res.status(400).json({ message: 'This ride is full' });
     }
-    
+
     joinRequest.status = 'confirmed';
     joinRequest.confirmed_at = new Date();
-    
-    // Update available seats
-    offer.available_seats = offer.total_seats - (confirmedCount + 1);
-    
+
+    // Update available seats (safe - never go below 0)
+    offer.available_seats = Math.max(0, offer.total_seats - (confirmedCount + 1));
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error accepting join request:', error);
@@ -1885,20 +2000,25 @@ app.post('/api/carpool/offer/:offerId/accept-join/:requestId', async (req, res) 
 });
 
 // Reject join request (driver action)
-app.post('/api/carpool/offer/:offerId/reject-join/:requestId', async (req, res) => {
+app.post('/api/carpool/offer/:offerId/reject-join/:requestId', authenticateToken, async (req, res) => {
   try {
     const { offerId, requestId } = req.params;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to manage this offer' });
+    }
+
     const joinRequest = db.join_requests.find(
       jr => jr.id === requestId && jr.offer_id === offerId
     );
-    
+
     if (!joinRequest) {
       return res.status(404).json({ message: 'Join request not found' });
     }
-    
+
     joinRequest.status = 'rejected';
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error rejecting join request:', error);
@@ -1907,36 +2027,41 @@ app.post('/api/carpool/offer/:offerId/reject-join/:requestId', async (req, res) 
 });
 
 // Cancel confirmed passenger (driver action)
-app.post('/api/carpool/offer/:offerId/cancel-passenger', async (req, res) => {
+app.post('/api/carpool/offer/:offerId/cancel-passenger', authenticateToken, async (req, res) => {
   try {
     const { offerId } = req.params;
     const { passenger_id, message } = req.body;
-    
+
+    // Verify ownership
+    if (!isOfferOwner(req.account, offerId)) {
+      return res.status(403).json({ message: 'Not authorized to manage this offer' });
+    }
+
     const joinRequest = db.join_requests.find(
       jr => jr.id === passenger_id && jr.offer_id === offerId && jr.status === 'confirmed'
     );
-    
+
     if (!joinRequest) {
       return res.status(404).json({ message: 'Confirmed passenger not found' });
     }
-    
+
     // Update the status to cancelled
     joinRequest.status = 'cancelled';
     joinRequest.cancelled_at = new Date();
     joinRequest.cancel_message = message || null;
-    
+
     // Update available seats for the offer
     const offer = db.carpool_offers.find(o => o.offer_id === offerId);
     if (offer) {
       const confirmedCount = db.join_requests.filter(
         jr => jr.offer_id === offerId && jr.status === 'confirmed'
       ).length;
-      offer.available_seats = offer.total_seats - confirmedCount;
+      offer.available_seats = Math.max(0, offer.total_seats - confirmedCount);
     }
-    
+
     // TODO: Send notification to the passenger (via SMS/email) about cancellation with message
     console.log(`Passenger ${joinRequest.name} cancelled from offer ${offerId}. Message: ${message}`);
-    
+
     res.json({ success: true });
   } catch (error) {
     console.error('Error cancelling passenger:', error);
@@ -2000,13 +2125,18 @@ app.post('/api/auth/request-otp', async (req, res) => {
     const message = `Your Carpool verification code is: ${otp}. Valid for 5 minutes.`;
     await sendSMS(normalizedPhone, message);
     
-    res.json({ 
-      success: true, 
+    const response = {
+      success: true,
       message: 'OTP sent successfully',
-      is_new_user: !existingAccount,
-      // For development/testing, include OTP in response (remove in production!)
-      debug_otp: otp // Always show for local development
-    });
+      is_new_user: !existingAccount
+    };
+
+    // Only include debug OTP in development mode - NEVER in production
+    if (!isProduction) {
+      response.debug_otp = otp;
+    }
+
+    res.json(response);
   } catch (error) {
     console.error('Error requesting OTP:', error);
     res.status(500).json({ message: 'Server error' });
@@ -2121,29 +2251,94 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-  
+
   if (!token) {
     return res.status(401).json({ message: 'Authentication required' });
   }
-  
+
   const session = db.sessions.find(
     s => s.token === token && s.expires_at > new Date()
   );
-  
+
   if (!session) {
     return res.status(401).json({ message: 'Invalid or expired session' });
   }
-  
+
   // Update last used
   session.last_used = new Date();
-  
+
   // Get account
   const account = db.accounts.find(a => a.account_id === session.account_id);
   if (!account) {
     return res.status(401).json({ message: 'Account not found' });
   }
-  
+
   req.account = account;
+  next();
+}
+
+// Optional authentication - sets req.account if token present, but doesn't require it
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token) {
+    const session = db.sessions.find(
+      s => s.token === token && s.expires_at > new Date()
+    );
+    if (session) {
+      session.last_used = new Date();
+      const account = db.accounts.find(a => a.account_id === session.account_id);
+      if (account) {
+        req.account = account;
+      }
+    }
+  }
+  next();
+}
+
+// Helper to check if user is the event creator
+function isEventCreator(account, eventId) {
+  if (!account) return false;
+  const event = db.events.find(e => e.event_id === eventId);
+  return event && event.creator_account_id === account.account_id;
+}
+
+// Helper to check if user owns an offer
+function isOfferOwner(account, offerId) {
+  if (!account) return false;
+  const offer = db.carpool_offers.find(o => o.offer_id === offerId);
+  return offer && offer.account_id === account.account_id;
+}
+
+// Helper to check if user owns a request
+function isRequestOwner(account, requestId) {
+  if (!account) return false;
+  const request = db.carpool_requests.find(r => r.request_id === requestId);
+  return request && request.account_id === account.account_id;
+}
+
+// Middleware to verify event admin access
+function requireEventAdmin(req, res, next) {
+  const eventId = req.params.eventId;
+  const eventCode = req.params.eventCode;
+
+  let event = null;
+  if (eventId) {
+    event = db.events.find(e => e.event_id === eventId);
+  } else if (eventCode) {
+    event = db.events.find(e => e.event_code === eventCode);
+  }
+
+  if (!event) {
+    return res.status(404).json({ message: 'Event not found' });
+  }
+
+  if (event.creator_account_id !== req.account.account_id) {
+    return res.status(403).json({ message: 'Not authorized to manage this event' });
+  }
+
+  req.event = event;
   next();
 }
 
@@ -2464,10 +2659,10 @@ app.get('/api/auth/my-events', authenticateToken, async (req, res) => {
 });
 
 // Get event admin data (full details for event owner)
-app.get('/api/event/:eventCode/admin', async (req, res) => {
+app.get('/api/event/:eventCode/admin', authenticateToken, requireEventAdmin, async (req, res) => {
   try {
     const { eventCode } = req.params;
-    
+
     console.log('=== GET EVENT ADMIN ===');
     console.log('Event code:', eventCode);
     
@@ -2563,33 +2758,13 @@ app.get('/api/event/:eventCode/admin', async (req, res) => {
 });
 
 // Update event (for event owner)
-app.put('/api/event/:eventCode', async (req, res) => {
+app.put('/api/event/:eventCode', authenticateToken, requireEventAdmin, async (req, res) => {
   try {
     const { eventCode } = req.params;
     const { eventName, eventDate, eventTime, eventLocation, eventLat, eventLng, isPrivate, accessCode } = req.body;
-    
-    // Check for authentication
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    let account = null;
-    
-    if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-      }
-    }
-    
-    const event = db.events.find(e => e.event_code === eventCode);
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-    
-    // Check if user is the event creator
-    if (!account || event.creator_account_id !== account.account_id) {
-      return res.status(403).json({ message: 'You are not authorized to edit this event' });
-    }
-    
+
+    const event = req.event; // Set by requireEventAdmin middleware
+
     // Update event
     if (eventName) event.event_name = eventName;
     if (eventDate) event.event_date = eventDate;
@@ -2609,32 +2784,10 @@ app.put('/api/event/:eventCode', async (req, res) => {
 });
 
 // Delete event (for event owner)
-app.delete('/api/event/:eventCode', async (req, res) => {
+app.delete('/api/event/:eventCode', authenticateToken, requireEventAdmin, async (req, res) => {
   try {
-    const { eventCode } = req.params;
-    
-    // Check for authentication
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    let account = null;
-    
-    if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-      }
-    }
-    
-    const event = db.events.find(e => e.event_code === eventCode);
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-    }
-    
-    // Check if user is the event creator
-    if (!account || event.creator_account_id !== account.account_id) {
-      return res.status(403).json({ message: 'You are not authorized to delete this event' });
-    }
-    
+    const event = req.event; // Set by requireEventAdmin middleware
+
     // Remove event (or mark as deleted)
     event.status = 'deleted';
     
