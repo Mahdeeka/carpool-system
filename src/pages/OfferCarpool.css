@@ -1,0 +1,1085 @@
+/* =============================================
+   OFFER CARPOOL PAGE - MODERN SINGLE-PAGE FORM
+   Clean, professional design matching system colors
+   ============================================= */
+
+.offer-ride-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: linear-gradient(135deg, #0B2A4A 0%, #071F36 100%);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated Background Orbs */
+.offer-ride-page::before {
+  content: '';
+  position: fixed;
+  top: -20%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 20s ease-in-out infinite;
+}
+
+.offer-ride-page::after {
+  content: '';
+  position: fixed;
+  bottom: -10%;
+  left: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 15s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -30px) scale(1.1); }
+}
+
+/* Header */
+.offer-ride-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 16px 20px;
+  background: rgba(11, 42, 74, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(14, 165, 233, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.offer-ride-back-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.offer-ride-back-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(-4px);
+}
+
+.offer-ride-header-info {
+  flex: 1;
+}
+
+.offer-ride-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #38BDF8;
+  margin-bottom: 4px;
+}
+
+.offer-ride-header-info h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Main Container */
+.offer-ride-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px 20px 100px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Event Destination Banner */
+.offer-ride-destination {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0.05) 100%);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.offer-ride-destination-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.offer-ride-destination-text h3 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.offer-ride-destination-text p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+/* User Profile Card */
+.offer-ride-user-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.offer-ride-user-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.offer-ride-user-avatar {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #0EA5E9 0%, #0B2A4A 100%);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: white;
+}
+
+.offer-ride-user-details h4 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.offer-ride-user-details p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.offer-ride-edit-profile {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #38BDF8;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-edit-profile:hover {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+/* Form Section */
+.offer-ride-form-section {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-form-section:hover {
+  border-color: rgba(14, 165, 233, 0.2);
+}
+
+.offer-ride-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.offer-ride-section-icon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.offer-ride-section-title h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: white;
+}
+
+.offer-ride-section-title p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Form Fields */
+.offer-ride-field {
+  margin-bottom: 20px;
+}
+
+.offer-ride-field:last-child {
+  margin-bottom: 0;
+}
+
+.offer-ride-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.offer-ride-required {
+  color: #f87171;
+  margin-left: 4px;
+}
+
+/* Modern Input */
+.offer-ride-input,
+.offer-ride-select,
+.offer-ride-textarea {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  color: white;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.offer-ride-input::placeholder,
+.offer-ride-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.offer-ride-input:focus,
+.offer-ride-select:focus,
+.offer-ride-textarea:focus {
+  outline: none;
+  border-color: #0EA5E9;
+  background: rgba(14, 165, 233, 0.1);
+  box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.15);
+}
+
+.offer-ride-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 20px;
+  padding-right: 48px;
+}
+
+.offer-ride-select option {
+  background: #0B2A4A;
+  color: white;
+}
+
+.offer-ride-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Trip Type Selector */
+.offer-ride-trip-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.offer-ride-trip-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.offer-ride-trip-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.offer-ride-trip-option .option-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-trip-option:hover .option-content {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.offer-ride-trip-option input:checked + .option-content {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: #0EA5E9;
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+}
+
+.option-icon {
+  font-size: 28px;
+}
+
+.option-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.offer-ride-trip-option input:checked + .option-content .option-label {
+  color: #38BDF8;
+}
+
+/* Seats Selector */
+.offer-ride-seats-selector {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.offer-ride-seat-btn {
+  width: 52px;
+  height: 52px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.offer-ride-seat-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.offer-ride-seat-btn.selected {
+  background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
+}
+
+/* Location Section */
+.offer-ride-location-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.offer-ride-location-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.offer-ride-location-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.offer-ride-location-number {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+}
+
+.offer-ride-location-title span {
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.offer-ride-remove-location {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-remove-location:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* Time Selection */
+.offer-ride-time-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.offer-ride-time-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.offer-ride-time-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.offer-ride-time-option .time-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+}
+
+.offer-ride-time-option:hover .time-content {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.offer-ride-time-option input:checked + .time-content {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: #0EA5E9;
+  color: #38BDF8;
+}
+
+.offer-ride-time-input {
+  margin-top: 12px;
+}
+
+/* Add Location Button */
+.offer-ride-add-location {
+  width: 100%;
+  padding: 16px;
+  background: transparent;
+  border: 2px dashed rgba(14, 165, 233, 0.3);
+  border-radius: 14px;
+  color: #38BDF8;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.offer-ride-add-location:hover {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: #0EA5E9;
+}
+
+/* Payment Options */
+.offer-ride-payment-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.offer-ride-payment-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.offer-ride-payment-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.offer-ride-payment-option .payment-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-payment-option:hover .payment-content {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.offer-ride-payment-option input:checked + .payment-content {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22C55E;
+}
+
+.payment-icon {
+  font-size: 26px;
+}
+
+.payment-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+}
+
+.offer-ride-payment-option input:checked + .payment-content .payment-label {
+  color: #4ADE80;
+}
+
+/* Payment Amount Field */
+.offer-ride-payment-amount {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.offer-ride-amount-input-wrapper {
+  position: relative;
+}
+
+.offer-ride-currency {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.offer-ride-amount-input {
+  width: 100%;
+  padding: 14px 18px 14px 44px;
+  font-size: 20px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-amount-input:focus {
+  outline: none;
+  border-color: #22C55E;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+}
+
+.offer-ride-amount-hint {
+  margin-top: 10px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Anonymous Toggle */
+.offer-ride-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+
+.offer-ride-toggle-info {
+  flex: 1;
+}
+
+.offer-ride-toggle-info h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.offer-ride-toggle-info p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Custom Toggle Switch */
+.offer-ride-toggle {
+  position: relative;
+  width: 56px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.offer-ride-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.offer-ride-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 30px;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-toggle-slider::before {
+  position: absolute;
+  content: '';
+  height: 24px;
+  width: 24px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-toggle input:checked + .offer-ride-toggle-slider {
+  background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+}
+
+.offer-ride-toggle input:checked + .offer-ride-toggle-slider::before {
+  transform: translateX(26px);
+}
+
+/* Privacy Options */
+.offer-ride-privacy-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.offer-ride-privacy-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.offer-ride-privacy-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.offer-ride-privacy-option .privacy-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-privacy-option:hover .privacy-content {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.offer-ride-privacy-option input:checked + .privacy-content {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: #0EA5E9;
+}
+
+.privacy-icon {
+  font-size: 24px;
+}
+
+.privacy-text h5 {
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.privacy-text p {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Route Map Preview */
+.offer-ride-route-preview {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+}
+
+.offer-ride-route-preview h4 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Error Message */
+.offer-ride-error {
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  color: #f87171;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+/* Warning Banner */
+.offer-ride-warning {
+  padding: 12px 16px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 10px;
+  color: #FBBF24;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Submit Section */
+.offer-ride-submit-section {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 20px;
+  background: rgba(11, 42, 74, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(14, 165, 233, 0.2);
+  z-index: 100;
+}
+
+.offer-ride-submit-container {
+  max-width: 700px;
+  margin: 0 auto;
+  display: flex;
+  gap: 12px;
+}
+
+.offer-ride-cancel-btn {
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.offer-ride-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.offer-ride-submit-btn {
+  flex: 1;
+  padding: 16px 28px;
+  background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+  border: none;
+  border-radius: 14px;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
+}
+
+.offer-ride-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(14, 165, 233, 0.4);
+}
+
+.offer-ride-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading Overlay */
+.offer-ride-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 42, 74, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.offer-ride-loading-car {
+  position: relative;
+  width: 120px;
+  height: 60px;
+  margin-bottom: 24px;
+}
+
+.offer-ride-car-body {
+  position: absolute;
+  width: 100px;
+  height: 35px;
+  background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%);
+  border-radius: 8px 20px 5px 5px;
+  top: 10px;
+  left: 10px;
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.4);
+}
+
+.offer-ride-car-body::before {
+  content: '';
+  position: absolute;
+  width: 50px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 5px 15px 0 0;
+  top: -15px;
+  left: 25px;
+}
+
+.offer-ride-car-wheel {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #1e293b;
+  border: 3px solid #64748b;
+  border-radius: 50%;
+  bottom: 0;
+  animation: spin 0.5s linear infinite;
+}
+
+.offer-ride-car-wheel.front {
+  left: 20px;
+}
+
+.offer-ride-car-wheel.back {
+  right: 10px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.offer-ride-loading-road {
+  position: absolute;
+  bottom: -5px;
+  left: -20px;
+  width: 160px;
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    #475569 0px,
+    #475569 15px,
+    transparent 15px,
+    transparent 25px
+  );
+  animation: roadMove 0.5s linear infinite;
+}
+
+@keyframes roadMove {
+  from { transform: translateX(0); }
+  to { transform: translateX(-25px); }
+}
+
+.offer-ride-loading-text {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Loading State */
+.offer-ride-main-loading {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.offer-ride-loading-icon {
+  font-size: 64px;
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+.offer-ride-main-loading p {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .offer-ride-trip-selector {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-ride-payment-options {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-ride-privacy-options {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-ride-time-options {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-ride-submit-container {
+    flex-direction: column-reverse;
+  }
+
+  .offer-ride-cancel-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .offer-ride-container {
+    padding: 16px 16px 100px;
+  }
+
+  .offer-ride-form-section {
+    padding: 20px 16px;
+  }
+
+  .offer-ride-seats-selector {
+    justify-content: center;
+  }
+
+  .offer-ride-seat-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+}
