@@ -1049,7 +1049,7 @@ function AdminPanel() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
@@ -1061,11 +1061,11 @@ function AdminPanel() {
     const adminToken = localStorage.getItem('adminToken');
     if (adminToken) {
       setIsAuthenticated(true);
+      setLoading(true);
       // Load initial data
       fetchDashboardData();
-    } else {
-      setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Parse tab from URL
@@ -1126,23 +1126,7 @@ function AdminPanel() {
     navigate(`/admin?tab=${tab}`);
   };
 
-  // Show loading spinner while checking auth
-  if (loading && !isAuthenticated) {
-    return (
-      <div className="admin-login-page">
-        <div className="admin-login-card">
-          <div className="admin-login-logo">TREMPI</div>
-          <h1>Admin Panel</h1>
-          <p>Loading...</p>
-          <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-            <div className="spinner"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Login Form
+  // Login Form - show immediately if not authenticated
   if (!isAuthenticated) {
     return (
       <div className="admin-login-page">
