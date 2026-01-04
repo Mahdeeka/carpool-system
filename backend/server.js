@@ -117,7 +117,7 @@ async function initializeDatabaseConnection() {
     if (pool) {
       const tablesCreated = await database.createTables();
       if (tablesCreated) {
-        useDatabase = true;
+      useDatabase = true;
         console.log('✅ Using PostgreSQL database - data will persist!');
         
         // Log current stats
@@ -130,8 +130,8 @@ async function initializeDatabaseConnection() {
   }
   
   if (!useDatabase) {
-    console.log('📦 Using in-memory storage');
-    console.log('💡 Data will be lost when server restarts');
+  console.log('📦 Using in-memory storage');
+  console.log('💡 Data will be lost when server restarts');
     console.log('💡 Set DATABASE_URL to enable PostgreSQL persistence');
   }
 }
@@ -504,6 +504,25 @@ const dbHelpers = {
     }
   }
 };
+
+// Helper function to get account from token (checks both memory and database)
+async function getAccountFromToken(token) {
+  if (!token) return null;
+  
+  // Check in-memory first
+  let session = db.sessions.find(s => s.token === token && new Date(s.expires_at) > new Date());
+  
+  // If not in memory, check database
+  if (!session && useDatabase) {
+    session = await dbHelpers.findSessionByToken(token);
+  }
+  
+  if (!session) return null;
+  
+  // Get account
+  const account = await dbHelpers.findAccountById(session.account_id);
+  return account;
+}
 
 // Middleware - CORS configuration - Allow all origins for now
 app.use(cors({
@@ -905,17 +924,20 @@ app.post('/api/event', async (req, res) => {
     console.log('Token extracted:', token ? token.substring(0, 10) + '...' : 'none');
     
     if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
+      // Check in-memory first
+      let session = db.sessions.find(s => s.token === token && new Date(s.expires_at) > new Date());
+      
+      // If not in memory, check database
+      if (!session && useDatabase) {
+        session = await dbHelpers.findSessionByToken(token);
+        console.log('Session from database:', !!session);
+      }
+      
       console.log('Session found:', !!session);
       if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
+        // Get account from database
+        account = await dbHelpers.findAccountById(session.account_id);
         console.log('Account found:', account ? account.name : 'none');
-      } else {
-        console.log('Active sessions:', db.sessions.map(s => ({ 
-          token_prefix: s.token.substring(0, 10), 
-          expires: s.expires_at,
-          is_valid: s.expires_at > new Date()
-        })));
       }
     }
     
@@ -932,25 +954,25 @@ app.post('/api/event', async (req, res) => {
     
     // Create event using database helper (works for both DB and in-memory)
     const eventData = {
-      event_id: eventId,
-      event_name: eventName,
-      event_date: eventDate,
-      event_time: eventTime,
-      event_location: eventLocation,
+        event_id: eventId,
+        event_name: eventName,
+        event_date: eventDate,
+        event_time: eventTime,
+        event_location: eventLocation,
       location_lat: eventLat || null,
       location_lng: eventLng || null,
-      event_code: eventCode,
-      is_private: isPrivate || false,
-      access_code: isPrivate ? accessCode : null,
-      creator_account_id: account.account_id,
-      creator_name: account.name,
-      creator_phone: account.phone,
-      status: 'active',
-      created_at: new Date()
+        event_code: eventCode,
+        is_private: isPrivate || false,
+        access_code: isPrivate ? accessCode : null,
+        creator_account_id: account.account_id,
+        creator_name: account.name,
+        creator_phone: account.phone,
+        status: 'active',
+        created_at: new Date()
     };
-    
+      
     await dbHelpers.createEvent(eventData);
-    console.log('Event created:', { eventId, eventCode, creator: account.account_id });
+      console.log('Event created:', { eventId, eventCode, creator: account.account_id });
     
     res.json({ 
       event_id: eventId, 
@@ -1075,14 +1097,7 @@ app.post('/api/carpool/offer', async (req, res) => {
     // Check for authentication token
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    let account = null;
-    
-    if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-      }
-    }
+    let account = await getAccountFromToken(token);
     
     if (useDatabase) {
       const client = await getPool().connect();
@@ -2654,7 +2669,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     
     // Mark OTP as verified (if it exists)
     if (otpRecord) {
-      otpRecord.verified = true;
+    otpRecord.verified = true;
       if (useDatabase) {
         await dbHelpers.markOTPVerified(otpRecord);
       }
@@ -4221,15 +4236,15 @@ async function startServer() {
   // Initialize database first
   await initializeDatabaseConnection();
   
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📡 API available at http://localhost:${PORT}/api`);
-    if (SMS_PROVIDER === 'mock') {
-      console.log(`📱 SMS Provider: MOCK (OTP codes will be logged to console)`);
-    } else {
-      console.log(`📱 SMS Provider: ${SMS_PROVIDER}`);
-    }
-  });
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📡 API available at http://localhost:${PORT}/api`);
+  if (SMS_PROVIDER === 'mock') {
+    console.log(`📱 SMS Provider: MOCK (OTP codes will be logged to console)`);
+  } else {
+    console.log(`📱 SMS Provider: ${SMS_PROVIDER}`);
+  }
+});
 }
 
 startServer();
