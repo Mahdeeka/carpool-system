@@ -18,7 +18,7 @@ export const AppProvider = ({ children }) => {
   const [authLoading, setAuthLoading] = useState(true); // Loading auth state
   const [toast, setToast] = useState(null);
 
-  // Load data from localStorage on mount
+  // Load data from localStorage on mount - FAST: trust cached data immediately
   useEffect(() => {
     const savedEventData = localStorage.getItem('eventData');
     const savedUserData = localStorage.getItem('userData');
@@ -32,29 +32,32 @@ export const AppProvider = ({ children }) => {
       setUserData(JSON.parse(savedUserData));
     }
     
-    // Verify auth token on mount
+    // Trust cached auth data immediately for fast navigation
     if (savedAuthToken && savedAuthAccount) {
-      verifyAuth();
-    } else {
-      setAuthLoading(false);
+      try {
+        setAuthData(JSON.parse(savedAuthAccount));
+      } catch (e) {
+        // Invalid cached data
+      }
+      // Verify in background (don't block navigation)
+      const verifyInBackground = async () => {
+        try {
+          const response = await getCurrentUser();
+          setAuthData(response.account);
+          localStorage.setItem('authAccount', JSON.stringify(response.account));
+        } catch (error) {
+          // Token invalid or expired - clear auth state
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('authAccount');
+          setAuthData(null);
+        }
+      };
+      verifyInBackground();
     }
+    
+    // Always set loading to false immediately
+    setAuthLoading(false);
   }, []);
-  
-  // Verify authentication on mount
-  const verifyAuth = async () => {
-    try {
-      const response = await getCurrentUser();
-      setAuthData(response.account);
-      localStorage.setItem('authAccount', JSON.stringify(response.account));
-    } catch (error) {
-      // Token invalid or expired
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('authAccount');
-      setAuthData(null);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
 
   // Save to localStorage when data changes
   useEffect(() => {

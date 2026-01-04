@@ -2154,6 +2154,9 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     
     const normalizedPhone = phone.replace(/[\s\-\(\)]/g, '');
     
+    // Development bypass: accept 123456 as valid OTP in non-production
+    const isDevelopmentBypass = !isProduction && otp === '123456';
+    
     // Find valid OTP
     const otpRecord = db.otp_codes.find(
       o => o.phone === normalizedPhone && 
@@ -2162,12 +2165,16 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       !o.verified
     );
     
-    if (!otpRecord) {
+    if (!otpRecord && !isDevelopmentBypass) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
     
-    // Mark OTP as verified
-    otpRecord.verified = true;
+    // Mark OTP as verified (if it exists)
+    if (otpRecord) {
+      otpRecord.verified = true;
+    } else if (isDevelopmentBypass) {
+      console.log(`🔓 Development OTP bypass used for phone: ${normalizedPhone}`);
+    }
     
     // Check if account exists
     let account = db.accounts.find(a => a.phone === normalizedPhone);
