@@ -228,17 +228,15 @@ function PublishRidePage() {
       {/* Header */}
       <header className="pr-header">
         <div className="pr-header-inner">
-          <button className="pr-back-btn" onClick={goBack}>
+          <button className="pr-back-btn" onClick={goBack} aria-label="Go back">
             <ArrowLeftIcon />
-            <span>Back</span>
           </button>
           
-          <div className="pr-header-info">
-            <span className={`pr-mode-badge ${!isOffer ? 'request' : ''}`}>
-              {isOffer ? '🚗 Offer a Ride' : '🙋 Need a Ride'}
-            </span>
-            <h1 className="pr-header-title">{event?.event_name}</h1>
-          </div>
+          <h1 className="pr-header-title">
+            {isOffer ? 'OFFER A RIDE' : 'REQUEST A RIDE'}
+          </h1>
+          
+          <div className="pr-header-spacer"></div>
         </div>
       </header>
 

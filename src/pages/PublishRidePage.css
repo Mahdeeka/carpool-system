@@ -125,67 +125,55 @@
    .pr-header-inner {
      max-width: 600px;
      margin: 0 auto;
-     height: 64px;
+     height: 60px;
      display: flex;
      align-items: center;
-     gap: 12px;
+     justify-content: space-between;
    }
    
    .pr-back-btn {
      display: flex;
      align-items: center;
-     gap: 6px;
-     padding: 8px 14px;
-     background: rgba(255, 255, 255, 0.1);
-     border: 1px solid rgba(255, 255, 255, 0.2);
-     border-radius: var(--radius-sm);
+     justify-content: center;
+     width: 44px;
+     height: 44px;
+     background: rgba(255, 255, 255, 0.15);
+     border: none;
+     border-radius: 50%;
      color: white;
-     font-size: 14px;
-     font-weight: 500;
      cursor: pointer;
      transition: all var(--transition-fast);
+     flex-shrink: 0;
    }
    
    .pr-back-btn:hover {
-     background: rgba(255, 255, 255, 0.2);
+     background: rgba(255, 255, 255, 0.25);
+     transform: scale(1.05);
+   }
+   
+   .pr-back-btn:active {
+     transform: scale(0.95);
    }
    
    .pr-back-btn svg {
-     width: 16px;
-     height: 16px;
-   }
-   
-   .pr-header-info {
-     flex: 1;
-     min-width: 0;
-   }
-   
-   .pr-mode-badge {
-     display: inline-flex;
-     align-items: center;
-     gap: 6px;
-     padding: 4px 10px;
-     background: var(--accent);
-     border-radius: 20px;
-     font-size: 11px;
-     font-weight: 600;
-     color: white;
-     text-transform: uppercase;
-     letter-spacing: 0.3px;
-   }
-   
-   .pr-mode-badge.request {
-     background: var(--accent-light);
+     width: 22px;
+     height: 22px;
    }
    
    .pr-header-title {
-     margin: 4px 0 0;
-     font-size: 16px;
-     font-weight: 600;
+     flex: 1;
+     margin: 0;
+     font-size: 18px;
+     font-weight: 700;
      color: white;
-     white-space: nowrap;
-     overflow: hidden;
-     text-overflow: ellipsis;
+     text-align: center;
+     letter-spacing: 1px;
+     text-transform: uppercase;
+   }
+   
+   .pr-header-spacer {
+     width: 44px;
+     flex-shrink: 0;
    }
    
    /* ============================================= 

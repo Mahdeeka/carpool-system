@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -19,23 +19,12 @@ import EventAdminDashboard from './pages/EventAdminDashboard';
 import InfoPage from './pages/InfoPage';
 import PublishRidePage from './pages/PublishRidePage';
 import LandingPage from './pages/LandingPage';
-import Onboarding, { WelcomeBanner, useOnboarding } from './components/Onboarding';
 import { PWAProvider, OfflineIndicator, InstallBanner } from './components/PWAEnhancements';
 import './App.css';
 
 // Global components wrapper
 const GlobalComponents = ({ children }) => {
-  const { hasCompletedOnboarding, showOnboarding, completeOnboarding, startOnboarding, setShowOnboarding } = useOnboarding();
-  const [showWelcome, setShowWelcome] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
-
-  useEffect(() => {
-    // Show welcome banner for new users after a short delay
-    if (!hasCompletedOnboarding) {
-      const timer = setTimeout(() => setShowWelcome(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [hasCompletedOnboarding]);
 
   return (
     <>
@@ -47,31 +36,6 @@ const GlobalComponents = ({ children }) => {
       {/* Install app banner */}
       {showInstallBanner && (
         <InstallBanner onDismiss={() => setShowInstallBanner(false)} />
-      )}
-
-      {/* Welcome banner for new users */}
-      {showWelcome && !hasCompletedOnboarding && !showOnboarding && (
-        <WelcomeBanner
-          onStartTour={() => {
-            setShowWelcome(false);
-            startOnboarding();
-          }}
-          onDismiss={() => {
-            setShowWelcome(false);
-            completeOnboarding();
-          }}
-        />
-      )}
-
-      {/* Full onboarding flow */}
-      {showOnboarding && (
-        <Onboarding
-          onComplete={completeOnboarding}
-          onSkip={() => {
-            setShowOnboarding(false);
-            completeOnboarding();
-          }}
-        />
       )}
     </>
   );
