@@ -63,11 +63,24 @@ const apiCall = async (endpoint, options = {}, timeout = DEFAULT_TIMEOUT) => {
 // AUTH APIs
 // =======================
 
-// Request OTP
-export const requestOTP = async (phone) => {
-  return apiCall('/auth/request-otp', {
+// Check if phone has an account (without sending OTP)
+export const checkPhone = async (phone) => {
+  return apiCall('/auth/check-phone', {
     method: 'POST',
     body: JSON.stringify({ phone }),
+  });
+};
+
+// Request OTP - for existing users just phone, for new users include registration data
+export const requestOTP = async (phone, name = null, email = null, gender = null) => {
+  const body = { phone };
+  if (name) body.name = name;
+  if (email) body.email = email;
+  if (gender) body.gender = gender;
+  
+  return apiCall('/auth/request-otp', {
+    method: 'POST',
+    body: JSON.stringify(body),
   });
 };
 

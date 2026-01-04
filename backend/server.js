@@ -2479,8 +2479,8 @@ app.post('/api/carpool/offer/:offerId/cancel-passenger', authenticateToken, asyn
 // AUTHENTICATION APIS
 // =======================
 
-// Request OTP for login/register
-app.post('/api/auth/request-otp', async (req, res) => {
+// Check if phone number has an account (without sending OTP)
+app.post('/api/auth/check-phone', async (req, res) => {
   try {
     const { phone } = req.body;
     
@@ -2490,6 +2490,63 @@ app.post('/api/auth/request-otp', async (req, res) => {
     
     // Normalize phone number to E.164 format (+972...)
     const normalizedPhone = formatPhoneNumber(phone);
+    
+    // Check if account exists
+    const existingAccount = await dbHelpers.findAccountByPhone(normalizedPhone);
+    
+    res.json({
+      success: true,
+      account_exists: !!existingAccount,
+      is_new_user: !existingAccount,
+      formatted_phone: normalizedPhone,
+      message: existingAccount 
+        ? 'Account found. Ready to send login code.'
+        : 'New user. Please provide registration details.'
+    });
+  } catch (error) {
+    console.error('Error checking phone:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Request OTP for login/register
+app.post('/api/auth/request-otp', async (req, res) => {
+  try {
+    const { phone, name, email, gender } = req.body;
+    
+    if (!phone || phone.trim().length < 7) {
+      return res.status(400).json({ message: 'Valid phone number is required' });
+    }
+    
+    // Normalize phone number to E.164 format (+972...)
+    const normalizedPhone = formatPhoneNumber(phone);
+    
+    // Check if account exists with this phone number
+    const existingAccount = await dbHelpers.findAccountByPhone(normalizedPhone);
+    
+    // For NEW users: require registration info before sending OTP
+    if (!existingAccount) {
+      if (!name || !email || !gender) {
+        return res.json({
+          success: true,
+          requires_registration: true,
+          is_new_user: true,
+          account_exists: false,
+          message: 'New user - please provide registration details',
+          formatted_phone: normalizedPhone
+        });
+      }
+      
+      // Validate email
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
+      }
+      
+      // Validate gender
+      if (gender !== 'male' && gender !== 'female') {
+        return res.status(400).json({ message: 'Gender must be male or female' });
+      }
+    }
     
     // Check if there's a recent OTP (prevent spam) - use in-memory for rate limiting
     const recentOTP = db.otp_codes.find(
@@ -2522,26 +2579,28 @@ app.post('/api/auth/request-otp', async (req, res) => {
       otp: otp,
       created_at: new Date(),
       expires_at: expiresAt,
-      verified: false
+      verified: false,
+      // Store registration info with OTP for new users
+      pending_name: !existingAccount ? name : null,
+      pending_email: !existingAccount ? email : null,
+      pending_gender: !existingAccount ? gender : null
     };
     
     db.otp_codes.push(otpData);
     await dbHelpers.createOTP(otpData);
     
-    // Check if account exists with this phone number
-    const existingAccount = await dbHelpers.findAccountByPhone(normalizedPhone);
-    
     // Send SMS
     const message = existingAccount 
-      ? `Your Carpool login code is: ${otp}. Valid for 5 minutes.`
-      : `Your Carpool verification code is: ${otp}. Valid for 5 minutes.`;
+      ? `Your Trempi login code is: ${otp}. Valid for 5 minutes.`
+      : `Your Trempi verification code is: ${otp}. Valid for 5 minutes.`;
     await sendSMS(normalizedPhone, message);
     
     const response = {
       success: true,
+      otp_sent: true,
       message: existingAccount 
-        ? 'Login code sent! You already have an account.'
-        : 'Verification code sent! Create your account.',
+        ? 'Login code sent!'
+        : 'Verification code sent! Complete registration.',
       is_new_user: !existingAccount,
       account_exists: !!existingAccount,
       formatted_phone: normalizedPhone
