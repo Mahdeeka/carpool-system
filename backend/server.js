@@ -44,24 +44,52 @@ if (SMS_PROVIDER === 'twilio' && TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
   }
 }
 
+// Format phone number to E.164 format for Twilio
+function formatPhoneNumber(phone) {
+  // Remove all non-digit characters except +
+  let cleaned = phone.replace(/[^\d+]/g, '');
+  
+  // If starts with 0 (Israeli local format), convert to +972
+  if (cleaned.startsWith('0')) {
+    cleaned = '+972' + cleaned.substring(1);
+  }
+  
+  // If doesn't start with +, assume it needs +972 (Israel)
+  if (!cleaned.startsWith('+')) {
+    // If starts with 972, add +
+    if (cleaned.startsWith('972')) {
+      cleaned = '+' + cleaned;
+    } else {
+      // Assume Israeli number
+      cleaned = '+972' + cleaned;
+    }
+  }
+  
+  return cleaned;
+}
+
 // Send SMS function
 async function sendSMS(phone, message) {
+  // Format phone number to E.164 format
+  const formattedPhone = formatPhoneNumber(phone);
+  
   if (SMS_PROVIDER === 'twilio' && twilioClient) {
     try {
       await twilioClient.messages.create({
         body: message,
         from: TWILIO_PHONE_NUMBER,
-        to: phone
+        to: formattedPhone
       });
-      console.log(`📱 SMS sent to ${phone}`);
+      console.log(`📱 SMS sent to ${formattedPhone}`);
       return true;
     } catch (err) {
-      console.error('SMS send error:', err);
+      console.error('SMS send error:', err.message);
+      console.error('Phone was:', phone, '-> formatted:', formattedPhone);
       return false;
     }
   } else {
     // Mock SMS - log to console for development
-    console.log(`📱 [MOCK SMS] To: ${phone}`);
+    console.log(`📱 [MOCK SMS] To: ${formattedPhone}`);
     console.log(`   Message: ${message}`);
     return true;
   }
