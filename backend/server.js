@@ -136,8 +136,7 @@ async function initializeDatabaseConnection() {
   }
 }
 
-// Initialize database (async)
-initializeDatabaseConnection();
+// Initialize database (async) - will be called before server starts
 
 // Get pool reference for legacy code that needs transactions
 const getPool = () => database.getPool();
@@ -4217,13 +4216,20 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 API available at http://localhost:${PORT}/api`);
-  if (SMS_PROVIDER === 'mock') {
-    console.log(`📱 SMS Provider: MOCK (OTP codes will be logged to console)`);
-  } else {
-    console.log(`📱 SMS Provider: ${SMS_PROVIDER}`);
-  }
-});
+// Start server after database initialization
+async function startServer() {
+  // Initialize database first
+  await initializeDatabaseConnection();
+  
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📡 API available at http://localhost:${PORT}/api`);
+    if (SMS_PROVIDER === 'mock') {
+      console.log(`📱 SMS Provider: MOCK (OTP codes will be logged to console)`);
+    } else {
+      console.log(`📱 SMS Provider: ${SMS_PROVIDER}`);
+    }
+  });
+}
+
+startServer();
