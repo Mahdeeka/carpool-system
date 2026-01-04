@@ -2959,6 +2959,822 @@ app.delete('/api/event/:eventCode/request/:requestId', async (req, res) => {
   }
 });
 
+// =======================
+// SYSTEM ADMIN PANEL APIs
+// =======================
+
+// Admin password verification
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'trempi2024admin';
+
+// System admin authentication middleware
+function requireSystemAdmin(req, res, next) {
+  const adminToken = req.headers['x-admin-token'];
+  if (!adminToken || adminToken !== ADMIN_PASSWORD) {
+    return res.status(401).json({ message: 'Unauthorized: Admin access required' });
+  }
+  next();
+}
+
+// Admin login
+app.post('/api/admin/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    res.json({ success: true, token: ADMIN_PASSWORD });
+  } else {
+    res.status(401).json({ success: false, message: 'Invalid password' });
+  }
+});
+
+// Get system dashboard stats
+app.get('/api/admin/dashboard/stats', requireSystemAdmin, (req, res) => {
+  try {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // User stats
+    const totalUsers = db.accounts.length;
+    const newUsersToday = db.accounts.filter(a => new Date(a.created_at) >= today).length;
+    const newUsersThisWeek = db.accounts.filter(a => new Date(a.created_at) >= thisWeek).length;
+    const newUsersThisMonth = db.accounts.filter(a => new Date(a.created_at) >= thisMonth).length;
+
+    // Event stats
+    const totalEvents = db.events.length;
+    const activeEvents = db.events.filter(e => e.status === 'active').length;
+    const eventsToday = db.events.filter(e => new Date(e.created_at) >= today).length;
+    const upcomingEvents = db.events.filter(e => new Date(e.event_date) >= today && e.status === 'active').length;
+
+    // Ride stats
+    const totalOffers = db.carpool_offers.length;
+    const activeOffers = db.carpool_offers.filter(o => o.status === 'active').length;
+    const totalRequests = db.carpool_requests.length;
+    const activeRequests = db.carpool_requests.filter(r => r.status === 'active').length;
+
+    // Match stats
+    const totalMatches = db.matches ? db.matches.length : 0;
+    const confirmedMatches = db.matches ? db.matches.filter(m => m.status === 'confirmed').length : 0;
+
+    // Join requests
+    const joinRequests = db.join_requests ? db.join_requests.length : 0;
+    const confirmedJoins = db.join_requests ? db.join_requests.filter(jr => jr.status === 'confirmed').length : 0;
+
+    // Calculate total seats and passengers
+    const totalSeats = db.carpool_offers.reduce((sum, o) => sum + (o.total_seats || 0), 0);
+    const totalPassengers = db.carpool_requests.reduce((sum, r) => sum + (r.passenger_count || 1), 0);
+
+    // Activity over time (last 7 days)
+    const activityByDay = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(today.getTime() - i * 24 * 60 * 60 * 1000);
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+
+      activityByDay.push({
+        date: dayStart.toISOString().split('T')[0],
+        users: db.accounts.filter(a => {
+          const d = new Date(a.created_at);
+          return d >= dayStart && d < dayEnd;
+        }).length,
+        events: db.events.filter(e => {
+          const d = new Date(e.created_at);
+          return d >= dayStart && d < dayEnd;
+        }).length,
+        offers: db.carpool_offers.filter(o => {
+          const d = new Date(o.created_at);
+          return d >= dayStart && d < dayEnd;
+        }).length,
+        requests: db.carpool_requests.filter(r => {
+          const d = new Date(r.created_at);
+          return d >= dayStart && d < dayEnd;
+        }).length
+      });
+    }
+
+    res.json({
+      success: true,
+      stats: {
+        users: {
+          total: totalUsers,
+          today: newUsersToday,
+          thisWeek: newUsersThisWeek,
+          thisMonth: newUsersThisMonth
+        },
+        events: {
+          total: totalEvents,
+          active: activeEvents,
+          today: eventsToday,
+          upcoming: upcomingEvents
+        },
+        rides: {
+          offers: { total: totalOffers, active: activeOffers },
+          requests: { total: totalRequests, active: activeRequests },
+          totalSeats,
+          totalPassengers
+        },
+        matches: {
+          total: totalMatches,
+          confirmed: confirmedMatches
+        },
+        joins: {
+          total: joinRequests,
+          confirmed: confirmedJoins
+        },
+        activityByDay
+      }
+    });
+  } catch (error) {
+    console.error('Error getting dashboard stats:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all users with pagination and search
+app.get('/api/admin/users', requireSystemAdmin, (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '', sortBy = 'created_at', sortOrder = 'desc' } = req.query;
+
+    let users = [...db.accounts];
+
+    // Search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      users = users.filter(u =>
+        (u.name && u.name.toLowerCase().includes(searchLower)) ||
+        (u.phone && u.phone.includes(search)) ||
+        (u.email && u.email.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Sort
+    users.sort((a, b) => {
+      let aVal = a[sortBy];
+      let bVal = b[sortBy];
+      if (sortBy === 'created_at') {
+        aVal = new Date(aVal || 0);
+        bVal = new Date(bVal || 0);
+      }
+      if (sortOrder === 'desc') {
+        return bVal > aVal ? 1 : -1;
+      }
+      return aVal > bVal ? 1 : -1;
+    });
+
+    // Pagination
+    const startIndex = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedUsers = users.slice(startIndex, startIndex + parseInt(limit));
+
+    // Enrich with activity data
+    const enrichedUsers = paginatedUsers.map(u => {
+      const userOffers = db.carpool_offers.filter(o => o.account_id === u.account_id);
+      const userRequests = db.carpool_requests.filter(r => r.account_id === u.account_id);
+      const userEvents = db.events.filter(e => e.creator_account_id === u.account_id);
+      const userJoins = db.join_requests ? db.join_requests.filter(j => j.account_id === u.account_id) : [];
+
+      return {
+        ...u,
+        activity: {
+          offersCount: userOffers.length,
+          requestsCount: userRequests.length,
+          eventsCreated: userEvents.length,
+          joinsCount: userJoins.length
+        }
+      };
+    });
+
+    res.json({
+      success: true,
+      users: enrichedUsers,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: users.length,
+        totalPages: Math.ceil(users.length / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get single user details
+app.get('/api/admin/users/:userId', requireSystemAdmin, (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = db.accounts.find(a => a.account_id === userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get user's activity
+    const offers = db.carpool_offers.filter(o => o.account_id === userId).map(o => {
+      const event = db.events.find(e => e.event_id === o.event_id);
+      const locations = db.offer_locations.filter(l => l.offer_id === o.offer_id);
+      return { ...o, event_name: event?.event_name, locations };
+    });
+
+    const requests = db.carpool_requests.filter(r => r.account_id === userId).map(r => {
+      const event = db.events.find(e => e.event_id === r.event_id);
+      const locations = db.request_locations.filter(l => l.request_id === r.request_id);
+      return { ...r, event_name: event?.event_name, locations };
+    });
+
+    const events = db.events.filter(e => e.creator_account_id === userId);
+    const joins = db.join_requests ? db.join_requests.filter(j => j.account_id === userId) : [];
+    const sessions = db.sessions.filter(s => s.account_id === userId);
+
+    res.json({
+      success: true,
+      user,
+      activity: {
+        offers,
+        requests,
+        eventsCreated: events,
+        joins,
+        activeSessions: sessions.filter(s => s.expires_at > new Date()).length
+      }
+    });
+  } catch (error) {
+    console.error('Error getting user details:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update user (admin action)
+app.put('/api/admin/users/:userId', requireSystemAdmin, (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, email, phone, status } = req.body;
+
+    const userIndex = db.accounts.findIndex(a => a.account_id === userId);
+    if (userIndex === -1) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (name) db.accounts[userIndex].name = name;
+    if (email) db.accounts[userIndex].email = email;
+    if (phone) db.accounts[userIndex].phone = phone;
+    if (status) db.accounts[userIndex].status = status;
+    db.accounts[userIndex].updated_at = new Date();
+
+    res.json({ success: true, user: db.accounts[userIndex] });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete user sessions (force logout)
+app.delete('/api/admin/users/:userId/sessions', requireSystemAdmin, (req, res) => {
+  try {
+    const { userId } = req.params;
+    db.sessions = db.sessions.filter(s => s.account_id !== userId);
+    res.json({ success: true, message: 'User sessions cleared' });
+  } catch (error) {
+    console.error('Error clearing sessions:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all events with pagination and filters
+app.get('/api/admin/events', requireSystemAdmin, (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '', status = '', sortBy = 'created_at', sortOrder = 'desc' } = req.query;
+
+    let events = [...db.events];
+
+    // Search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      events = events.filter(e =>
+        (e.event_name && e.event_name.toLowerCase().includes(searchLower)) ||
+        (e.event_code && e.event_code.toLowerCase().includes(searchLower)) ||
+        (e.event_location && e.event_location.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Status filter
+    if (status) {
+      events = events.filter(e => e.status === status);
+    }
+
+    // Sort
+    events.sort((a, b) => {
+      let aVal = a[sortBy];
+      let bVal = b[sortBy];
+      if (sortBy === 'created_at' || sortBy === 'event_date') {
+        aVal = new Date(aVal || 0);
+        bVal = new Date(bVal || 0);
+      }
+      if (sortOrder === 'desc') {
+        return bVal > aVal ? 1 : -1;
+      }
+      return aVal > bVal ? 1 : -1;
+    });
+
+    // Pagination
+    const startIndex = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedEvents = events.slice(startIndex, startIndex + parseInt(limit));
+
+    // Enrich with stats
+    const enrichedEvents = paginatedEvents.map(e => {
+      const creator = db.accounts.find(a => a.account_id === e.creator_account_id);
+      const offers = db.carpool_offers.filter(o => o.event_id === e.event_id);
+      const requests = db.carpool_requests.filter(r => r.event_id === e.event_id);
+      const participants = db.event_participants.filter(p => p.event_id === e.event_id);
+
+      return {
+        ...e,
+        creator_name: creator?.name || 'Unknown',
+        creator_phone: creator?.phone || '',
+        stats: {
+          offers: offers.length,
+          activeOffers: offers.filter(o => o.status === 'active').length,
+          requests: requests.length,
+          activeRequests: requests.filter(r => r.status === 'active').length,
+          participants: participants.length,
+          totalSeats: offers.reduce((sum, o) => sum + (o.total_seats || 0), 0),
+          availableSeats: offers.reduce((sum, o) => sum + (o.available_seats || 0), 0)
+        }
+      };
+    });
+
+    res.json({
+      success: true,
+      events: enrichedEvents,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: events.length,
+        totalPages: Math.ceil(events.length / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting events:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get single event details (admin)
+app.get('/api/admin/events/:eventId', requireSystemAdmin, (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const event = db.events.find(e => e.event_id === eventId || e.event_code === eventId);
+
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const creator = db.accounts.find(a => a.account_id === event.creator_account_id);
+    const offers = db.carpool_offers.filter(o => o.event_id === event.event_id).map(o => {
+      const locations = db.offer_locations.filter(l => l.offer_id === o.offer_id);
+      const owner = db.accounts.find(a => a.account_id === o.account_id);
+      const joinReqs = db.join_requests ? db.join_requests.filter(j => j.offer_id === o.offer_id) : [];
+      return { ...o, locations, owner_name: owner?.name, owner_phone: owner?.phone, join_requests: joinReqs };
+    });
+
+    const requests = db.carpool_requests.filter(r => r.event_id === event.event_id).map(r => {
+      const locations = db.request_locations.filter(l => l.request_id === r.request_id);
+      const owner = db.accounts.find(a => a.account_id === r.account_id);
+      return { ...r, locations, owner_name: owner?.name, owner_phone: owner?.phone };
+    });
+
+    const participants = db.event_participants.filter(p => p.event_id === event.event_id);
+
+    res.json({
+      success: true,
+      event: {
+        ...event,
+        creator_name: creator?.name,
+        creator_phone: creator?.phone,
+        creator_email: creator?.email
+      },
+      offers,
+      requests,
+      participants,
+      stats: {
+        totalOffers: offers.length,
+        activeOffers: offers.filter(o => o.status === 'active').length,
+        totalRequests: requests.length,
+        activeRequests: requests.filter(r => r.status === 'active').length,
+        totalParticipants: participants.length,
+        totalSeats: offers.reduce((sum, o) => sum + (o.total_seats || 0), 0),
+        availableSeats: offers.reduce((sum, o) => sum + (o.available_seats || 0), 0),
+        totalPassengers: requests.reduce((sum, r) => sum + (r.passenger_count || 1), 0)
+      }
+    });
+  } catch (error) {
+    console.error('Error getting event details:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update event (admin)
+app.put('/api/admin/events/:eventId', requireSystemAdmin, (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const updates = req.body;
+
+    const eventIndex = db.events.findIndex(e => e.event_id === eventId);
+    if (eventIndex === -1) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    Object.keys(updates).forEach(key => {
+      if (key !== 'event_id' && key !== 'creator_account_id') {
+        db.events[eventIndex][key] = updates[key];
+      }
+    });
+    db.events[eventIndex].updated_at = new Date();
+
+    res.json({ success: true, event: db.events[eventIndex] });
+  } catch (error) {
+    console.error('Error updating event:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete event (admin)
+app.delete('/api/admin/events/:eventId', requireSystemAdmin, (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    const eventIndex = db.events.findIndex(e => e.event_id === eventId);
+    if (eventIndex === -1) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    db.events[eventIndex].status = 'deleted';
+    db.events[eventIndex].updated_at = new Date();
+
+    res.json({ success: true, message: 'Event deleted' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all offers (admin)
+app.get('/api/admin/offers', requireSystemAdmin, (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '', status = '', eventId = '' } = req.query;
+
+    let offers = [...db.carpool_offers];
+
+    // Event filter
+    if (eventId) {
+      offers = offers.filter(o => o.event_id === eventId);
+    }
+
+    // Status filter
+    if (status) {
+      offers = offers.filter(o => o.status === status);
+    }
+
+    // Search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      offers = offers.filter(o =>
+        (o.name && o.name.toLowerCase().includes(searchLower)) ||
+        (o.phone && o.phone.includes(search)) ||
+        (o.description && o.description.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Sort by created_at desc
+    offers.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Pagination
+    const startIndex = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedOffers = offers.slice(startIndex, startIndex + parseInt(limit));
+
+    // Enrich
+    const enrichedOffers = paginatedOffers.map(o => {
+      const event = db.events.find(e => e.event_id === o.event_id);
+      const owner = db.accounts.find(a => a.account_id === o.account_id);
+      const locations = db.offer_locations.filter(l => l.offer_id === o.offer_id);
+      const joinReqs = db.join_requests ? db.join_requests.filter(j => j.offer_id === o.offer_id) : [];
+
+      return {
+        ...o,
+        event_name: event?.event_name,
+        event_code: event?.event_code,
+        owner_name: owner?.name,
+        owner_phone: owner?.phone,
+        locations,
+        confirmedPassengers: joinReqs.filter(j => j.status === 'confirmed').length,
+        pendingRequests: joinReqs.filter(j => j.status === 'pending').length
+      };
+    });
+
+    res.json({
+      success: true,
+      offers: enrichedOffers,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: offers.length,
+        totalPages: Math.ceil(offers.length / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting offers:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all requests (admin)
+app.get('/api/admin/requests', requireSystemAdmin, (req, res) => {
+  try {
+    const { page = 1, limit = 20, search = '', status = '', eventId = '' } = req.query;
+
+    let requests = [...db.carpool_requests];
+
+    // Event filter
+    if (eventId) {
+      requests = requests.filter(r => r.event_id === eventId);
+    }
+
+    // Status filter
+    if (status) {
+      requests = requests.filter(r => r.status === status);
+    }
+
+    // Search filter
+    if (search) {
+      const searchLower = search.toLowerCase();
+      requests = requests.filter(r =>
+        (r.name && r.name.toLowerCase().includes(searchLower)) ||
+        (r.phone && r.phone.includes(search))
+      );
+    }
+
+    // Sort by created_at desc
+    requests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Pagination
+    const startIndex = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedRequests = requests.slice(startIndex, startIndex + parseInt(limit));
+
+    // Enrich
+    const enrichedRequests = paginatedRequests.map(r => {
+      const event = db.events.find(e => e.event_id === r.event_id);
+      const owner = db.accounts.find(a => a.account_id === r.account_id);
+      const locations = db.request_locations.filter(l => l.request_id === r.request_id);
+
+      return {
+        ...r,
+        event_name: event?.event_name,
+        event_code: event?.event_code,
+        owner_name: owner?.name,
+        owner_phone: owner?.phone,
+        locations
+      };
+    });
+
+    res.json({
+      success: true,
+      requests: enrichedRequests,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: requests.length,
+        totalPages: Math.ceil(requests.length / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting requests:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get all matches (admin)
+app.get('/api/admin/matches', requireSystemAdmin, (req, res) => {
+  try {
+    const { page = 1, limit = 20, status = '', eventId = '' } = req.query;
+
+    // Combine matches and join_requests
+    let allMatches = [];
+
+    // Add from matches
+    if (db.matches) {
+      allMatches = [...db.matches.map(m => ({ ...m, type: 'match' }))];
+    }
+
+    // Add from join_requests
+    if (db.join_requests) {
+      allMatches = [...allMatches, ...db.join_requests.map(j => ({ ...j, type: 'join_request' }))];
+    }
+
+    // Event filter
+    if (eventId) {
+      allMatches = allMatches.filter(m => {
+        if (m.offer_id) {
+          const offer = db.carpool_offers.find(o => o.offer_id === m.offer_id);
+          return offer && offer.event_id === eventId;
+        }
+        return false;
+      });
+    }
+
+    // Status filter
+    if (status) {
+      allMatches = allMatches.filter(m => m.status === status);
+    }
+
+    // Sort by created_at desc
+    allMatches.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+    // Pagination
+    const startIndex = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedMatches = allMatches.slice(startIndex, startIndex + parseInt(limit));
+
+    // Enrich
+    const enrichedMatches = paginatedMatches.map(m => {
+      const offer = db.carpool_offers.find(o => o.offer_id === m.offer_id);
+      const event = offer ? db.events.find(e => e.event_id === offer.event_id) : null;
+      const passenger = db.accounts.find(a => a.account_id === m.account_id);
+      const driver = offer ? db.accounts.find(a => a.account_id === offer.account_id) : null;
+
+      return {
+        ...m,
+        event_name: event?.event_name,
+        event_code: event?.event_code,
+        driver_name: driver?.name || offer?.name,
+        driver_phone: driver?.phone || offer?.phone,
+        passenger_name: passenger?.name || m.name,
+        passenger_phone: passenger?.phone || m.phone
+      };
+    });
+
+    res.json({
+      success: true,
+      matches: enrichedMatches,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: allMatches.length,
+        totalPages: Math.ceil(allMatches.length / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting matches:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get activity log
+app.get('/api/admin/activity', requireSystemAdmin, (req, res) => {
+  try {
+    const { page = 1, limit = 50 } = req.query;
+
+    // Combine all activities with timestamps
+    let activities = [];
+
+    // User registrations
+    db.accounts.forEach(a => {
+      activities.push({
+        type: 'user_registered',
+        timestamp: a.created_at,
+        data: { name: a.name, phone: a.phone, account_id: a.account_id }
+      });
+    });
+
+    // Events created
+    db.events.forEach(e => {
+      const creator = db.accounts.find(a => a.account_id === e.creator_account_id);
+      activities.push({
+        type: 'event_created',
+        timestamp: e.created_at,
+        data: { event_name: e.event_name, event_code: e.event_code, creator_name: creator?.name }
+      });
+    });
+
+    // Offers created
+    db.carpool_offers.forEach(o => {
+      const event = db.events.find(e => e.event_id === o.event_id);
+      activities.push({
+        type: 'offer_created',
+        timestamp: o.created_at,
+        data: { name: o.name, event_name: event?.event_name, total_seats: o.total_seats }
+      });
+    });
+
+    // Requests created
+    db.carpool_requests.forEach(r => {
+      const event = db.events.find(e => e.event_id === r.event_id);
+      activities.push({
+        type: 'request_created',
+        timestamp: r.created_at,
+        data: { name: r.name, event_name: event?.event_name, passenger_count: r.passenger_count }
+      });
+    });
+
+    // Join requests
+    if (db.join_requests) {
+      db.join_requests.forEach(j => {
+        activities.push({
+          type: j.status === 'confirmed' ? 'ride_confirmed' : (j.status === 'pending' ? 'join_request' : `join_${j.status}`),
+          timestamp: j.confirmed_at || j.created_at,
+          data: { name: j.name, passenger_count: j.passenger_count }
+        });
+      });
+    }
+
+    // Sort by timestamp desc
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Pagination
+    const startIndex = (parseInt(page) - 1) * parseInt(limit);
+    const paginatedActivities = activities.slice(startIndex, startIndex + parseInt(limit));
+
+    res.json({
+      success: true,
+      activities: paginatedActivities,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: activities.length,
+        totalPages: Math.ceil(activities.length / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error getting activity log:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Export all data (admin)
+app.get('/api/admin/export', requireSystemAdmin, (req, res) => {
+  try {
+    const { type = 'all' } = req.query;
+
+    let data = {};
+
+    if (type === 'all' || type === 'users') {
+      data.users = db.accounts.map(a => ({
+        account_id: a.account_id,
+        name: a.name,
+        phone: a.phone,
+        email: a.email,
+        gender: a.gender,
+        created_at: a.created_at
+      }));
+    }
+
+    if (type === 'all' || type === 'events') {
+      data.events = db.events.map(e => ({
+        event_id: e.event_id,
+        event_code: e.event_code,
+        event_name: e.event_name,
+        event_date: e.event_date,
+        event_time: e.event_time,
+        event_location: e.event_location,
+        status: e.status,
+        is_private: e.is_private,
+        created_at: e.created_at
+      }));
+    }
+
+    if (type === 'all' || type === 'offers') {
+      data.offers = db.carpool_offers.map(o => {
+        const event = db.events.find(e => e.event_id === o.event_id);
+        return {
+          offer_id: o.offer_id,
+          event_name: event?.event_name,
+          name: o.name,
+          phone: o.phone,
+          total_seats: o.total_seats,
+          available_seats: o.available_seats,
+          status: o.status,
+          created_at: o.created_at
+        };
+      });
+    }
+
+    if (type === 'all' || type === 'requests') {
+      data.requests = db.carpool_requests.map(r => {
+        const event = db.events.find(e => e.event_id === r.event_id);
+        return {
+          request_id: r.request_id,
+          event_name: event?.event_name,
+          name: r.name,
+          phone: r.phone,
+          passenger_count: r.passenger_count,
+          status: r.status,
+          created_at: r.created_at
+        };
+      });
+    }
+
+    res.json({ success: true, data, exported_at: new Date() });
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
