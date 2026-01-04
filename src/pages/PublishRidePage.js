@@ -155,7 +155,12 @@ function PublishRidePage() {
       if (response.ok) {
         setIsNewUser(data.is_new_user);
         setOtpStep('verify');
-        showToast('Verification code sent!', 'success');
+        // Show different message based on account status
+        if (data.account_exists) {
+          showToast('Welcome back! Login code sent.', 'success');
+        } else {
+          showToast('Verification code sent!', 'success');
+        }
       } else {
         throw new Error(data.message || 'Failed to send OTP');
       }
@@ -735,12 +740,12 @@ function PublishRidePage() {
 
             {otpStep === 'verify' && (
               <div className="pr-otp-content">
-                <div className="pr-otp-icon">🔐</div>
-                <h3>Enter Verification Code</h3>
+                <div className="pr-otp-icon">{isNewUser ? '🆕' : '👋'}</div>
+                <h3>{isNewUser ? 'Create Account' : 'Welcome Back!'}</h3>
                 <p>
                   {isNewUser 
-                    ? "We'll create your account after verification"
-                    : "Enter the code sent to your phone"
+                    ? "Enter code to create your account"
+                    : "You already have an account. Enter code to login."
                   }
                 </p>
                 

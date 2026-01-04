@@ -2110,12 +2110,12 @@ app.post('/api/auth/request-otp', async (req, res) => {
   try {
     const { phone } = req.body;
     
-    if (!phone || phone.trim().length < 10) {
+    if (!phone || phone.trim().length < 7) {
       return res.status(400).json({ message: 'Valid phone number is required' });
     }
     
-    // Normalize phone number (remove spaces, dashes)
-    const normalizedPhone = phone.replace(/[\s\-\(\)]/g, '');
+    // Normalize phone number to E.164 format (+972...)
+    const normalizedPhone = formatPhoneNumber(phone);
     
     // Check if there's a recent OTP (prevent spam)
     const recentOTP = db.otp_codes.find(
@@ -2150,17 +2150,23 @@ app.post('/api/auth/request-otp', async (req, res) => {
       verified: false
     });
     
-    // Check if account exists
+    // Check if account exists with this phone number
     const existingAccount = db.accounts.find(a => a.phone === normalizedPhone);
     
     // Send SMS
-    const message = `Your Carpool verification code is: ${otp}. Valid for 5 minutes.`;
+    const message = existingAccount 
+      ? `Your Carpool login code is: ${otp}. Valid for 5 minutes.`
+      : `Your Carpool verification code is: ${otp}. Valid for 5 minutes.`;
     await sendSMS(normalizedPhone, message);
     
     const response = {
       success: true,
-      message: 'OTP sent successfully',
-      is_new_user: !existingAccount
+      message: existingAccount 
+        ? 'Login code sent! You already have an account.'
+        : 'Verification code sent! Create your account.',
+      is_new_user: !existingAccount,
+      account_exists: !!existingAccount,
+      formatted_phone: normalizedPhone
     };
 
     // Only include debug OTP in development mode - NEVER in production
@@ -2184,7 +2190,8 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'Phone and OTP are required' });
     }
     
-    const normalizedPhone = phone.replace(/[\s\-\(\)]/g, '');
+    // Normalize phone number to E.164 format (+972...)
+    const normalizedPhone = formatPhoneNumber(phone);
     
     // Development bypass: accept 123456 as valid OTP in non-production
     const isDevelopmentBypass = !isProduction && otp === '123456';

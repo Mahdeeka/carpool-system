@@ -115,7 +115,13 @@ function Login() {
       setIsNewUser(response.is_new_user);
       setStep(response.is_new_user ? 'register' : 'otp');
       setCountdown(60);
-      showToast('OTP sent to your phone', 'success');
+      
+      // Show different message based on account status
+      if (response.account_exists) {
+        showToast('Welcome back! Login code sent.', 'success');
+      } else {
+        showToast('Verification code sent! Create your account.', 'success');
+      }
       
       // For development - show debug OTP
       if (response.debug_otp) {
