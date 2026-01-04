@@ -30,7 +30,7 @@ class MapErrorBoundary extends React.Component {
           fontSize: '14px',
           textAlign: 'center'
         }}>
-          ⚠️ Map could not be loaded. Your location has been saved.
+          Map could not be loaded. Your location has been saved.
         </div>
       );
     }
@@ -48,21 +48,20 @@ function PublishRidePage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { showToast, authData, isAuthenticated } = useApp();
-  
+
   // Get mode from URL params: 'offer' or 'request'
   const mode = searchParams.get('mode') || 'offer';
   const isOffer = mode === 'offer';
-  
+
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
   const [authStep, setAuthStep] = useState('form'); // 'form' or 'otp'
-  
+
   // OTP state
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [otpCountdown, setOtpCountdown] = useState(0);
-  
+
   // Form data - pre-filled from auth
   const [formData, setFormData] = useState({
     name: '',
@@ -88,14 +87,14 @@ function PublishRidePage() {
     paymentMethod: '',
     passengerCount: 1,
   });
-  
+
   const [routeDistance, setRouteDistance] = useState(null);
   const [maxPayment, setMaxPayment] = useState(0);
 
   const handleRouteCalculated = (routeInfo) => {
     if (routeInfo?.distance) {
-      const distance = typeof routeInfo.distance === 'string' 
-        ? parseFloat(routeInfo.distance) 
+      const distance = typeof routeInfo.distance === 'string'
+        ? parseFloat(routeInfo.distance)
         : routeInfo.distance;
       setRouteDistance(distance);
       setMaxPayment(Math.ceil(distance * 0.7 * 1.5));
@@ -152,11 +151,7 @@ function PublishRidePage() {
     }));
   };
 
-  // Note: handleRouteCalculated disabled until RouteMap is re-enabled
-  // Will be used to calculate max payment based on distance
-
   const handleOtpChange = (idx, value) => {
-    // Handle paste of full OTP
     if (value.length > 1) {
       const digits = value.replace(/\D/g, '').slice(0, 6).split('');
       const newOtp = [...otp];
@@ -168,12 +163,12 @@ function PublishRidePage() {
       document.getElementById(`otp-${nextIdx}`)?.focus();
       return;
     }
-    
+
     const digit = value.replace(/\D/g, '').slice(-1);
     const newOtp = [...otp];
     newOtp[idx] = digit;
     setOtp(newOtp);
-    
+
     if (digit && idx < 5) {
       document.getElementById(`otp-${idx + 1}`)?.focus();
     }
@@ -190,7 +185,7 @@ function PublishRidePage() {
       showToast('Please enter your phone number', 'error');
       return;
     }
-    
+
     setSubmitting(true);
     try {
       await requestOTP(formData.phone);
@@ -210,7 +205,7 @@ function PublishRidePage() {
       showToast('Please enter the 6-digit code', 'error');
       return;
     }
-    
+
     setSubmitting(true);
     try {
       await verifyOTP(formData.phone, otpCode, formData.name, formData.email, formData.gender);
@@ -226,11 +221,10 @@ function PublishRidePage() {
     try {
       const token = localStorage.getItem('authToken');
       const endpoint = isOffer ? 'carpool/offer' : 'carpool/request';
-      
-      // Build locations array as expected by backend
+
       const locations = [];
       const returnLoc = formData.sameReturnLocation ? formData.pickupLocation : formData.returnLocation;
-      
+
       if (formData.tripType === 'going' || formData.tripType === 'both') {
         locations.push({
           location_address: formData.pickupLocation,
@@ -241,7 +235,7 @@ function PublishRidePage() {
           specific_time: null,
         });
       }
-      
+
       if (formData.tripType === 'return' || formData.tripType === 'both') {
         locations.push({
           location_address: returnLoc,
@@ -252,7 +246,7 @@ function PublishRidePage() {
           specific_time: null,
         });
       }
-      
+
       const payload = {
         event_id: event.event_id,
         name: formData.name,
@@ -302,7 +296,6 @@ function PublishRidePage() {
   };
 
   const handlePublish = async () => {
-    // Validate required fields
     if (!formData.name || !formData.phone) {
       showToast('Please fill in your name and phone', 'error');
       return;
@@ -321,20 +314,6 @@ function PublishRidePage() {
     } else {
       await handleRequestOTP();
     }
-  };
-
-  const nextStep = () => {
-    if (currentStep === 1) {
-      if (!formData.name || !formData.phone || !formData.gender) {
-        showToast('Please fill in all required fields', 'error');
-        return;
-      }
-    }
-    setCurrentStep(prev => Math.min(prev + 1, 3));
-  };
-
-  const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
   if (loading) {
@@ -357,13 +336,13 @@ function PublishRidePage() {
             <button className="otp-back-btn" onClick={() => { setAuthStep('form'); setOtp(['', '', '', '', '', '']); }}>
               ← Back
             </button>
-            
+
             <div className="otp-content">
               <div className="otp-icon-large">📱</div>
               <h1>Verify Your Phone</h1>
               <p>We sent a 6-digit code to</p>
               <p className="otp-phone-display">{formData.phone}</p>
-              
+
               <div className="otp-inputs-large">
                 {otp.map((digit, idx) => (
                   <input
@@ -380,7 +359,7 @@ function PublishRidePage() {
                   />
                 ))}
               </div>
-              
+
               <div className="otp-resend-section">
                 {otpCountdown > 0 ? (
                   <span className="otp-countdown">Resend in {otpCountdown}s</span>
@@ -390,7 +369,7 @@ function PublishRidePage() {
                   </button>
                 )}
               </div>
-              
+
               <button
                 className="publish-btn-large"
                 onClick={handleVerifyAndPublish}
@@ -399,7 +378,7 @@ function PublishRidePage() {
                 {submitting ? (
                   <span className="btn-loading">Verifying...</span>
                 ) : (
-                  <>✓ Verify & Publish</>
+                  <>Verify & Publish</>
                 )}
               </button>
             </div>
@@ -422,321 +401,251 @@ function PublishRidePage() {
         </div>
       </header>
 
-      {/* Progress Steps */}
-      <div className="publish-progress">
-        <div className={`progress-step ${currentStep >= 1 ? 'active' : ''} ${currentStep > 1 ? 'completed' : ''}`}>
-          <div className="step-number">1</div>
-          <span>Your Info</span>
-        </div>
-        <div className="progress-line" />
-        <div className={`progress-step ${currentStep >= 2 ? 'active' : ''} ${currentStep > 2 ? 'completed' : ''}`}>
-          <div className="step-number">2</div>
-          <span>Trip Details</span>
-        </div>
-        <div className="progress-line" />
-        <div className={`progress-step ${currentStep >= 3 ? 'active' : ''}`}>
-          <div className="step-number">3</div>
-          <span>Confirm</span>
-        </div>
-      </div>
-
-      {/* Form Container */}
+      {/* Single Page Form Container */}
       <div className="publish-container">
-        {/* STEP 1: Personal Info */}
-        {currentStep === 1 && (
-          <div className="publish-step animate-in">
-            <div className="step-header">
-              <div className="step-icon">👤</div>
+
+        {/* Event Destination Card */}
+        <div className="event-destination-card">
+          <div className="destination-icon">📍</div>
+          <div className="destination-info">
+            <span className="destination-label">Event Location</span>
+            <span className="destination-address">{event?.event_location || 'Location not specified'}</span>
+          </div>
+        </div>
+
+        {/* User Info Card (if authenticated) */}
+        {isAuthenticated && (
+          <div className="user-info-card">
+            <div className="user-avatar">{authData?.name?.charAt(0)?.toUpperCase()}</div>
+            <div className="user-details">
+              <span className="user-name">{authData?.name}</span>
+              <span className="user-contact">{authData?.phone}</span>
+            </div>
+            <span className="verified-badge">Verified</span>
+          </div>
+        )}
+
+        {/* SECTION: Personal Info */}
+        <section className="form-section">
+          <div className="section-header">
+            <div className="section-icon">👤</div>
+            <div className="section-title">
               <h2>Your Information</h2>
               <p>Let others know who you are</p>
             </div>
+          </div>
 
-            {isAuthenticated && (
-              <div className="auth-notice">
-                <span className="auth-icon">✅</span>
-                <span>Logged in as <strong>{authData?.name}</strong></span>
+          <div className="form-card">
+            <div className="form-field">
+              <label>Full Name <span className="required">*</span></label>
+              <div className="input-with-privacy">
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter your name"
+                  className="form-input"
+                />
+                <label className="privacy-toggle">
+                  <input type="checkbox" name="hideName" checked={formData.hideName} onChange={handleInputChange} />
+                  <span className="privacy-label">🔒</span>
+                </label>
               </div>
-            )}
+            </div>
 
-            <div className="form-card">
+            <div className="form-row">
               <div className="form-field">
-                <label>Full Name <span className="required">*</span></label>
-                <div className="input-with-toggle">
+                <label>Phone <span className="required">*</span></label>
+                <div className="input-with-privacy">
                   <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="Enter your name"
-                    className="form-input-modern"
+                    placeholder="+972..."
+                    className="form-input"
                   />
                   <label className="privacy-toggle">
-                    <input type="checkbox" name="hideName" checked={formData.hideName} onChange={handleInputChange} />
-                    <span className="toggle-label">🔒 Hide</span>
+                    <input type="checkbox" name="hidePhone" checked={formData.hidePhone} onChange={handleInputChange} />
+                    <span className="privacy-label">🔒</span>
                   </label>
-                </div>
-              </div>
-
-              <div className="form-row-2">
-                <div className="form-field">
-                  <label>Phone Number <span className="required">*</span></label>
-                  <div className="input-with-toggle">
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="+972..."
-                      className="form-input-modern"
-                    />
-                    <label className="privacy-toggle">
-                      <input type="checkbox" name="hidePhone" checked={formData.hidePhone} onChange={handleInputChange} />
-                      <span className="toggle-label">🔒</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="form-field">
-                  <label>Email</label>
-                  <div className="input-with-toggle">
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="your@email.com"
-                      className="form-input-modern"
-                    />
-                    <label className="privacy-toggle">
-                      <input type="checkbox" name="hideEmail" checked={formData.hideEmail} onChange={handleInputChange} />
-                      <span className="toggle-label">🔒</span>
-                    </label>
-                  </div>
                 </div>
               </div>
 
               <div className="form-field">
-                <label>Gender <span className="required">*</span></label>
-                <div className="gender-selector">
-                  <label className={`gender-option male ${formData.gender === 'male' ? 'selected' : ''}`}>
-                    <input
-                      type="radio"
-                      name="gender"
-                      value="male"
-                      checked={formData.gender === 'male'}
-                      onChange={handleInputChange}
-                    />
-                    <span className="gender-icon">👨</span>
-                    <span className="gender-label">Male</span>
-                  </label>
-                  <label className={`gender-option female ${formData.gender === 'female' ? 'selected' : ''}`}>
-                    <input
-                      type="radio"
-                      name="gender"
-                      value="female"
-                      checked={formData.gender === 'female'}
-                      onChange={handleInputChange}
-                    />
-                    <span className="gender-icon">👩</span>
-                    <span className="gender-label">Female</span>
+                <label>Email</label>
+                <div className="input-with-privacy">
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="your@email.com"
+                    className="form-input"
+                  />
+                  <label className="privacy-toggle">
+                    <input type="checkbox" name="hideEmail" checked={formData.hideEmail} onChange={handleInputChange} />
+                    <span className="privacy-label">🔒</span>
                   </label>
                 </div>
               </div>
-
-              {(formData.hideName || formData.hidePhone || formData.hideEmail) && (
-                <div className="privacy-notice">
-                  <span>🔒</span>
-                  <span>Hidden information will only be shared after ride confirmation</span>
-                </div>
-              )}
             </div>
-          </div>
-        )}
 
-        {/* STEP 2: Trip Details */}
-        {currentStep === 2 && (
-          <div className="publish-step animate-in">
-            <div className="step-header">
-              <div className="step-icon">🗺️</div>
+            <div className="form-field">
+              <label>Gender <span className="required">*</span></label>
+              <div className="gender-options">
+                <label className={`gender-option ${formData.gender === 'male' ? 'selected' : ''}`}>
+                  <input type="radio" name="gender" value="male" checked={formData.gender === 'male'} onChange={handleInputChange} />
+                  <span className="gender-icon">👨</span>
+                  <span>Male</span>
+                </label>
+                <label className={`gender-option ${formData.gender === 'female' ? 'selected' : ''}`}>
+                  <input type="radio" name="gender" value="female" checked={formData.gender === 'female'} onChange={handleInputChange} />
+                  <span className="gender-icon">👩</span>
+                  <span>Female</span>
+                </label>
+              </div>
+            </div>
+
+            {(formData.hideName || formData.hidePhone || formData.hideEmail) && (
+              <div className="privacy-notice">
+                <span>🔒</span>
+                <span>Hidden info will be shared only after ride confirmation</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* SECTION: Trip Details */}
+        <section className="form-section">
+          <div className="section-header">
+            <div className="section-icon">🗺️</div>
+            <div className="section-title">
               <h2>Trip Details</h2>
               <p>Where are you {isOffer ? 'driving from' : 'located'}?</p>
             </div>
+          </div>
 
-            <div className="form-card">
-              {/* Trip Type */}
-              <div className="form-field">
-                <label>Trip Type</label>
-                <div className="trip-type-selector">
-                  <label className={`trip-option ${formData.tripType === 'going' ? 'selected' : ''}`}>
-                    <input type="radio" name="tripType" value="going" checked={formData.tripType === 'going'} onChange={handleInputChange} />
-                    <span className="trip-icon">→</span>
-                    <span>Going Only</span>
-                  </label>
-                  <label className={`trip-option ${formData.tripType === 'return' ? 'selected' : ''}`}>
-                    <input type="radio" name="tripType" value="return" checked={formData.tripType === 'return'} onChange={handleInputChange} />
-                    <span className="trip-icon">←</span>
-                    <span>Return Only</span>
-                  </label>
-                  <label className={`trip-option ${formData.tripType === 'both' ? 'selected' : ''}`}>
-                    <input type="radio" name="tripType" value="both" checked={formData.tripType === 'both'} onChange={handleInputChange} />
-                    <span className="trip-icon">↔</span>
-                    <span>Round Trip</span>
-                  </label>
-                </div>
+          <div className="form-card">
+            {/* Trip Type */}
+            <div className="form-field">
+              <label>Trip Type</label>
+              <div className="trip-options">
+                <label className={`trip-option ${formData.tripType === 'going' ? 'selected' : ''}`}>
+                  <input type="radio" name="tripType" value="going" checked={formData.tripType === 'going'} onChange={handleInputChange} />
+                  <span className="trip-icon">➡️</span>
+                  <span>Going Only</span>
+                </label>
+                <label className={`trip-option ${formData.tripType === 'return' ? 'selected' : ''}`}>
+                  <input type="radio" name="tripType" value="return" checked={formData.tripType === 'return'} onChange={handleInputChange} />
+                  <span className="trip-icon">⬅️</span>
+                  <span>Return Only</span>
+                </label>
+                <label className={`trip-option ${formData.tripType === 'both' ? 'selected' : ''}`}>
+                  <input type="radio" name="tripType" value="both" checked={formData.tripType === 'both'} onChange={handleInputChange} />
+                  <span className="trip-icon">↔️</span>
+                  <span>Round Trip</span>
+                </label>
               </div>
+            </div>
 
-              {/* Seats (for offers) */}
-              {isOffer && (
-                <div className="form-field">
-                  <label>Available Seats</label>
-                  <div className="seats-selector">
-                    {[1, 2, 3, 4, 5, 6].map(num => (
-                      <button
-                        key={num}
-                        type="button"
-                        className={`seat-btn ${formData.seats === String(num) ? 'selected' : ''}`}
-                        onClick={() => setFormData(prev => ({ ...prev, seats: String(num) }))}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {/* Seats / Passengers */}
+            <div className="form-field">
+              <label>{isOffer ? 'Available Seats' : 'Number of Passengers'}</label>
+              <div className="seats-options">
+                {(isOffer ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4]).map(num => (
+                  <button
+                    key={num}
+                    type="button"
+                    className={`seat-btn ${(isOffer ? formData.seats === String(num) : formData.passengerCount === num) ? 'selected' : ''}`}
+                    onClick={() => setFormData(prev => isOffer ? { ...prev, seats: String(num) } : { ...prev, passengerCount: num })}
+                  >
+                    {num}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-              {/* Passenger Count (for requests) */}
-              {!isOffer && (
-                <div className="form-field">
-                  <label>Number of Passengers</label>
-                  <div className="seats-selector">
-                    {[1, 2, 3, 4].map(num => (
-                      <button
-                        key={num}
-                        type="button"
-                        className={`seat-btn ${formData.passengerCount === num ? 'selected' : ''}`}
-                        onClick={() => setFormData(prev => ({ ...prev, passengerCount: num }))}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {/* Location */}
+            <div className="form-field">
+              <label>{isOffer ? 'Starting Location' : 'Pickup Location'} <span className="required">*</span></label>
+              <MapErrorBoundary>
+                <Suspense fallback={<div className="map-loading">Loading map...</div>}>
+                  <MapLocationPicker
+                    value={formData.pickupLocation}
+                    onChange={(value) => setFormData(prev => ({ ...prev, pickupLocation: value }))}
+                    onLocationSelect={(loc) => setFormData(prev => ({
+                      ...prev,
+                      pickupLocation: loc.address,
+                      pickupLat: loc.lat,
+                      pickupLng: loc.lng
+                    }))}
+                    placeholder="Search for location..."
+                  />
+                </Suspense>
+              </MapErrorBoundary>
+            </div>
 
-              {/* Pickup Location */}
-              <div className="form-field">
-                <label>{isOffer ? 'Starting Location' : 'Pickup Location'} <span className="required">*</span></label>
+            {/* Route Preview */}
+            {formData.pickupLat && formData.pickupLng && event?.event_location && (
+              <div className="route-preview-card">
+                <h4>🗺️ Route Preview</h4>
                 <MapErrorBoundary>
-                  <Suspense fallback={<div className="map-loading">Loading map...</div>}>
-                    <MapLocationPicker
-                      value={formData.pickupLocation}
-                      onChange={(value) => setFormData(prev => ({ ...prev, pickupLocation: value }))}
-                      onLocationSelect={(loc) => setFormData(prev => ({
-                        ...prev,
-                        pickupLocation: loc.address,
-                        pickupLat: loc.lat,
-                        pickupLng: loc.lng
-                      }))}
-                      placeholder="Search for location..."
-                    />
-                  </Suspense>
-                </MapErrorBoundary>
-              </div>
-
-              {/* Route Preview */}
-              {formData.pickupLat && formData.pickupLng && event?.event_location && (
-                <div className="route-preview">
-                  <MapErrorBoundary>
-                    <Suspense fallback={<div className="map-loading">Loading route...</div>}>
-                      <RouteMap
-                        origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
-                        destination={event.event_location}
+                  <Suspense fallback={<div className="map-loading">Loading route...</div>}>
+                    <RouteMap
+                      origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
+                      destination={event.event_location}
                       height="200px"
                       showDirections={true}
                       onRouteCalculated={handleRouteCalculated}
-                      />
-                    </Suspense>
-                  </MapErrorBoundary>
-                  {routeDistance && (
-                    <div className="route-info">
-                      <span>📏 {routeDistance.toFixed(1)} km to {event?.event_name}</span>
-                    </div>
-                  )}
-                </div>
-              )}
+                    />
+                  </Suspense>
+                </MapErrorBoundary>
+                {routeDistance && (
+                  <div className="route-distance">
+                    <span>📏 {routeDistance.toFixed(1)} km to {event?.event_name}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
-              {/* Preference */}
-              <div className="form-field">
-                <label>Passenger Preference</label>
-                <div className="preference-selector">
-                  <label className={`pref-option ${formData.preference === 'any' ? 'selected' : ''}`}>
-                    <input type="radio" name="preference" value="any" checked={formData.preference === 'any'} onChange={handleInputChange} />
-                    <span>👥 Anyone</span>
-                  </label>
-                  <label className={`pref-option ${formData.preference === 'male' ? 'selected' : ''}`}>
-                    <input type="radio" name="preference" value="male" checked={formData.preference === 'male'} onChange={handleInputChange} />
-                    <span>👨 Men Only</span>
-                  </label>
-                  <label className={`pref-option ${formData.preference === 'female' ? 'selected' : ''}`}>
-                    <input type="radio" name="preference" value="female" checked={formData.preference === 'female'} onChange={handleInputChange} />
-                    <span>👩 Women Only</span>
-                  </label>
-                </div>
+            {/* Preference */}
+            <div className="form-field">
+              <label>Passenger Preference</label>
+              <div className="preference-options">
+                <label className={`pref-option ${formData.preference === 'any' ? 'selected' : ''}`}>
+                  <input type="radio" name="preference" value="any" checked={formData.preference === 'any'} onChange={handleInputChange} />
+                  <span>👥 Anyone</span>
+                </label>
+                <label className={`pref-option ${formData.preference === 'male' ? 'selected' : ''}`}>
+                  <input type="radio" name="preference" value="male" checked={formData.preference === 'male'} onChange={handleInputChange} />
+                  <span>👨 Men Only</span>
+                </label>
+                <label className={`pref-option ${formData.preference === 'female' ? 'selected' : ''}`}>
+                  <input type="radio" name="preference" value="female" checked={formData.preference === 'female'} onChange={handleInputChange} />
+                  <span>👩 Women Only</span>
+                </label>
               </div>
             </div>
           </div>
-        )}
+        </section>
 
-        {/* STEP 3: Confirm & Payment */}
-        {currentStep === 3 && (
-          <div className="publish-step animate-in">
-            <div className="step-header">
-              <div className="step-icon">✨</div>
-              <h2>Almost Done!</h2>
-              <p>Review and {isOffer ? 'add payment options' : 'confirm your request'}</p>
-            </div>
-
-            {/* Summary Card */}
-            <div className="summary-card">
-              <h3>📋 Summary</h3>
-              <div className="summary-grid">
-                <div className="summary-item">
-                  <span className="summary-label">Name</span>
-                  <span className="summary-value">{formData.name} {formData.hideName && '🔒'}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="summary-label">Phone</span>
-                  <span className="summary-value">{formData.phone} {formData.hidePhone && '🔒'}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="summary-label">Gender</span>
-                  <span className="summary-value">{formData.gender === 'male' ? '👨 Male' : '👩 Female'}</span>
-                </div>
-                <div className="summary-item">
-                  <span className="summary-label">Trip</span>
-                  <span className="summary-value">
-                    {formData.tripType === 'both' ? '↔ Round Trip' : formData.tripType === 'going' ? '→ Going' : '← Return'}
-                  </span>
-                </div>
-                {isOffer && (
-                  <div className="summary-item">
-                    <span className="summary-label">Seats</span>
-                    <span className="summary-value">🪑 {formData.seats} available</span>
-                  </div>
-                )}
-                <div className="summary-item full-width">
-                  <span className="summary-label">Location</span>
-                  <span className="summary-value">📍 {formData.pickupLocation}</span>
-                </div>
+        {/* SECTION: Payment (only for offers) */}
+        {isOffer && (
+          <section className="form-section">
+            <div className="section-header">
+              <div className="section-icon">💰</div>
+              <div className="section-title">
+                <h2>Payment</h2>
+                <p>Set your payment preferences</p>
               </div>
             </div>
 
-            {/* Payment Options (for offers) */}
-            {isOffer && (
-              <div className="form-card payment-card">
-                <h3>💰 Payment (Optional)</h3>
-                
-                <div className="payment-type-options">
+            <div className="form-card">
+              <div className="form-field">
+                <label>Payment Type</label>
+                <div className="payment-options">
                   <label className={`payment-option ${formData.paymentRequired === 'not_required' ? 'selected' : ''}`}>
                     <input type="radio" name="paymentRequired" value="not_required" checked={formData.paymentRequired === 'not_required'} onChange={handleInputChange} />
                     <span className="payment-icon">🆓</span>
@@ -753,96 +662,108 @@ function PublishRidePage() {
                     <span>Required</span>
                   </label>
                 </div>
+              </div>
 
-                {formData.paymentRequired !== 'not_required' && (
-                  <div className="payment-details">
-                    <div className="form-row-2">
-                      <div className="form-field">
-                        <label>Amount (₪)</label>
-                        <div className="price-input">
-                          <span className="currency">₪</span>
-                          <input
-                            type="number"
-                            name="paymentAmount"
-                            value={formData.paymentAmount}
-                            onChange={handleInputChange}
-                            placeholder="0"
-                            min="0"
-                            max={maxPayment || 500}
-                          />
-                        </div>
-                        {maxPayment > 0 && (
-                          <span className="price-hint">Max suggested: ₪{maxPayment}</span>
-                        )}
+              {formData.paymentRequired !== 'not_required' && (
+                <div className="payment-details">
+                  <div className="form-row">
+                    <div className="form-field">
+                      <label>Amount (₪)</label>
+                      <div className="price-input-wrapper">
+                        <span className="currency-symbol">₪</span>
+                        <input
+                          type="number"
+                          name="paymentAmount"
+                          value={formData.paymentAmount}
+                          onChange={handleInputChange}
+                          placeholder="0"
+                          min="0"
+                          max={maxPayment || 500}
+                          className="price-input"
+                        />
                       </div>
-                      <div className="form-field">
-                        <label>Payment Method</label>
-                        <div className="method-options">
-                          {['bit', 'paybox', 'cash'].map(method => (
-                            <button
-                              key={method}
-                              type="button"
-                              className={`method-btn ${formData.paymentMethod === method ? 'selected' : ''}`}
-                              onClick={() => setFormData(prev => ({ ...prev, paymentMethod: method }))}
-                            >
-                              {method === 'bit' ? '💳 Bit' : method === 'paybox' ? '📱 PayBox' : '💵 Cash'}
-                            </button>
-                          ))}
-                        </div>
+                      {maxPayment > 0 && (
+                        <span className="price-hint">Max suggested: ₪{maxPayment}</span>
+                      )}
+                    </div>
+                    <div className="form-field">
+                      <label>Payment Method</label>
+                      <div className="method-options">
+                        {['bit', 'paybox', 'cash'].map(method => (
+                          <button
+                            key={method}
+                            type="button"
+                            className={`method-btn ${formData.paymentMethod === method ? 'selected' : ''}`}
+                            onClick={() => setFormData(prev => ({ ...prev, paymentMethod: method }))}
+                          >
+                            {method === 'bit' ? '💳 Bit' : method === 'paybox' ? '📱 PayBox' : '💵 Cash'}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
-
-            {/* Notes */}
-            <div className="form-card">
-              <div className="form-field">
-                <label>Additional Notes</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder={isOffer ? "Car model, meeting point details, music preferences..." : "Any special requests or information for the driver..."}
-                  className="form-textarea"
-                  rows={3}
-                />
-              </div>
+                </div>
+              )}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Navigation Buttons */}
-        <div className="publish-nav">
-          {currentStep > 1 && (
-            <button className="nav-btn secondary" onClick={prevStep}>
-              ← Previous
-            </button>
-          )}
-          
-          {currentStep < 3 ? (
-            <button className="nav-btn primary" onClick={nextStep}>
-              Next →
-            </button>
-          ) : (
-            <button
-              className="nav-btn publish"
-              onClick={handlePublish}
-              disabled={submitting}
-            >
-              {submitting ? (
-                <span className="btn-loading">Publishing...</span>
-              ) : (
-                <>{isOffer ? '🚀 Publish Offer' : '🚀 Send Request'}</>
-              )}
-            </button>
-          )}
+        {/* SECTION: Additional Notes */}
+        <section className="form-section">
+          <div className="section-header">
+            <div className="section-icon">📝</div>
+            <div className="section-title">
+              <h2>Additional Notes</h2>
+              <p>Any extra information</p>
+            </div>
+          </div>
+
+          <div className="form-card">
+            <div className="form-field">
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder={isOffer ? "Car model, meeting point details, music preferences..." : "Any special requests or information for the driver..."}
+                className="form-textarea"
+                rows={3}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Fixed Bottom Submit Bar */}
+      <div className="publish-footer">
+        <div className="footer-container">
+          <button className="cancel-btn" onClick={() => navigate(`/event/${eventCode}`)}>
+            Cancel
+          </button>
+          <button
+            className="publish-btn"
+            onClick={handlePublish}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <span className="btn-loading">Publishing...</span>
+            ) : (
+              <>{isOffer ? '🚀 Publish Offer' : '🚀 Send Request'}</>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Loading Overlay */}
+      {submitting && (
+        <div className="loading-overlay">
+          <div className="loading-content">
+            <div className="loading-car">🚗</div>
+            <p>Publishing your ride...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default PublishRidePage;
-
