@@ -139,6 +139,9 @@ async function initializeDatabaseConnection() {
 // Initialize database (async)
 initializeDatabaseConnection();
 
+// Get pool reference for legacy code that needs transactions
+const getPool = () => database.getPool();
+
 // =======================
 // DATABASE HELPER FUNCTIONS
 // These use PostgreSQL when available, otherwise fall back to in-memory
@@ -592,8 +595,8 @@ app.get('/api/event/:eventCode', async (req, res) => {
     const { eventCode } = req.params;
     const { access_code } = req.query;
     
-    if (useDatabase && pool) {
-      const result = await pool.query(
+    if (useDatabase) {
+      const result = await database.query(
         'SELECT * FROM events WHERE event_code = $1 AND status = $2',
         [eventCode, 'active']
       );
@@ -832,8 +835,8 @@ app.post('/api/validate-event-code', async (req, res) => {
   try {
     const { event_code, access_code } = req.body;
     
-    if (useDatabase && pool) {
-      const result = await pool.query(
+    if (useDatabase) {
+      const result = await database.query(
         'SELECT * FROM events WHERE event_code = $1 AND status = $2',
         [event_code, 'active']
       );
@@ -928,34 +931,27 @@ app.post('/api/event', async (req, res) => {
     // Generate shareable link
     const shareableLink = `/event/${eventCode}`;
     
-    if (useDatabase && pool) {
-      await pool.query(
-        'INSERT INTO events (event_id, event_name, event_date, event_time, event_location, event_code, is_private, access_code, creator_account_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-        [eventId, eventName, eventDate, eventTime, eventLocation, eventCode, isPrivate || false, isPrivate ? accessCode : null, account.account_id]
-      );
-    } else {
-      // In-memory storage
-      db.events.push({
-        event_id: eventId,
-        event_name: eventName,
-        event_date: eventDate,
-        event_time: eventTime,
-        event_location: eventLocation,
-        event_lat: eventLat || null,
-        event_lng: eventLng || null,
-        event_code: eventCode,
-        is_private: isPrivate || false,
-        access_code: isPrivate ? accessCode : null,
-        creator_account_id: account.account_id,
-        creator_name: account.name,
-        creator_phone: account.phone,
-        status: 'active',
-        created_at: new Date()
-      });
-      
-      console.log('Event created:', { eventId, eventCode, creator: account.account_id });
-      console.log('Total events now:', db.events.length);
-    }
+    // Create event using database helper (works for both DB and in-memory)
+    const eventData = {
+      event_id: eventId,
+      event_name: eventName,
+      event_date: eventDate,
+      event_time: eventTime,
+      event_location: eventLocation,
+      location_lat: eventLat || null,
+      location_lng: eventLng || null,
+      event_code: eventCode,
+      is_private: isPrivate || false,
+      access_code: isPrivate ? accessCode : null,
+      creator_account_id: account.account_id,
+      creator_name: account.name,
+      creator_phone: account.phone,
+      status: 'active',
+      created_at: new Date()
+    };
+    
+    await dbHelpers.createEvent(eventData);
+    console.log('Event created:', { eventId, eventCode, creator: account.account_id });
     
     res.json({ 
       event_id: eventId, 
@@ -976,8 +972,8 @@ app.post('/api/admin/event', authenticateToken, createLimiter, async (req, res) 
     const eventCode = generateEventCode();
     const eventId = generateId('event');
     
-    if (useDatabase && pool) {
-      await pool.query(
+    if (useDatabase) {
+      await database.query(
         'INSERT INTO events (event_id, event_name, event_date, event_location, event_code) VALUES ($1, $2, $3, $4, $5)',
         [eventId, eventName, eventDate, eventLocation, eventCode]
       );
@@ -1006,28 +1002,28 @@ app.get('/api/admin/event/:eventId/stats', authenticateToken, requireEventAdmin,
   try {
     const { eventId } = req.params;
     
-    if (useDatabase && pool) {
-      const driversResult = await pool.query(
+    if (useDatabase) {
+      const driversResult = await database.query(
         'SELECT COUNT(*) FROM carpool_offers WHERE event_id = $1',
         [eventId]
       );
       
-      const passengersResult = await pool.query(
+      const passengersResult = await database.query(
         'SELECT COUNT(*) FROM carpool_requests WHERE event_id = $1',
         [eventId]
       );
       
-      const seatsResult = await pool.query(
+      const seatsResult = await database.query(
         'SELECT COALESCE(SUM(available_seats), 0) as available, COALESCE(SUM(total_seats), 0) as total FROM carpool_offers WHERE event_id = $1 AND status = $2',
         [eventId, 'active']
       );
       
-      const matchesResult = await pool.query(
+      const matchesResult = await database.query(
         'SELECT COUNT(*) FROM matches m JOIN carpool_offers o ON m.offer_id = o.offer_id WHERE o.event_id = $1 AND m.status = $2',
         [eventId, 'confirmed']
       );
       
-      const pendingResult = await pool.query(
+      const pendingResult = await database.query(
         'SELECT COUNT(*) FROM matches m JOIN carpool_offers o ON m.offer_id = o.offer_id WHERE o.event_id = $1 AND m.status = $2',
         [eventId, 'pending']
       );
@@ -1089,8 +1085,8 @@ app.post('/api/carpool/offer', async (req, res) => {
       }
     }
     
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
         
@@ -1185,8 +1181,8 @@ app.get('/api/carpool/offer/:offerId', async (req, res) => {
   try {
     const { offerId } = req.params;
     
-    if (useDatabase && pool) {
-      const offerResult = await pool.query(
+    if (useDatabase) {
+      const offerResult = await database.query(
         'SELECT * FROM carpool_offers WHERE offer_id = $1',
         [offerId]
       );
@@ -1195,12 +1191,12 @@ app.get('/api/carpool/offer/:offerId', async (req, res) => {
         return res.status(404).json({ message: 'Offer not found' });
       }
       
-      const locationsResult = await pool.query(
+      const locationsResult = await database.query(
         'SELECT * FROM offer_locations WHERE offer_id = $1 ORDER BY sort_order',
         [offerId]
       );
       
-      const matchesResult = await pool.query(
+      const matchesResult = await database.query(
         `SELECT m.*, u.name as passenger_name, u.phone as passenger_phone, u.email as passenger_email
          FROM matches m
          JOIN users u ON m.passenger_id = u.user_id
@@ -1243,8 +1239,8 @@ app.get('/api/carpool/offer/:offerId/requests', async (req, res) => {
   try {
     const { offerId } = req.params;
     
-    if (useDatabase && pool) {
-      const requestsResult = await pool.query(
+    if (useDatabase) {
+      const requestsResult = await database.query(
         `SELECT m.*, u.name as passenger_name, u.phone as passenger_phone, u.email as passenger_email, 
                 r.trip_type, rl.location_address as location
          FROM matches m
@@ -1302,8 +1298,8 @@ app.post('/api/carpool/offer/:offerId/accept-request', authenticateToken, async 
       return res.status(400).json({ message: 'No seats available' });
     }
 
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
 
@@ -1354,8 +1350,8 @@ app.post('/api/carpool/offer/:offerId/reject-request', authenticateToken, async 
       return res.status(403).json({ message: 'Not authorized to manage this offer' });
     }
 
-    if (useDatabase && pool) {
-      await pool.query(
+    if (useDatabase) {
+      await database.query(
         'UPDATE matches SET status = $1 WHERE offer_id = $2 AND request_id = $3',
         ['rejected', offerId, request_id]
       );
@@ -1378,8 +1374,8 @@ app.get('/api/carpool/passengers', async (req, res) => {
   try {
     const { event_id } = req.query;
     
-    if (useDatabase && pool) {
-      const passengersResult = await pool.query(
+    if (useDatabase) {
+      const passengersResult = await database.query(
         `SELECT r.*, u.name, u.phone, u.email,
                 json_agg(json_build_object('location_address', rl.location_address, 'trip_direction', rl.trip_direction)) as locations
          FROM carpool_requests r
@@ -1422,12 +1418,12 @@ app.post('/api/carpool/offer/:offerId/send-invitation', authenticateToken, async
       return res.status(403).json({ message: 'Not authorized to manage this offer' });
     }
 
-    if (useDatabase && pool) {
+    if (useDatabase) {
       // Get driver and passenger IDs
-      const offerResult = await pool.query('SELECT driver_id FROM carpool_offers WHERE offer_id = $1', [offerId]);
-      const requestResult = await pool.query('SELECT passenger_id FROM carpool_requests WHERE request_id = $1', [request_id]);
+      const offerResult = await database.query('SELECT driver_id FROM carpool_offers WHERE offer_id = $1', [offerId]);
+      const requestResult = await database.query('SELECT passenger_id FROM carpool_requests WHERE request_id = $1', [request_id]);
       
-      await pool.query(
+      await database.query(
         'INSERT INTO matches (match_id, offer_id, request_id, driver_id, passenger_id, status, initiated_by) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [matchId, offerId, request_id, offerResult.rows[0].driver_id, requestResult.rows[0].passenger_id, 'pending', 'driver']
       );
@@ -1479,8 +1475,8 @@ app.post('/api/carpool/request', async (req, res) => {
       }
     }
     
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
         
@@ -1569,8 +1565,8 @@ app.get('/api/carpool/request/:requestId', async (req, res) => {
   try {
     const { requestId } = req.params;
     
-    if (useDatabase && pool) {
-      const requestResult = await pool.query(
+    if (useDatabase) {
+      const requestResult = await database.query(
         'SELECT * FROM carpool_requests WHERE request_id = $1',
         [requestId]
       );
@@ -1579,12 +1575,12 @@ app.get('/api/carpool/request/:requestId', async (req, res) => {
         return res.status(404).json({ message: 'Request not found' });
       }
       
-      const locationsResult = await pool.query(
+      const locationsResult = await database.query(
         'SELECT * FROM request_locations WHERE request_id = $1 ORDER BY sort_order',
         [requestId]
       );
       
-      const matchResult = await pool.query(
+      const matchResult = await database.query(
         `SELECT m.*, u.name as driver_name, u.phone as driver_phone, u.email as driver_email,
                 o.description as car_description
          FROM matches m
@@ -1634,8 +1630,8 @@ app.get('/api/carpool/offers', async (req, res) => {
   try {
     const { event_id } = req.query;
     
-    if (useDatabase && pool) {
-      const offersResult = await pool.query(
+    if (useDatabase) {
+      const offersResult = await database.query(
         `SELECT o.*, u.name as driver_name, u.phone as driver_phone, u.email as driver_email,
                 json_agg(json_build_object('location_address', ol.location_address, 'trip_direction', ol.trip_direction)) as locations
          FROM carpool_offers o
@@ -1685,12 +1681,12 @@ app.post('/api/carpool/request/:requestId/join-request', async (req, res) => {
     const { offer_id } = req.body;
     const matchId = generateId('match');
     
-    if (useDatabase && pool) {
+    if (useDatabase) {
       // Get driver and passenger IDs
-      const offerResult = await pool.query('SELECT driver_id FROM carpool_offers WHERE offer_id = $1', [offer_id]);
-      const requestResult = await pool.query('SELECT passenger_id FROM carpool_requests WHERE request_id = $1', [requestId]);
+      const offerResult = await database.query('SELECT driver_id FROM carpool_offers WHERE offer_id = $1', [offer_id]);
+      const requestResult = await database.query('SELECT passenger_id FROM carpool_requests WHERE request_id = $1', [requestId]);
       
-      await pool.query(
+      await database.query(
         'INSERT INTO matches (match_id, offer_id, request_id, driver_id, passenger_id, status, initiated_by) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [matchId, offer_id, requestId, offerResult.rows[0].driver_id, requestResult.rows[0].passenger_id, 'pending', 'passenger']
       );
@@ -1723,8 +1719,8 @@ app.get('/api/carpool/request/:requestId/invitations', async (req, res) => {
   try {
     const { requestId } = req.params;
     
-    if (useDatabase && pool) {
-      const invitationsResult = await pool.query(
+    if (useDatabase) {
+      const invitationsResult = await database.query(
         `SELECT m.*, u.name as driver_name, u.phone as driver_phone, u.email as driver_email,
                 o.description as car_description, ol.location_address as location
          FROM matches m
@@ -1767,8 +1763,8 @@ app.post('/api/carpool/request/:requestId/accept-invitation', async (req, res) =
     const { requestId } = req.params;
     const { match_id } = req.body;
     
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
         
@@ -1816,8 +1812,8 @@ app.post('/api/carpool/request/:requestId/reject-invitation', async (req, res) =
   try {
     const { match_id } = req.body;
     
-    if (useDatabase && pool) {
-      await pool.query(
+    if (useDatabase) {
+      await database.query(
         'UPDATE matches SET status = $1 WHERE match_id = $2',
         ['rejected', match_id]
       );
@@ -1844,8 +1840,8 @@ app.get('/api/admin/event/:eventId/drivers', authenticateToken, requireEventAdmi
   try {
     const { eventId } = req.params;
     
-    if (useDatabase && pool) {
-      const driversResult = await pool.query(
+    if (useDatabase) {
+      const driversResult = await database.query(
         `SELECT o.*, u.name, u.phone, u.email
          FROM carpool_offers o
          JOIN users u ON o.driver_id = u.user_id
@@ -1875,8 +1871,8 @@ app.get('/api/admin/event/:eventId/passengers', authenticateToken, requireEventA
   try {
     const { eventId } = req.params;
     
-    if (useDatabase && pool) {
-      const passengersResult = await pool.query(
+    if (useDatabase) {
+      const passengersResult = await database.query(
         `SELECT r.*, u.name, u.phone, u.email,
                 CASE WHEN EXISTS (SELECT 1 FROM matches WHERE request_id = r.request_id AND status = 'confirmed') 
                      THEN true ELSE false END as matched
@@ -1909,8 +1905,8 @@ app.get('/api/admin/event/:eventId/matches', authenticateToken, requireEventAdmi
   try {
     const { eventId } = req.params;
     
-    if (useDatabase && pool) {
-      const matchesResult = await pool.query(
+    if (useDatabase) {
+      const matchesResult = await database.query(
         `SELECT m.*, 
                 du.name as driver_name, du.phone as driver_phone,
                 pu.name as passenger_name, pu.phone as passenger_phone,
@@ -1976,8 +1972,8 @@ app.put('/api/carpool/offer/:offerId', authenticateToken, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to update this offer' });
     }
 
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
         
@@ -2076,8 +2072,8 @@ app.delete('/api/carpool/offer/:offerId', authenticateToken, async (req, res) =>
       return res.status(403).json({ message: 'Not authorized to delete this offer' });
     }
 
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
         await client.query('DELETE FROM offer_locations WHERE offer_id = $1', [offerId]);
@@ -2115,8 +2111,8 @@ app.put('/api/carpool/request/:requestId', authenticateToken, async (req, res) =
       return res.status(403).json({ message: 'Not authorized to update this request' });
     }
 
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
         
@@ -2213,8 +2209,8 @@ app.delete('/api/carpool/request/:requestId', authenticateToken, async (req, res
       return res.status(403).json({ message: 'Not authorized to delete this request' });
     }
 
-    if (useDatabase && pool) {
-      const client = await pool.connect();
+    if (useDatabase) {
+      const client = await getPool().connect();
       try {
         await client.query('BEGIN');
         await client.query('DELETE FROM request_locations WHERE request_id = $1', [requestId]);

@@ -685,6 +685,10 @@ function isConnected() {
   return pool !== null;
 }
 
+function getPool() {
+  return pool;
+}
+
 async function closeConnection() {
   if (pool) {
     await pool.end();
@@ -698,6 +702,7 @@ module.exports = {
   createTables,
   query,
   isConnected,
+  getPool,
   closeConnection,
   getStats,
   
