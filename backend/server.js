@@ -117,21 +117,43 @@ async function initializeDatabaseConnection() {
     if (pool) {
       const tablesCreated = await database.createTables();
       if (tablesCreated) {
-      useDatabase = true;
+        useDatabase = true;
         console.log('✅ Using PostgreSQL database - data will persist!');
         
-        // Log current stats
-        const stats = await database.getStats();
-        if (stats) {
-          console.log(`📊 Database stats: ${stats.accounts} accounts, ${stats.events} events, ${stats.offers} offers`);
+        // Sync database data to in-memory for compatibility with legacy code
+        try {
+          const accounts = await database.getAllAccounts();
+          const events = await database.getAllEvents();
+          const offers = await database.getAllOffers();
+          const requests = await database.getAllRequests();
+          const joinRequests = await database.getAllJoinRequests();
+          
+          // Load into in-memory storage for legacy code compatibility
+          db.accounts = accounts || [];
+          db.events = events || [];
+          db.carpool_offers = offers || [];
+          db.carpool_requests = requests || [];
+          
+          // Attach join requests to offers
+          for (const jr of (joinRequests || [])) {
+            const offer = db.carpool_offers.find(o => o.offer_id === jr.offer_id);
+            if (offer) {
+              if (!offer.join_requests) offer.join_requests = [];
+              offer.join_requests.push(jr);
+            }
+          }
+          
+          console.log(`📊 Loaded from DB: ${db.accounts.length} accounts, ${db.events.length} events, ${db.carpool_offers.length} offers`);
+        } catch (err) {
+          console.error('Error syncing database to memory:', err.message);
         }
       }
     }
   }
   
   if (!useDatabase) {
-  console.log('📦 Using in-memory storage');
-  console.log('💡 Data will be lost when server restarts');
+    console.log('📦 Using in-memory storage');
+    console.log('💡 Data will be lost when server restarts');
     console.log('💡 Set DATABASE_URL to enable PostgreSQL persistence');
   }
 }
@@ -149,10 +171,16 @@ const getPool = () => database.getPool();
 const dbHelpers = {
   // Accounts
   async createAccount(account) {
-    if (useDatabase) {
-      return await database.createAccount(account);
-    }
+    // Always push to in-memory for legacy code compatibility
     db.accounts.push(account);
+    
+    if (useDatabase) {
+      try {
+        await database.createAccount(account);
+      } catch (err) {
+        console.error('Error saving account to database:', err.message);
+      }
+    }
     return account;
   },
   
@@ -190,10 +218,16 @@ const dbHelpers = {
   
   // Sessions
   async createSession(session) {
-    if (useDatabase) {
-      return await database.createSession(session);
-    }
+    // Always push to in-memory for legacy code compatibility
     db.sessions.push(session);
+    
+    if (useDatabase) {
+      try {
+        await database.createSession(session);
+      } catch (err) {
+        console.error('Error saving session to database:', err.message);
+      }
+    }
     return session;
   },
   
@@ -253,10 +287,16 @@ const dbHelpers = {
   
   // Events
   async createEvent(event) {
-    if (useDatabase) {
-      return await database.createEvent(event);
-    }
+    // Always push to in-memory for legacy code compatibility
     db.events.push(event);
+    
+    if (useDatabase) {
+      try {
+        await database.createEvent(event);
+      } catch (err) {
+        console.error('Error saving event to database:', err.message);
+      }
+    }
     return event;
   },
   
@@ -302,10 +342,16 @@ const dbHelpers = {
   
   // Offers
   async createOffer(offer) {
-    if (useDatabase) {
-      return await database.createOffer(offer);
-    }
+    // Always push to in-memory for legacy code compatibility
     db.carpool_offers.push(offer);
+    
+    if (useDatabase) {
+      try {
+        await database.createOffer(offer);
+      } catch (err) {
+        console.error('Error saving offer to database:', err.message);
+      }
+    }
     return offer;
   },
   
@@ -358,10 +404,16 @@ const dbHelpers = {
   
   // Requests
   async createRequest(request) {
-    if (useDatabase) {
-      return await database.createRequest(request);
-    }
+    // Always push to in-memory for legacy code compatibility
     db.carpool_requests.push(request);
+    
+    if (useDatabase) {
+      try {
+        await database.createRequest(request);
+      } catch (err) {
+        console.error('Error saving request to database:', err.message);
+      }
+    }
     return request;
   },
   
@@ -1483,10 +1535,7 @@ app.post('/api/carpool/request', async (req, res) => {
     let account = null;
     
     if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-      }
+      account = await getAccountFromToken(token);
     }
     
     if (useDatabase) {
@@ -2274,14 +2323,9 @@ app.post('/api/carpool/offer/:offerId/request-join', async (req, res) => {
     // Check for authentication (optional - allows both authenticated and unauthenticated users)
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    let account = null;
-    
-    if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-        console.log('Authenticated user joining:', account?.name);
-      }
+    let account = await getAccountFromToken(token);
+    if (account) {
+      console.log('Authenticated user joining:', account.name);
     }
     
     const joinRequestId = generateId('join');
@@ -3202,16 +3246,10 @@ app.get('/api/event/:eventCode/admin', authenticateToken, requireEventAdmin, asy
     console.log('Auth header present:', !!authHeader);
     console.log('Token extracted:', token ? token.substring(0, 10) + '...' : 'none');
     
-    if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      console.log('Session found:', !!session);
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-        console.log('Account found:', account ? account.name : 'none');
-      }
-    }
+    account = await getAccountFromToken(token);
+    console.log('Account found:', account ? account.name : 'none');
     
-    const event = db.events.find(e => e.event_code === eventCode);
+    const event = await dbHelpers.findEventByCode(eventCode);
     console.log('Event found:', event ? event.event_name : 'NOT FOUND');
     
     if (!event) {
@@ -3337,10 +3375,7 @@ app.delete('/api/event/:eventCode/offer/:offerId', async (req, res) => {
     let account = null;
     
     if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-      }
+      account = await getAccountFromToken(token);
     }
     
     const event = db.events.find(e => e.event_code === eventCode);
@@ -3379,10 +3414,7 @@ app.delete('/api/event/:eventCode/request/:requestId', async (req, res) => {
     let account = null;
     
     if (token) {
-      const session = db.sessions.find(s => s.token === token && s.expires_at > new Date());
-      if (session) {
-        account = db.accounts.find(a => a.account_id === session.account_id);
-      }
+      account = await getAccountFromToken(token);
     }
     
     const event = db.events.find(e => e.event_code === eventCode);
