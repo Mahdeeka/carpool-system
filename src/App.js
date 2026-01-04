@@ -11,6 +11,7 @@ import DriverDashboard from './pages/DriverDashboard';
 import PassengerDashboard from './pages/PassengerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
+import AdminPanel from './pages/AdminPanel';
 import CreateEvent from './pages/CreateEvent';
 import Login from './pages/Login';
 import MyAccount from './pages/MyAccount';
@@ -65,6 +66,7 @@ function App() {
                 <Route path="/need-carpool" element={<NeedCarpool />} />
                 <Route path="/driver-dashboard" element={<DriverDashboard />} />
                 <Route path="/passenger-dashboard" element={<PassengerDashboard />} />
+                <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin/create-event" element={<CreateEvent />} />
                 <Route path="/admin/dashboard/:eventId" element={<AdminDashboard />} />
