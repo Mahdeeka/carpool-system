@@ -1,17 +1,25 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import { API_BASE_URL as API_URL } from '../services/api';
+import './PublishRidePage.css';
 
 // Lazy load map components
 const MapLocationPicker = lazy(() => import('../components/MapLocationPicker'));
 const RouteMap = lazy(() => import('../components/RouteMap'));
 
+// Arrow Left Icon
+const ArrowLeftIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+);
+
 function PublishRidePage() {
   const { eventCode } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { showToast, authData, isAuthenticated } = useApp();
+  const { showToast, authData } = useApp();
 
   const mode = searchParams.get('mode') || 'offer';
   const isOffer = mode === 'offer';
@@ -20,6 +28,7 @@ function PublishRidePage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [routeDistance, setRouteDistance] = useState(null);
+  const [routeDuration, setRouteDuration] = useState(null);
   const [maxPayment, setMaxPayment] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -46,12 +55,26 @@ function PublishRidePage() {
       try {
         const response = await fetch(`${API_URL}/event/${eventCode}`);
         if (response.ok) {
-          setEvent(await response.json());
+          const eventData = await response.json();
+          setEvent(eventData);
         } else {
-          setEvent({ event_id: 'demo', event_name: 'Demo Event', event_location: 'Tel Aviv, Israel' });
+          // Demo event with coordinates for Tel Aviv
+          setEvent({ 
+            event_id: 'demo', 
+            event_name: 'Demo Event', 
+            event_location: 'Tel Aviv, Israel',
+            location_lat: 32.0853,
+            location_lng: 34.7818
+          });
         }
       } catch {
-        setEvent({ event_id: 'demo', event_name: 'Demo Event', event_location: 'Tel Aviv, Israel' });
+        setEvent({ 
+          event_id: 'demo', 
+          event_name: 'Demo Event', 
+          event_location: 'Tel Aviv, Israel',
+          location_lat: 32.0853,
+          location_lng: 34.7818
+        });
       } finally {
         setLoading(false);
       }
@@ -59,7 +82,7 @@ function PublishRidePage() {
     fetchEvent();
   }, [eventCode]);
 
-  // Pre-fill from auth (name, phone, email, gender)
+  // Pre-fill from auth
   useEffect(() => {
     if (authData) {
       setFormData(prev => ({
@@ -72,38 +95,44 @@ function PublishRidePage() {
     }
   }, [authData]);
 
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleLocationSelect = (location) => {
+  const updateField = useCallback((field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleLocationSelect = useCallback((location) => {
     setFormData(prev => ({
       ...prev,
       pickupLocation: location.address,
       pickupLat: location.lat,
       pickupLng: location.lng,
     }));
-  };
+  }, []);
 
-  const handleRouteCalculated = (routeInfo) => {
+  const handleRouteCalculated = useCallback((routeInfo) => {
     if (routeInfo?.distance) {
       const distance = typeof routeInfo.distance === 'string'
         ? parseFloat(routeInfo.distance)
         : routeInfo.distance;
       setRouteDistance(distance);
-      // Calculate max payment: ~0.70 NIS per km * 1.5 buffer
       setMaxPayment(Math.ceil(distance * 0.7 * 1.5));
     }
-  };
+    if (routeInfo?.duration) {
+      setRouteDuration(routeInfo.duration);
+    }
+  }, []);
 
   const handlePublish = async () => {
     if (!formData.name || !formData.phone || !formData.gender) {
-      showToast('Please fill name, phone, and gender', 'error');
+      showToast('Please fill in all required fields', 'error');
       return;
     }
     if (!formData.pickupLocation) {
-      showToast('Please select your location', 'error');
+      showToast('Please select your pickup location', 'error');
       return;
     }
 
@@ -134,8 +163,12 @@ function PublishRidePage() {
       if (isOffer) {
         payload.total_seats = parseInt(formData.seats);
         payload.payment_required = formData.paymentRequired;
-        payload.payment_amount = formData.paymentRequired !== 'not_required' ? parseFloat(formData.paymentAmount) || 0 : null;
-        payload.payment_method = formData.paymentRequired !== 'not_required' ? formData.paymentMethod : null;
+        payload.payment_amount = formData.paymentRequired !== 'not_required' 
+          ? parseFloat(formData.paymentAmount) || 0 
+          : null;
+        payload.payment_method = formData.paymentRequired !== 'not_required' 
+          ? formData.paymentMethod 
+          : null;
       } else {
         payload.passenger_count = formData.passengerCount || 1;
       }
@@ -154,7 +187,7 @@ function PublishRidePage() {
         navigate(`/event/${eventCode}`);
       } else {
         const data = await response.json();
-        throw new Error(data.message || 'Failed');
+        throw new Error(data.message || 'Failed to publish');
       }
     } catch (error) {
       showToast(error.message, 'error');
@@ -163,396 +196,418 @@ function PublishRidePage() {
     }
   };
 
-  // Inline Styles
-  const s = {
-    page: {
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0B2A4A 0%, #061527 100%)',
-      paddingBottom: '100px',
-    },
-    header: {
-      background: 'rgba(11, 42, 74, 0.95)',
-      padding: '16px 20px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '16px',
-      borderBottom: '1px solid rgba(14, 165, 233, 0.3)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-    },
-    backBtn: {
-      background: 'rgba(255,255,255,0.1)',
-      border: '1px solid rgba(255,255,255,0.2)',
-      color: 'white',
-      padding: '10px 16px',
-      borderRadius: '10px',
-      cursor: 'pointer',
-      fontSize: '14px',
-    },
-    badge: {
-      display: 'inline-block',
-      background: 'linear-gradient(135deg, #0EA5E9, #0284C7)',
-      padding: '4px 12px',
-      borderRadius: '20px',
-      fontSize: '12px',
-      fontWeight: 600,
-      color: 'white',
-      marginBottom: '4px',
-    },
-    title: { margin: 0, fontSize: '18px', fontWeight: 600, color: 'white' },
-    container: { maxWidth: '550px', margin: '0 auto', padding: '20px' },
-    card: {
-      background: 'rgba(255,255,255,0.06)',
-      border: '1px solid rgba(255,255,255,0.12)',
-      borderRadius: '16px',
-      padding: '20px',
-      marginBottom: '16px',
-    },
-    cardTitle: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-      marginBottom: '16px',
-      fontSize: '16px',
-      fontWeight: 600,
-      color: 'white',
-    },
-    destCard: {
-      background: 'linear-gradient(135deg, rgba(14,165,233,0.2), rgba(14,165,233,0.1))',
-      border: '1px solid rgba(14,165,233,0.3)',
-      borderRadius: '16px',
-      padding: '16px',
-      marginBottom: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-    },
-    destLabel: { fontSize: '12px', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase' },
-    destAddr: { fontSize: '16px', fontWeight: 600, color: 'white' },
-    label: {
-      display: 'block',
-      fontSize: '12px',
-      fontWeight: 600,
-      color: 'rgba(255,255,255,0.7)',
-      marginBottom: '8px',
-      textTransform: 'uppercase',
-    },
-    required: { color: '#f87171' },
-    input: {
-      width: '100%',
-      padding: '14px 16px',
-      fontSize: '15px',
-      background: 'rgba(255,255,255,0.08)',
-      border: '2px solid rgba(255,255,255,0.15)',
-      borderRadius: '12px',
-      color: 'white',
-      boxSizing: 'border-box',
-      marginBottom: '16px',
-    },
-    textarea: {
-      width: '100%',
-      padding: '14px 16px',
-      fontSize: '15px',
-      background: 'rgba(255,255,255,0.08)',
-      border: '2px solid rgba(255,255,255,0.15)',
-      borderRadius: '12px',
-      color: 'white',
-      boxSizing: 'border-box',
-      minHeight: '80px',
-      resize: 'vertical',
-      fontFamily: 'inherit',
-    },
-    row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' },
-    optionsRow: { display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' },
-    optionBtn: (selected) => ({
-      flex: '1 1 auto',
-      minWidth: '80px',
-      padding: '12px 10px',
-      background: selected ? 'rgba(14,165,233,0.25)' : 'rgba(255,255,255,0.06)',
-      border: `2px solid ${selected ? '#0EA5E9' : 'rgba(255,255,255,0.12)'}`,
-      borderRadius: '12px',
-      color: selected ? 'white' : 'rgba(255,255,255,0.7)',
-      cursor: 'pointer',
-      fontSize: '13px',
-      fontWeight: 500,
-      textAlign: 'center',
-    }),
-    seatBtn: (selected) => ({
-      width: '44px',
-      height: '44px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: selected ? 'linear-gradient(135deg, #0EA5E9, #0284C7)' : 'rgba(255,255,255,0.06)',
-      border: `2px solid ${selected ? '#0EA5E9' : 'rgba(255,255,255,0.12)'}`,
-      borderRadius: '10px',
-      color: 'white',
-      cursor: 'pointer',
-      fontSize: '15px',
-      fontWeight: 600,
-    }),
-    mapLoading: {
-      padding: '30px',
-      textAlign: 'center',
-      color: 'rgba(255,255,255,0.5)',
-      background: 'rgba(255,255,255,0.05)',
-      borderRadius: '12px',
-      marginBottom: '16px',
-    },
-    routeInfo: {
-      marginTop: '12px',
-      padding: '12px',
-      background: 'rgba(14,165,233,0.15)',
-      borderRadius: '10px',
-      textAlign: 'center',
-      fontSize: '14px',
-      color: '#7dd3fc',
-    },
-    priceRow: {
-      display: 'flex',
-      gap: '12px',
-      alignItems: 'flex-end',
-    },
-    priceInput: {
-      flex: 1,
-      padding: '14px 16px',
-      fontSize: '18px',
-      fontWeight: 600,
-      background: 'rgba(255,255,255,0.08)',
-      border: '2px solid rgba(255,255,255,0.15)',
-      borderRadius: '12px',
-      color: 'white',
-      boxSizing: 'border-box',
-    },
-    priceHint: {
-      fontSize: '12px',
-      color: 'rgba(255,255,255,0.5)',
-      marginTop: '6px',
-    },
-    footer: {
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      background: 'rgba(11, 42, 74, 0.98)',
-      borderTop: '1px solid rgba(14, 165, 233, 0.3)',
-      padding: '16px 20px',
-      zIndex: 100,
-    },
-    footerInner: { maxWidth: '550px', margin: '0 auto', display: 'flex', gap: '12px' },
-    cancelBtn: {
-      flex: 1,
-      padding: '16px',
-      background: 'rgba(255,255,255,0.1)',
-      border: '1px solid rgba(255,255,255,0.2)',
-      borderRadius: '12px',
-      color: 'white',
-      fontSize: '15px',
-      fontWeight: 600,
-      cursor: 'pointer',
-    },
-    publishBtn: {
-      flex: 2,
-      padding: '16px',
-      background: 'linear-gradient(135deg, #0EA5E9, #0284C7)',
-      border: 'none',
-      borderRadius: '12px',
-      color: 'white',
-      fontSize: '15px',
-      fontWeight: 600,
-      cursor: 'pointer',
-    },
-    loadingPage: {
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0B2A4A 0%, #061527 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: 'white',
-    },
-  };
+  const goBack = useCallback(() => {
+    navigate(`/event/${eventCode}`);
+  }, [navigate, eventCode]);
 
+  // Loading State
   if (loading) {
     return (
-      <div style={s.loadingPage}>
-        <div style={{ fontSize: '64px', marginBottom: '16px' }}>🚗</div>
-        <p style={{ color: 'rgba(255,255,255,0.6)' }}>Loading...</p>
+      <div className="publish-ride-page">
+        <div className="pr-loading">
+          <div className="pr-loading-spinner" />
+          <p className="pr-loading-text">Loading event...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={s.page}>
+    <div className="publish-ride-page">
+      {/* Submitting Overlay */}
+      {submitting && (
+        <div className="pr-submitting">
+          <div className="pr-submitting-icon">🚗</div>
+          <p className="pr-submitting-text">
+            {isOffer ? 'Publishing your ride...' : 'Sending your request...'}
+          </p>
+          <p className="pr-submitting-subtext">Please wait</p>
+        </div>
+      )}
+
       {/* Header */}
-      <header style={s.header}>
-        <button style={s.backBtn} onClick={() => navigate(`/event/${eventCode}`)}>← Back</button>
-        <div style={{ flex: 1 }}>
-          <span style={s.badge}>{isOffer ? '🚗 Offer a Ride' : '🙋 Need a Ride'}</span>
-          <h1 style={s.title}>{event?.event_name}</h1>
+      <header className="pr-header">
+        <div className="pr-header-inner">
+          <button className="pr-back-btn" onClick={goBack}>
+            <ArrowLeftIcon />
+            <span>Back</span>
+          </button>
+          
+          <div className="pr-header-info">
+            <span className={`pr-mode-badge ${!isOffer ? 'request' : ''}`}>
+              {isOffer ? '🚗 Offer a Ride' : '🙋 Need a Ride'}
+            </span>
+            <h1 className="pr-header-title">{event?.event_name}</h1>
+          </div>
         </div>
       </header>
 
-      <div style={s.container}>
-        {/* Event Location */}
-        <div style={s.destCard}>
-          <span style={{ fontSize: '28px' }}>📍</span>
-          <div>
-            <span style={s.destLabel}>Event Location</span>
-            <div style={s.destAddr}>{event?.event_location}</div>
+      {/* Main Content */}
+      <main className="pr-content">
+        {/* Destination Card */}
+        <div className="pr-destination">
+          <div className="pr-destination-icon">📍</div>
+          <div className="pr-destination-info">
+            <span className="pr-destination-label">Event Location</span>
+            <div className="pr-destination-address">{event?.event_location}</div>
           </div>
         </div>
 
-        {/* 1. Personal Info */}
-        <div style={s.card}>
-          <div style={s.cardTitle}>👤 Your Information</div>
-          
-          <div style={s.row}>
-            <div>
-              <label style={s.label}>Name <span style={s.required}>*</span></label>
-              <input style={{...s.input, marginBottom: 0}} type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" />
-            </div>
-            <div>
-              <label style={s.label}>Phone <span style={s.required}>*</span></label>
-              <input style={{...s.input, marginBottom: 0}} type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+972..." />
+        {/* Section 1: Personal Info */}
+        <section className="pr-section">
+          <div className="pr-section-header">
+            <div className="pr-section-icon">👤</div>
+            <div className="pr-section-title">
+              <h3>Your Information</h3>
+              <p>Let others know who you are</p>
             </div>
           </div>
-
-          <label style={{...s.label, marginTop: '16px'}}>Email</label>
-          <input style={s.input} type="email" name="email" value={formData.email} onChange={handleChange} placeholder="your@email.com" />
-
-          <label style={s.label}>Gender <span style={s.required}>*</span></label>
-          <div style={s.optionsRow}>
-            <button type="button" style={s.optionBtn(formData.gender === 'male')} onClick={() => setFormData(p => ({ ...p, gender: 'male' }))}>👨 Male</button>
-            <button type="button" style={s.optionBtn(formData.gender === 'female')} onClick={() => setFormData(p => ({ ...p, gender: 'female' }))}>👩 Female</button>
-          </div>
-        </div>
-
-        {/* 2. Location & Route */}
-        <div style={s.card}>
-          <div style={s.cardTitle}>📍 Your Location</div>
-          
-          <Suspense fallback={<div style={s.mapLoading}>Loading map...</div>}>
-            <MapLocationPicker
-              value={formData.pickupLocation}
-              onChange={(val) => setFormData(p => ({ ...p, pickupLocation: val }))}
-              onLocationSelect={handleLocationSelect}
-              placeholder="Search for your location..."
-            />
-          </Suspense>
-
-          {/* Route Preview */}
-          {formData.pickupLat && formData.pickupLng && event?.event_location && (
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', marginBottom: '10px' }}>🗺️ Route to Event</div>
-              <Suspense fallback={<div style={s.mapLoading}>Loading route...</div>}>
-                <RouteMap
-                  origin={{ address: formData.pickupLocation, lat: formData.pickupLat, lng: formData.pickupLng }}
-                  destination={event.event_location}
-                  height="180px"
-                  showDirections={true}
-                  onRouteCalculated={handleRouteCalculated}
+          <div className="pr-section-body">
+            <div className="pr-row">
+              <div className="pr-field">
+                <label className="pr-label">
+                  Name <span className="pr-required">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  className="pr-input"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Your full name"
                 />
-              </Suspense>
-              {routeDistance && (
-                <div style={s.routeInfo}>
-                  📏 <strong>{routeDistance.toFixed(1)} km</strong> to {event?.event_name}
+              </div>
+              <div className="pr-field">
+                <label className="pr-label">
+                  Phone <span className="pr-required">*</span>
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  className="pr-input"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="+972 50-123-4567"
+                />
+              </div>
+            </div>
+
+            <div className="pr-field">
+              <label className="pr-label">Email</label>
+              <input
+                type="email"
+                name="email"
+                className="pr-input"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="your@email.com"
+              />
+            </div>
+
+            <div className="pr-field">
+              <label className="pr-label">
+                Gender <span className="pr-required">*</span>
+              </label>
+              <div className="pr-options">
+                <button
+                  type="button"
+                  className={`pr-option ${formData.gender === 'male' ? 'selected' : ''}`}
+                  onClick={() => updateField('gender', 'male')}
+                >
+                  <span className="pr-option-icon">👨</span>
+                  Male
+                </button>
+                <button
+                  type="button"
+                  className={`pr-option ${formData.gender === 'female' ? 'selected' : ''}`}
+                  onClick={() => updateField('gender', 'female')}
+                >
+                  <span className="pr-option-icon">👩</span>
+                  Female
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 2: Location */}
+        <section className="pr-section">
+          <div className="pr-section-header">
+            <div className="pr-section-icon">📍</div>
+            <div className="pr-section-title">
+              <h3>Your Location</h3>
+              <p>Where will you {isOffer ? 'start from' : 'be picked up'}?</p>
+            </div>
+          </div>
+          <div className="pr-section-body">
+            <Suspense fallback={
+              <div className="pr-map-loading">
+                <div className="pr-map-loading-spinner" />
+                <p className="pr-map-loading-text">Loading map...</p>
+              </div>
+            }>
+              <div className="pr-map-container">
+                <MapLocationPicker
+                  value={formData.pickupLocation}
+                  onChange={(val) => updateField('pickupLocation', val)}
+                  onLocationSelect={handleLocationSelect}
+                  placeholder="Search for your location..."
+                />
+              </div>
+            </Suspense>
+
+            {/* Route Preview */}
+            {formData.pickupLat && formData.pickupLng && event?.event_location && (
+              <div style={{ marginTop: '16px' }}>
+                <Suspense fallback={
+                  <div className="pr-map-loading">
+                    <div className="pr-map-loading-spinner" />
+                    <p className="pr-map-loading-text">Calculating route...</p>
+                  </div>
+                }>
+                  <div className="pr-map-container">
+                    <RouteMap
+                      origin={{ 
+                        address: formData.pickupLocation, 
+                        lat: formData.pickupLat, 
+                        lng: formData.pickupLng 
+                      }}
+                      destination={
+                        event.location_lat && event.location_lng
+                          ? { address: event.event_location, lat: event.location_lat, lng: event.location_lng }
+                          : event.event_location
+                      }
+                      height="180px"
+                      showDirections={true}
+                      onRouteCalculated={handleRouteCalculated}
+                    />
+                  </div>
+                </Suspense>
+                
+                {(routeDistance || routeDuration) && (
+                  <div className="pr-route-info">
+                    {routeDistance && (
+                      <>
+                        <span className="pr-route-icon">🛣️</span>
+                        <span className="pr-route-distance">
+                          {typeof routeDistance === 'number' ? `${routeDistance.toFixed(1)} km` : routeDistance}
+                        </span>
+                      </>
+                    )}
+                    {routeDuration && (
+                      <>
+                        <span className="pr-route-separator">•</span>
+                        <span className="pr-route-icon">⏱️</span>
+                        <span className="pr-route-duration">{routeDuration}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Section 3: Trip Details */}
+        <section className="pr-section">
+          <div className="pr-section-header">
+            <div className="pr-section-icon">🚗</div>
+            <div className="pr-section-title">
+              <h3>Trip Details</h3>
+              <p>Configure your ride preferences</p>
+            </div>
+          </div>
+          <div className="pr-section-body">
+            <div className="pr-field">
+              <label className="pr-label">Trip Direction</label>
+              <div className="pr-options">
+                {[
+                  { value: 'going', icon: '➡️', label: 'Going' },
+                  { value: 'return', icon: '⬅️', label: 'Return' },
+                  { value: 'both', icon: '↔️', label: 'Both' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`pr-option ${formData.tripType === opt.value ? 'selected' : ''}`}
+                    onClick={() => updateField('tripType', opt.value)}
+                  >
+                    <span className="pr-option-icon">{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pr-field">
+              <label className="pr-label">
+                {isOffer ? 'Available Seats' : 'Passengers'}
+              </label>
+              <div className="pr-seats">
+                {(isOffer ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4]).map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={`pr-seat ${
+                      (isOffer ? formData.seats === String(n) : formData.passengerCount === n) 
+                        ? 'selected' 
+                        : ''
+                    }`}
+                    onClick={() => updateField(
+                      isOffer ? 'seats' : 'passengerCount', 
+                      isOffer ? String(n) : n
+                    )}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pr-field">
+              <label className="pr-label">Passenger Preference</label>
+              <div className="pr-options">
+                {[
+                  { value: 'any', icon: '👥', label: 'Anyone' },
+                  { value: 'male', icon: '👨', label: 'Men' },
+                  { value: 'female', icon: '👩', label: 'Women' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`pr-option ${formData.preference === opt.value ? 'selected' : ''}`}
+                    onClick={() => updateField('preference', opt.value)}
+                  >
+                    <span className="pr-option-icon">{opt.icon}</span>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section 4: Payment (Offers Only) */}
+        {isOffer && (
+          <section className="pr-section">
+            <div className="pr-section-header">
+              <div className="pr-section-icon">💰</div>
+              <div className="pr-section-title">
+                <h3>Payment</h3>
+                <p>Set your payment preferences</p>
+              </div>
+            </div>
+            <div className="pr-section-body">
+              <div className="pr-payment-types">
+                {[
+                  { value: 'not_required', icon: '🆓', label: 'Free Ride' },
+                  { value: 'optional', icon: '💝', label: 'Tip Welcome' },
+                  { value: 'obligatory', icon: '💵', label: 'Required' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`pr-payment-type ${formData.paymentRequired === opt.value ? 'selected' : ''}`}
+                    onClick={() => updateField('paymentRequired', opt.value)}
+                  >
+                    <span className="pr-payment-type-icon">{opt.icon}</span>
+                    <span className="pr-payment-type-label">{opt.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {formData.paymentRequired !== 'not_required' && (
+                <div className="pr-payment-details">
+                  {/* Only show amount for obligatory payment (not for tips) */}
+                  {formData.paymentRequired === 'obligatory' && (
+                    <div className="pr-field">
+                      <label className="pr-label">Amount</label>
+                      <div className="pr-price-wrapper">
+                        <span className="pr-price-currency">₪</span>
+                        <input
+                          type="number"
+                          name="paymentAmount"
+                          className="pr-price-input"
+                          value={formData.paymentAmount}
+                          onChange={handleChange}
+                          placeholder="0"
+                          min="0"
+                        />
+                      </div>
+                      {maxPayment > 0 && (
+                        <div className="pr-price-hint">
+                          Suggested max: 
+                          <span className="pr-price-suggested">₪{maxPayment}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="pr-field">
+                    <label className="pr-label">Payment Method</label>
+                    <div className="pr-method-options">
+                      {[
+                        { value: 'cash', icon: '💵', label: 'Cash' },
+                        { value: 'bit', icon: '💳', label: 'Bit' },
+                        { value: 'paybox', icon: '📱', label: 'PayBox' },
+                      ].map(opt => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={`pr-method-btn ${formData.paymentMethod === opt.value ? 'selected' : ''}`}
+                          onClick={() => updateField('paymentMethod', opt.value)}
+                        >
+                          <span>{opt.icon}</span>
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          )}
-        </div>
-
-        {/* 3. Trip Details */}
-        <div style={s.card}>
-          <div style={s.cardTitle}>🚗 Trip Details</div>
-
-          <label style={s.label}>Trip Type</label>
-          <div style={s.optionsRow}>
-            {[['going', '➡️ Going'], ['return', '⬅️ Return'], ['both', '↔️ Both']].map(([val, label]) => (
-              <button key={val} type="button" style={s.optionBtn(formData.tripType === val)} onClick={() => setFormData(p => ({ ...p, tripType: val }))}>{label}</button>
-            ))}
-          </div>
-
-          <label style={s.label}>{isOffer ? 'Available Seats' : 'Passengers Needed'}</label>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-            {(isOffer ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4]).map(n => (
-              <button key={n} type="button" style={s.seatBtn(isOffer ? formData.seats === String(n) : formData.passengerCount === n)} onClick={() => setFormData(p => isOffer ? { ...p, seats: String(n) } : { ...p, passengerCount: n })}>{n}</button>
-            ))}
-          </div>
-
-          <label style={s.label}>Passenger Preference</label>
-          <div style={s.optionsRow}>
-            {[['any', '👥 Anyone'], ['male', '👨 Men Only'], ['female', '👩 Women Only']].map(([val, label]) => (
-              <button key={val} type="button" style={s.optionBtn(formData.preference === val)} onClick={() => setFormData(p => ({ ...p, preference: val }))}>{label}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* 4. Payment (Offers Only) */}
-        {isOffer && (
-          <div style={s.card}>
-            <div style={s.cardTitle}>💰 Payment</div>
-
-            <label style={s.label}>Payment Type</label>
-            <div style={s.optionsRow}>
-              {[['not_required', '🆓 Free'], ['optional', '💝 Tip Welcome'], ['obligatory', '💵 Required']].map(([val, label]) => (
-                <button key={val} type="button" style={s.optionBtn(formData.paymentRequired === val)} onClick={() => setFormData(p => ({ ...p, paymentRequired: val }))}>{label}</button>
-              ))}
-            </div>
-
-            {formData.paymentRequired !== 'not_required' && (
-              <>
-                <div style={s.priceRow}>
-                  <div style={{ flex: 1 }}>
-                    <label style={s.label}>Amount (₪)</label>
-                    <input
-                      style={s.priceInput}
-                      type="number"
-                      name="paymentAmount"
-                      value={formData.paymentAmount}
-                      onChange={handleChange}
-                      placeholder="0"
-                      min="0"
-                    />
-                    {maxPayment > 0 && <div style={s.priceHint}>Suggested max: ₪{maxPayment} (based on {routeDistance?.toFixed(1)} km)</div>}
-                  </div>
-                </div>
-
-                <label style={{...s.label, marginTop: '16px'}}>Payment Method</label>
-                <div style={s.optionsRow}>
-                  {[['cash', '💵 Cash'], ['bit', '💳 Bit'], ['paybox', '📱 PayBox']].map(([val, label]) => (
-                    <button key={val} type="button" style={s.optionBtn(formData.paymentMethod === val)} onClick={() => setFormData(p => ({ ...p, paymentMethod: val }))}>{label}</button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          </section>
         )}
 
-        {/* 5. Notes */}
-        <div style={s.card}>
-          <div style={s.cardTitle}>📝 Additional Notes</div>
-          <textarea
-            style={s.textarea}
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder={isOffer ? "Car model, meeting point, music preferences..." : "Special requests, flexibility..."}
-          />
-        </div>
-      </div>
+        {/* Section 5: Notes */}
+        <section className="pr-section">
+          <div className="pr-section-header">
+            <div className="pr-section-icon">📝</div>
+            <div className="pr-section-title">
+              <h3>Additional Notes</h3>
+              <p>Anything else to share?</p>
+            </div>
+          </div>
+          <div className="pr-section-body">
+            <textarea
+              name="description"
+              className="pr-textarea"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder={isOffer 
+                ? "Car model, music preferences, meeting point..." 
+                : "Special requests, flexibility with timing..."
+              }
+            />
+          </div>
+        </section>
+      </main>
 
-      {/* Footer */}
-      <div style={s.footer}>
-        <div style={s.footerInner}>
-          <button style={s.cancelBtn} onClick={() => navigate(`/event/${eventCode}`)}>Cancel</button>
-          <button style={{ ...s.publishBtn, opacity: submitting ? 0.6 : 1 }} onClick={handlePublish} disabled={submitting}>
-            {submitting ? 'Publishing...' : (isOffer ? '🚀 Publish Offer' : '🚀 Send Request')}
+      {/* Fixed Footer */}
+      <footer className="pr-footer">
+        <div className="pr-footer-inner">
+          <button className="pr-btn-cancel" onClick={goBack}>
+            Cancel
+          </button>
+          <button 
+            className="pr-btn-publish" 
+            onClick={handlePublish}
+            disabled={submitting}
+          >
+            🚀 {isOffer ? 'Publish Ride' : 'Send Request'}
           </button>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }

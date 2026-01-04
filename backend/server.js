@@ -218,6 +218,8 @@ app.get('/api/event/:eventCode', async (req, res) => {
         event_date: event.event_date,
         event_time: event.event_time,
         event_location: event.event_location,
+        location_lat: event.event_lat || event.location_lat || null,
+        location_lng: event.event_lng || event.location_lng || null,
         is_private: event.is_private
       });
     } else {
@@ -249,6 +251,8 @@ app.get('/api/event/:eventCode', async (req, res) => {
         event_date: event.event_date,
         event_time: event.event_time,
         event_location: event.event_location,
+        location_lat: event.event_lat || null,
+        location_lng: event.event_lng || null,
         is_private: event.is_private,
         participant_count: participantCount
       });
