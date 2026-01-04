@@ -2360,7 +2360,8 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
       account_id: req.account.account_id,
       name: req.account.name,
       phone: req.account.phone,
-      email: req.account.email
+      email: req.account.email,
+      gender: req.account.gender
     }
   });
 });
@@ -2368,7 +2369,7 @@ app.get('/api/auth/me', authenticateToken, (req, res) => {
 // Update account
 app.put('/api/auth/account', authenticateToken, async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, gender } = req.body;
     
     if (name) req.account.name = name.trim();
     if (email) {
@@ -2376,6 +2377,9 @@ app.put('/api/auth/account', authenticateToken, async (req, res) => {
         return res.status(400).json({ message: 'Invalid email format' });
       }
       req.account.email = email.trim().toLowerCase();
+    }
+    if (gender && (gender === 'male' || gender === 'female')) {
+      req.account.gender = gender;
     }
     req.account.updated_at = new Date();
     
@@ -2385,7 +2389,8 @@ app.put('/api/auth/account', authenticateToken, async (req, res) => {
         account_id: req.account.account_id,
         name: req.account.name,
         phone: req.account.phone,
-        email: req.account.email
+        email: req.account.email,
+        gender: req.account.gender
       }
     });
   } catch (error) {
