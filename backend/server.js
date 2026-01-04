@@ -2101,31 +2101,7 @@ app.post('/api/carpool/offer/:offerId/cancel-passenger', authenticateToken, asyn
   }
 });
 
-// =======================
-// ADMIN LOGIN
-// =======================
-
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-
-app.post('/api/admin/login', (req, res) => {
-  const { password } = req.body;
-  
-  if (!password) {
-    return res.status(400).json({ success: false, message: 'Password is required' });
-  }
-  
-  if (password === ADMIN_PASSWORD) {
-    // Generate a simple admin token
-    const adminToken = crypto.randomBytes(32).toString('hex');
-    res.json({ 
-      success: true, 
-      message: 'Login successful',
-      token: adminToken
-    });
-  } else {
-    res.status(401).json({ success: false, message: 'Invalid password' });
-  }
-});
+// Admin login moved to SYSTEM ADMIN PANEL section below
 
 // =======================
 // AUTHENTICATION APIS
@@ -2964,7 +2940,7 @@ app.delete('/api/event/:eventCode/request/:requestId', async (req, res) => {
 // =======================
 
 // Admin password verification
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'trempi2024admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 
 // System admin authentication middleware
 function requireSystemAdmin(req, res, next) {
