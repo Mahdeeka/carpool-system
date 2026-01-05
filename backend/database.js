@@ -85,6 +85,7 @@ async function createTables() {
       location_lat DECIMAL(10, 8),
       location_lng DECIMAL(11, 8),
       event_description TEXT,
+      creator_account_id VARCHAR(50) REFERENCES accounts(account_id) ON DELETE SET NULL,
       creator_phone VARCHAR(50),
       creator_name VARCHAR(255),
       access_code VARCHAR(50),
@@ -253,9 +254,12 @@ async function runMigrations() {
     `ALTER TABLE carpool_offers ADD COLUMN IF NOT EXISTS driver_id VARCHAR(50)`,
     // Add passenger_id to carpool_requests if it doesn't exist
     `ALTER TABLE carpool_requests ADD COLUMN IF NOT EXISTS passenger_id VARCHAR(50)`,
+    // Add creator_account_id to events if it doesn't exist
+    `ALTER TABLE events ADD COLUMN IF NOT EXISTS creator_account_id VARCHAR(50)`,
     // Create indexes for the new columns (after they exist)
     `CREATE INDEX IF NOT EXISTS idx_offers_driver ON carpool_offers(driver_id)`,
     `CREATE INDEX IF NOT EXISTS idx_requests_passenger ON carpool_requests(passenger_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_events_creator ON events(creator_account_id)`,
   ];
 
   for (const migration of migrations) {
@@ -433,10 +437,10 @@ async function cleanupExpiredOTPs() {
 
 async function createEvent(event) {
   const sql = `
-    INSERT INTO events (event_id, event_code, event_name, event_date, event_time, event_location, 
-      location_lat, location_lng, event_description, creator_phone, creator_name, access_code, 
-      is_private, status, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    INSERT INTO events (event_id, event_code, event_name, event_date, event_time, event_location,
+      location_lat, location_lng, event_description, creator_account_id, creator_phone, creator_name,
+      access_code, is_private, status, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     RETURNING *
   `;
   const result = await query(sql, [
@@ -449,6 +453,7 @@ async function createEvent(event) {
     event.location_lat || null,
     event.location_lng || null,
     event.event_description || null,
+    event.creator_account_id || null,
     event.creator_phone || null,
     event.creator_name || null,
     event.access_code || null,
