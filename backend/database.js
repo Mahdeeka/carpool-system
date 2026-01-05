@@ -113,6 +113,7 @@ async function createTables() {
       departure_time TIME,
       trip_type VARCHAR(20) DEFAULT 'to_event',
       notes TEXT,
+      description TEXT,
       preference VARCHAR(50),
       payment_required VARCHAR(20) DEFAULT 'free',
       payment_amount DECIMAL(10, 2),
@@ -208,6 +209,7 @@ async function createTables() {
       status VARCHAR(20) DEFAULT 'pending',
       initiated_by VARCHAR(20),
       message TEXT,
+      confirmed_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
@@ -252,10 +254,14 @@ async function runMigrations() {
   const migrations = [
     // Add driver_id to carpool_offers if it doesn't exist
     `ALTER TABLE carpool_offers ADD COLUMN IF NOT EXISTS driver_id VARCHAR(50)`,
+    // Add description to carpool_offers if it doesn't exist
+    `ALTER TABLE carpool_offers ADD COLUMN IF NOT EXISTS description TEXT`,
     // Add passenger_id to carpool_requests if it doesn't exist
     `ALTER TABLE carpool_requests ADD COLUMN IF NOT EXISTS passenger_id VARCHAR(50)`,
     // Add creator_account_id to events if it doesn't exist
     `ALTER TABLE events ADD COLUMN IF NOT EXISTS creator_account_id VARCHAR(50)`,
+    // Add confirmed_at to matches if it doesn't exist
+    `ALTER TABLE matches ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMP`,
     // Create indexes for the new columns (after they exist)
     `CREATE INDEX IF NOT EXISTS idx_offers_driver ON carpool_offers(driver_id)`,
     `CREATE INDEX IF NOT EXISTS idx_requests_passenger ON carpool_requests(passenger_id)`,
@@ -514,15 +520,16 @@ async function deleteEvent(eventId) {
 
 async function createOffer(offer) {
   const sql = `
-    INSERT INTO carpool_offers (offer_id, event_id, owner_account_id, name, phone, email, gender,
+    INSERT INTO carpool_offers (offer_id, event_id, driver_id, owner_account_id, name, phone, email, gender,
       pickup_location, pickup_lat, pickup_lng, total_seats, available_seats, departure_time,
-      trip_type, notes, preference, payment_required, payment_amount, payment_method, status, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      trip_type, description, preference, payment_required, payment_amount, payment_method, status, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
     RETURNING *
   `;
   const result = await query(sql, [
     offer.offer_id,
     offer.event_id,
+    offer.driver_id || null,
     offer.owner_account_id || null,
     offer.name,
     offer.phone,
@@ -535,7 +542,7 @@ async function createOffer(offer) {
     offer.available_seats || offer.total_seats || 1,
     offer.departure_time || null,
     offer.trip_type || 'to_event',
-    offer.notes || null,
+    offer.description || offer.notes || null,
     offer.preference || null,
     offer.payment_required || 'free',
     offer.payment_amount || null,
@@ -601,14 +608,15 @@ async function deleteOffer(offerId) {
 
 async function createRequest(request) {
   const sql = `
-    INSERT INTO carpool_requests (request_id, event_id, owner_account_id, name, phone, email, gender,
+    INSERT INTO carpool_requests (request_id, event_id, passenger_id, owner_account_id, name, phone, email, gender,
       pickup_location, pickup_lat, pickup_lng, passenger_count, trip_type, notes, preference, status, created_at, updated_at)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
     RETURNING *
   `;
   const result = await query(sql, [
     request.request_id,
     request.event_id,
+    request.passenger_id || null,
     request.owner_account_id || null,
     request.name,
     request.phone,

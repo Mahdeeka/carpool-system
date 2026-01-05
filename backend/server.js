@@ -1223,7 +1223,7 @@ app.post('/api/carpool/offer', createLimiter, async (req, res) => {
 
         // Insert offer with owner_account_id
         await client.query(
-          'INSERT INTO carpool_offers (offer_id, driver_id, event_id, owner_account_id, name, phone, email, total_seats, available_seats, notes, trip_type, preference, gender, payment_required, payment_amount, payment_method, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)',
+          'INSERT INTO carpool_offers (offer_id, driver_id, event_id, owner_account_id, name, phone, email, total_seats, available_seats, description, trip_type, preference, gender, payment_required, payment_amount, payment_method, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)',
           [offerId, userId, event_id, account?.account_id || null, sanitizedName, sanitizedPhone, sanitizedEmail, total_seats, total_seats, sanitizedDescription, trip_type || 'to_event', preference || 'any', gender || account?.gender || null, payment_required || 'free', payment_amount || null, payment_method || null, 'active', new Date(), new Date()]
         );
 
