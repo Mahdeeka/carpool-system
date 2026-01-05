@@ -597,8 +597,12 @@ const corsOptions = {
         const allowedOrigins = [
           process.env.FRONTEND_URL,
           process.env.ALLOWED_ORIGIN,
+          'https://trempi.com',
+          'https://www.trempi.com',
           'https://trempi.co.il',
-          'https://www.trempi.co.il'
+          'https://www.trempi.co.il',
+          'https://carpool-system.vercel.app',
+          'https://trempi.vercel.app'
         ].filter(Boolean);
         if (allowedOrigins.includes(origin)) {
           return callback(null, true);
