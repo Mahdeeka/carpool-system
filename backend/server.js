@@ -181,16 +181,15 @@ const getPool = () => database.getPool();
 const dbHelpers = {
   // Accounts
   async createAccount(account) {
-    // Always push to in-memory for legacy code compatibility
-    db.accounts.push(account);
-    
     if (useDatabase) {
-      try {
-        await database.createAccount(account);
-      } catch (err) {
-        console.error('Error saving account to database:', err.message);
-      }
+      // When using database, save to DB first (throws on error)
+      const result = await database.createAccount(account);
+      // Also keep in memory for legacy compatibility
+      db.accounts.push(account);
+      return result || account;
     }
+    // In-memory only mode
+    db.accounts.push(account);
     return account;
   },
   
@@ -228,16 +227,15 @@ const dbHelpers = {
   
   // Sessions
   async createSession(session) {
-    // Always push to in-memory for legacy code compatibility
-    db.sessions.push(session);
-    
     if (useDatabase) {
-      try {
-        await database.createSession(session);
-      } catch (err) {
-        console.error('Error saving session to database:', err.message);
-      }
+      // When using database, save to DB first (throws on error)
+      const result = await database.createSession(session);
+      // Also keep in memory for legacy compatibility
+      db.sessions.push(session);
+      return result || session;
     }
+    // In-memory only mode
+    db.sessions.push(session);
     return session;
   },
   
@@ -297,16 +295,15 @@ const dbHelpers = {
   
   // Events
   async createEvent(event) {
-    // Always push to in-memory for legacy code compatibility
-    db.events.push(event);
-    
     if (useDatabase) {
-      try {
-        await database.createEvent(event);
-      } catch (err) {
-        console.error('Error saving event to database:', err.message);
-      }
+      // When using database, save to DB first (throws on error)
+      const result = await database.createEvent(event);
+      // Also keep in memory for legacy compatibility
+      db.events.push(event);
+      return result || event;
     }
+    // In-memory only mode
+    db.events.push(event);
     return event;
   },
   
@@ -352,16 +349,15 @@ const dbHelpers = {
   
   // Offers
   async createOffer(offer) {
-    // Always push to in-memory for legacy code compatibility
-    db.carpool_offers.push(offer);
-    
     if (useDatabase) {
-      try {
-        await database.createOffer(offer);
-      } catch (err) {
-        console.error('Error saving offer to database:', err.message);
-      }
+      // When using database, save to DB first (throws on error)
+      const result = await database.createOffer(offer);
+      // Also keep in memory for legacy compatibility
+      db.carpool_offers.push(offer);
+      return result || offer;
     }
+    // In-memory only mode
+    db.carpool_offers.push(offer);
     return offer;
   },
   
@@ -414,16 +410,15 @@ const dbHelpers = {
   
   // Requests
   async createRequest(request) {
-    // Always push to in-memory for legacy code compatibility
-    db.carpool_requests.push(request);
-    
     if (useDatabase) {
-      try {
-        await database.createRequest(request);
-      } catch (err) {
-        console.error('Error saving request to database:', err.message);
-      }
+      // When using database, save to DB first (throws on error)
+      const result = await database.createRequest(request);
+      // Also keep in memory for legacy compatibility
+      db.carpool_requests.push(request);
+      return result || request;
     }
+    // In-memory only mode
+    db.carpool_requests.push(request);
     return request;
   },
   
