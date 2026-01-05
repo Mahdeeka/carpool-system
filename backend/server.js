@@ -111,6 +111,16 @@ function generateSessionToken() {
 // Check if PostgreSQL is configured and initialize database
 let useDatabase = false;
 
+// Helper to safely get database pool - returns null if not available
+function safeGetPool() {
+  const pool = database.getPool();
+  if (!pool) {
+    console.warn('⚠️ Database pool not available');
+    return null;
+  }
+  return pool;
+}
+
 async function initializeDatabaseConnection() {
   if (process.env.DATABASE_URL) {
     const pool = database.initDatabase();
@@ -576,9 +586,26 @@ async function getAccountFromToken(token) {
   return account;
 }
 
-// Middleware - CORS configuration - Allow all origins for now
-app.use(cors({
-  origin: true, // Allow all origins
+// Middleware - CORS configuration
+// In production, restrict to specific origins; in development, allow all
+const corsOptions = {
+  origin: isProduction
+    ? (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        // Allow same-origin requests and trusted domains
+        const allowedOrigins = [
+          process.env.FRONTEND_URL,
+          process.env.ALLOWED_ORIGIN,
+          'https://trempi.co.il',
+          'https://www.trempi.co.il'
+        ].filter(Boolean);
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        callback(new Error('Not allowed by CORS'));
+      }
+    : true, // Allow all origins in development
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Token', 'X-Requested-With', 'Accept'],
@@ -586,7 +613,8 @@ app.use(cors({
   maxAge: 86400, // 24 hours
   preflightContinue: false,
   optionsSuccessStatus: 204
-}));
+};
+app.use(cors(corsOptions));
 
 // Handle preflight requests explicitly
 app.options('*', cors());
@@ -971,9 +999,11 @@ app.post('/api/event', async (req, res) => {
     const token = authHeader && authHeader.split(' ')[1];
     let account = null;
     
-    console.log('=== CREATE EVENT ===');
-    console.log('Auth header present:', !!authHeader);
-    console.log('Token extracted:', token ? token.substring(0, 10) + '...' : 'none');
+    // Debug logging (only in development)
+    if (!isProduction) {
+      console.log('=== CREATE EVENT ===');
+      console.log('Auth header present:', !!authHeader);
+    }
     
     if (token) {
       // Check in-memory first
@@ -982,24 +1012,18 @@ app.post('/api/event', async (req, res) => {
       // If not in memory, check database
       if (!session && useDatabase) {
         session = await dbHelpers.findSessionByToken(token);
-        console.log('Session from database:', !!session);
       }
-      
-      console.log('Session found:', !!session);
+
       if (session) {
         // Get account from database
         account = await dbHelpers.findAccountById(session.account_id);
-        console.log('Account found:', account ? account.name : 'none');
       }
     }
-    
+
     // Require authentication for event creation
     if (!account) {
-      console.log('No valid account - rejecting event creation');
       return res.status(401).json({ message: 'Authentication required to create events. Please login first.' });
     }
-    
-    console.log('Creating event for account:', account.account_id, account.name);
     
     // Generate shareable link
     const shareableLink = `/event/${eventCode}`;
@@ -1024,7 +1048,9 @@ app.post('/api/event', async (req, res) => {
     };
       
     await dbHelpers.createEvent(eventData);
-      console.log('Event created:', { eventId, eventCode, creator: account.account_id });
+      if (!isProduction) {
+        console.log('Event created:', { eventId, eventCode });
+      }
     
     res.json({ 
       event_id: eventId, 
@@ -1140,43 +1166,79 @@ app.get('/api/admin/event/:eventId/stats', authenticateToken, requireEventAdmin,
 // =======================
 
 // Create offer - supports both authenticated and anonymous (legacy) modes
-app.post('/api/carpool/offer', async (req, res) => {
+app.post('/api/carpool/offer', createLimiter, async (req, res) => {
   try {
     const { event_id, name, phone, email, total_seats, description, trip_type, privacy, preference, locations, gender, hide_name, hide_phone, hide_email, payment_required, payment_amount, payment_method } = req.body;
+
+    // Input validation
+    if (!event_id) {
+      return res.status(400).json({ message: 'Event ID is required' });
+    }
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+    if (!phone || typeof phone !== 'string') {
+      return res.status(400).json({ message: 'Phone is required' });
+    }
+    if (!locations || !Array.isArray(locations) || locations.length === 0) {
+      return res.status(400).json({ message: 'At least one location is required' });
+    }
+    if (!total_seats || total_seats < 1) {
+      return res.status(400).json({ message: 'Total seats must be at least 1' });
+    }
+
+    // Sanitize inputs
+    const sanitizedName = name.trim().substring(0, 255);
+    const sanitizedPhone = formatPhoneNumber(phone);
+    const sanitizedEmail = email ? email.trim().toLowerCase().substring(0, 255) : null;
+    const sanitizedDescription = description ? description.trim().substring(0, 1000) : null;
+
+    // Verify event exists
+    const event = await dbHelpers.findEventById(event_id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
     const offerId = generateId('offer');
     const userId = generateId('user');
-    
+
     // Check for authentication token
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     let account = await getAccountFromToken(token);
-    
+
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        
+
         // Insert user
         await client.query(
           'INSERT INTO users (user_id, event_id, name, phone, email, role) VALUES ($1, $2, $3, $4, $5, $6)',
-          [userId, event_id, account?.name || name, account?.phone || phone, account?.email || email, 'driver']
+          [userId, event_id, account?.name || sanitizedName, account?.phone || sanitizedPhone, account?.email || sanitizedEmail, 'driver']
         );
-        
-        // Insert offer
+
+        // Insert offer with owner_account_id
         await client.query(
-          'INSERT INTO carpool_offers (offer_id, driver_id, event_id, total_seats, available_seats, description, trip_type, privacy) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-          [offerId, userId, event_id, total_seats, total_seats, description, trip_type, privacy]
+          'INSERT INTO carpool_offers (offer_id, driver_id, event_id, owner_account_id, name, phone, email, total_seats, available_seats, notes, trip_type, preference, gender, payment_required, payment_amount, payment_method, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)',
+          [offerId, userId, event_id, account?.account_id || null, sanitizedName, sanitizedPhone, sanitizedEmail, total_seats, total_seats, sanitizedDescription, trip_type || 'to_event', preference || 'any', gender || account?.gender || null, payment_required || 'free', payment_amount || null, payment_method || null, 'active', new Date(), new Date()]
         );
-        
+
         // Insert locations
         for (let i = 0; i < locations.length; i++) {
           const loc = locations[i];
-          await client.query(
-            'INSERT INTO offer_locations (offer_id, location_address, trip_direction, time_type, specific_time, sort_order) VALUES ($1, $2, $3, $4, $5, $6)',
-            [offerId, loc.location_address, loc.trip_direction, loc.time_type, loc.specific_time, i]
-          );
+          if (loc && loc.location_address) {
+            await client.query(
+              'INSERT INTO offer_locations (offer_id, location_address, trip_direction, time_type, specific_time, sort_order) VALUES ($1, $2, $3, $4, $5, $6)',
+              [offerId, loc.location_address.substring(0, 500), loc.trip_direction, loc.time_type, loc.specific_time, i]
+            );
+          }
         }
-        
+
         await client.query('COMMIT');
         res.json({ offer_id: offerId, user_id: userId, success: true });
       } catch (error) {
@@ -1190,25 +1252,25 @@ app.post('/api/carpool/offer', async (req, res) => {
       db.users.push({
         user_id: userId,
         event_id,
-        name: account?.name || name,
-        phone: account?.phone || phone,
-        email: account?.email || email,
+        name: account?.name || sanitizedName,
+        phone: account?.phone || sanitizedPhone,
+        email: account?.email || sanitizedEmail,
         role: 'driver',
         created_at: new Date()
       });
-      
+
       db.carpool_offers.push({
         offer_id: offerId,
         driver_id: userId,
-        account_id: account?.account_id || null, // Link to account if authenticated
+        owner_account_id: account?.account_id || null, // Consistent with database schema
         event_id,
-        name: name, // Store the actual name
-        phone: phone, // Store the actual phone
-        email: email, // Store the email
+        name: sanitizedName,
+        phone: sanitizedPhone,
+        email: sanitizedEmail,
         total_seats,
         available_seats: total_seats,
-        description,
-        trip_type,
+        description: sanitizedDescription,
+        trip_type: trip_type || 'to_event',
         privacy,
         preference: preference || 'any',
         gender: gender || account?.gender || null,
@@ -1222,19 +1284,21 @@ app.post('/api/carpool/offer', async (req, res) => {
         created_at: new Date(),
         updated_at: new Date()
       });
-      
+
       locations.forEach((loc, i) => {
-        db.offer_locations.push({
-          location_id: db.offer_locations.length + 1,
-          offer_id: offerId,
-          location_address: loc.location_address,
-          trip_direction: loc.trip_direction,
-          time_type: loc.time_type,
-          specific_time: loc.specific_time,
-          sort_order: i
-        });
+        if (loc && loc.location_address) {
+          db.offer_locations.push({
+            location_id: db.offer_locations.length + 1,
+            offer_id: offerId,
+            location_address: loc.location_address.substring(0, 500),
+            trip_direction: loc.trip_direction,
+            time_type: loc.time_type,
+            specific_time: loc.specific_time,
+            sort_order: i
+          });
+        }
       });
-      
+
       res.json({ offer_id: offerId, user_id: userId, success: true });
     }
   } catch (error) {
@@ -1365,9 +1429,23 @@ app.post('/api/carpool/offer/:offerId/accept-request', authenticateToken, async 
     }
 
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
+
+        // Use FOR UPDATE to prevent race condition
+        const checkResult = await client.query(
+          'SELECT available_seats FROM carpool_offers WHERE offer_id = $1 FOR UPDATE',
+          [offerId]
+        );
+        if (checkResult.rows.length === 0 || checkResult.rows[0].available_seats <= 0) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({ message: 'No seats available' });
+        }
 
         await client.query(
           'UPDATE matches SET status = $1, confirmed_at = NOW() WHERE offer_id = $2 AND request_id = $3',
@@ -1388,7 +1466,7 @@ app.post('/api/carpool/offer/:offerId/accept-request', authenticateToken, async 
         client.release();
       }
     } else {
-      // In-memory storage
+      // In-memory storage with race condition protection
       const match = db.matches.find(m => m.offer_id === offerId && m.request_id === request_id);
       if (match) {
         match.status = 'confirmed';
@@ -1523,47 +1601,79 @@ app.post('/api/carpool/offer/:offerId/send-invitation', authenticateToken, async
 // =======================
 
 // Create request - supports both authenticated and anonymous (legacy) modes
-app.post('/api/carpool/request', async (req, res) => {
+app.post('/api/carpool/request', createLimiter, async (req, res) => {
   try {
     const { event_id, name, phone, email, trip_type, preference, locations, gender, hide_name, hide_phone, hide_email, passenger_count } = req.body;
+
+    // Input validation
+    if (!event_id) {
+      return res.status(400).json({ message: 'Event ID is required' });
+    }
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+    if (!phone || typeof phone !== 'string') {
+      return res.status(400).json({ message: 'Phone is required' });
+    }
+    if (!locations || !Array.isArray(locations) || locations.length === 0) {
+      return res.status(400).json({ message: 'At least one location is required' });
+    }
+
+    // Sanitize inputs
+    const sanitizedName = name.trim().substring(0, 255);
+    const sanitizedPhone = formatPhoneNumber(phone);
+    const sanitizedEmail = email ? email.trim().toLowerCase().substring(0, 255) : null;
+
+    // Verify event exists
+    const event = await dbHelpers.findEventById(event_id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
     const requestId = generateId('request');
     const userId = generateId('user');
-    
+
     // Check for authentication token
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     let account = null;
-    
+
     if (token) {
       account = await getAccountFromToken(token);
     }
-    
+
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        
+
         // Insert user
         await client.query(
           'INSERT INTO users (user_id, event_id, name, phone, email, role) VALUES ($1, $2, $3, $4, $5, $6)',
-          [userId, event_id, account?.name || name, account?.phone || phone, account?.email || email, 'passenger']
+          [userId, event_id, account?.name || sanitizedName, account?.phone || sanitizedPhone, account?.email || sanitizedEmail, 'passenger']
         );
-        
-        // Insert request
+
+        // Insert request with owner_account_id
         await client.query(
-          'INSERT INTO carpool_requests (request_id, passenger_id, event_id, trip_type) VALUES ($1, $2, $3, $4)',
-          [requestId, userId, event_id, trip_type]
+          'INSERT INTO carpool_requests (request_id, passenger_id, event_id, owner_account_id, name, phone, email, trip_type, preference, gender, passenger_count, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
+          [requestId, userId, event_id, account?.account_id || null, sanitizedName, sanitizedPhone, sanitizedEmail, trip_type || 'to_event', preference || 'any', gender || account?.gender || null, passenger_count || 1, 'active', new Date(), new Date()]
         );
-        
+
         // Insert locations
         for (let i = 0; i < locations.length; i++) {
           const loc = locations[i];
-          await client.query(
-            'INSERT INTO request_locations (request_id, location_address, trip_direction, time_type, specific_time, sort_order) VALUES ($1, $2, $3, $4, $5, $6)',
-            [requestId, loc.location_address, loc.trip_direction, loc.time_type, loc.specific_time, i]
-          );
+          if (loc && loc.location_address) {
+            await client.query(
+              'INSERT INTO request_locations (request_id, location_address, trip_direction, time_type, specific_time, sort_order) VALUES ($1, $2, $3, $4, $5, $6)',
+              [requestId, loc.location_address.substring(0, 500), loc.trip_direction, loc.time_type, loc.specific_time, i]
+            );
+          }
         }
-        
+
         await client.query('COMMIT');
         res.json({ request_id: requestId, user_id: userId, success: true });
       } catch (error) {
@@ -1577,22 +1687,22 @@ app.post('/api/carpool/request', async (req, res) => {
       db.users.push({
         user_id: userId,
         event_id,
-        name: account?.name || name,
-        phone: account?.phone || phone,
-        email: account?.email || email,
+        name: account?.name || sanitizedName,
+        phone: account?.phone || sanitizedPhone,
+        email: account?.email || sanitizedEmail,
         role: 'passenger',
         created_at: new Date()
       });
-      
+
       db.carpool_requests.push({
         request_id: requestId,
         passenger_id: userId,
-        account_id: account?.account_id || null, // Link to account if authenticated
+        owner_account_id: account?.account_id || null, // Consistent with database schema
         event_id,
-        name: name, // Store the actual name
-        phone: phone, // Store the actual phone
-        email: email, // Store the email
-        trip_type,
+        name: sanitizedName,
+        phone: sanitizedPhone,
+        email: sanitizedEmail,
+        trip_type: trip_type || 'to_event',
         preference: preference || 'any',
         gender: gender || account?.gender || null,
         hide_name: hide_name || false,
@@ -1603,19 +1713,21 @@ app.post('/api/carpool/request', async (req, res) => {
         created_at: new Date(),
         updated_at: new Date()
       });
-      
+
       locations.forEach((loc, i) => {
-        db.request_locations.push({
-          location_id: db.request_locations.length + 1,
-          request_id: requestId,
-          location_address: loc.location_address,
-          trip_direction: loc.trip_direction,
-          time_type: loc.time_type,
-          specific_time: loc.specific_time,
-          sort_order: i
-        });
+        if (loc && loc.location_address) {
+          db.request_locations.push({
+            location_id: db.request_locations.length + 1,
+            request_id: requestId,
+            location_address: loc.location_address.substring(0, 500),
+            trip_direction: loc.trip_direction,
+            time_type: loc.time_type,
+            specific_time: loc.specific_time,
+            sort_order: i
+          });
+        }
       });
-      
+
       res.json({ request_id: requestId, user_id: userId, success: true });
     }
   } catch (error) {
@@ -1825,25 +1937,44 @@ app.post('/api/carpool/request/:requestId/accept-invitation', async (req, res) =
   try {
     const { requestId } = req.params;
     const { match_id } = req.body;
-    
+
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        
+
+        // Get offer_id and use FOR UPDATE to prevent race condition
+        const matchResult = await client.query('SELECT offer_id FROM matches WHERE match_id = $1', [match_id]);
+        if (matchResult.rows.length === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ message: 'Match not found' });
+        }
+        const offerId = matchResult.rows[0].offer_id;
+
+        // Lock and check available seats
+        const checkResult = await client.query(
+          'SELECT available_seats FROM carpool_offers WHERE offer_id = $1 FOR UPDATE',
+          [offerId]
+        );
+        if (checkResult.rows.length === 0 || checkResult.rows[0].available_seats <= 0) {
+          await client.query('ROLLBACK');
+          return res.status(400).json({ message: 'No seats available' });
+        }
+
         await client.query(
           'UPDATE matches SET status = $1, confirmed_at = NOW() WHERE match_id = $2',
           ['confirmed', match_id]
         );
-        
-        // Get offer_id from match
-        const matchResult = await client.query('SELECT offer_id FROM matches WHERE match_id = $1', [match_id]);
-        
+
         await client.query(
-          'UPDATE carpool_offers SET available_seats = available_seats - 1 WHERE offer_id = $1',
-          [matchResult.rows[0].offer_id]
+          'UPDATE carpool_offers SET available_seats = GREATEST(available_seats - 1, 0) WHERE offer_id = $1',
+          [offerId]
         );
-        
+
         await client.query('COMMIT');
         res.json({ success: true });
       } catch (error) {
@@ -1859,7 +1990,7 @@ app.post('/api/carpool/request/:requestId/accept-invitation', async (req, res) =
         match.status = 'confirmed';
         match.confirmed_at = new Date();
         const offer = db.carpool_offers.find(o => o.offer_id === match.offer_id);
-        if (offer) {
+        if (offer && offer.available_seats > 0) {
           offer.available_seats -= 1;
         }
       }
@@ -2036,7 +2167,11 @@ app.put('/api/carpool/offer/:offerId', authenticateToken, async (req, res) => {
     }
 
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
         
@@ -2136,7 +2271,11 @@ app.delete('/api/carpool/offer/:offerId', authenticateToken, async (req, res) =>
     }
 
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
         await client.query('DELETE FROM offer_locations WHERE offer_id = $1', [offerId]);
@@ -2175,7 +2314,11 @@ app.put('/api/carpool/request/:requestId', authenticateToken, async (req, res) =
     }
 
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
         
@@ -2273,7 +2416,11 @@ app.delete('/api/carpool/request/:requestId', authenticateToken, async (req, res
     }
 
     if (useDatabase) {
-      const client = await getPool().connect();
+      const pool = safeGetPool();
+      if (!pool) {
+        return res.status(503).json({ message: 'Database temporarily unavailable. Please try again.' });
+      }
+      const client = await pool.connect();
       try {
         await client.query('BEGIN');
         await client.query('DELETE FROM request_locations WHERE request_id = $1', [requestId]);
@@ -2310,82 +2457,87 @@ if (!db.join_requests) {
 }
 
 // Request to join an offer (passenger initiated)
-app.post('/api/carpool/offer/:offerId/request-join', async (req, res) => {
+app.post('/api/carpool/offer/:offerId/request-join', createLimiter, async (req, res) => {
   try {
     const { offerId } = req.params;
     const { name, phone, email, pickup_location, pickup_lat, pickup_lng, message, passenger_count } = req.body;
-    
-    console.log('Received join request for offer:', offerId);
-    console.log('Request body:', req.body);
-    console.log('Pickup location data:', { pickup_location, pickup_lat, pickup_lng });
-    console.log('Message:', message);
-    
+
+    // Input validation
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+    if (!phone || typeof phone !== 'string') {
+      return res.status(400).json({ message: 'Phone is required' });
+    }
+
+    // Sanitize inputs
+    const sanitizedName = name.trim().substring(0, 255);
+    const sanitizedPhone = formatPhoneNumber(phone);
+    const sanitizedEmail = email ? email.trim().toLowerCase().substring(0, 255) : null;
+    const sanitizedPickupLocation = pickup_location ? pickup_location.trim().substring(0, 500) : null;
+    const sanitizedMessage = message ? message.trim().substring(0, 500) : null;
+
     // Check for authentication (optional - allows both authenticated and unauthenticated users)
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     let account = await getAccountFromToken(token);
-    if (account) {
-      console.log('Authenticated user joining:', account.name);
-    }
-    
+
     const joinRequestId = generateId('join');
-    
-    // Check if already requested
+
+    // Check if already requested (use sanitized phone for comparison)
     const existingRequest = db.join_requests.find(
-      jr => jr.offer_id === offerId && jr.phone === phone && jr.status === 'pending'
+      jr => jr.offer_id === offerId && jr.phone === sanitizedPhone && jr.status === 'pending'
     );
     if (existingRequest) {
       return res.status(400).json({ message: 'You have already requested to join this ride' });
     }
-    
-    // Check if offer has available seats
+
+    // Check if offer exists and has available seats
     const offer = db.carpool_offers.find(o => o.offer_id === offerId);
     if (!offer) {
       return res.status(404).json({ message: 'Offer not found' });
     }
-    
+
     const confirmedCount = db.join_requests.filter(
       jr => jr.offer_id === offerId && jr.status === 'confirmed'
     ).length;
-    
+
     if (confirmedCount >= offer.total_seats) {
       return res.status(400).json({ message: 'This ride is full' });
     }
-    
+
     // Ensure pickup coordinates are properly parsed
     let parsedLat = null;
     let parsedLng = null;
-    
+
     if (pickup_lat != null && pickup_lat !== '') {
       parsedLat = typeof pickup_lat === 'number' ? pickup_lat : parseFloat(pickup_lat);
       if (isNaN(parsedLat)) parsedLat = null;
     }
-    
+
     if (pickup_lng != null && pickup_lng !== '') {
       parsedLng = typeof pickup_lng === 'number' ? pickup_lng : parseFloat(pickup_lng);
       if (isNaN(parsedLng)) parsedLng = null;
     }
-    
+
     const joinRequest = {
       id: joinRequestId,
       offer_id: offerId,
-      account_id: account?.account_id || null, // Store account_id if authenticated
-      name,
-      phone,
-      email,
-      pickup_location: pickup_location || null,
+      account_id: account?.account_id || null,
+      name: sanitizedName,
+      phone: sanitizedPhone,
+      email: sanitizedEmail,
+      pickup_location: sanitizedPickupLocation,
       pickup_lat: parsedLat,
       pickup_lng: parsedLng,
-      message: message || null,
-      passenger_count: parseInt(passenger_count) || 1,
+      message: sanitizedMessage,
+      passenger_count: Math.min(Math.max(parseInt(passenger_count) || 1, 1), 10), // Limit 1-10
       status: 'pending',
       created_at: new Date()
     };
-    
-    console.log('Saving join request:', joinRequest);
-    console.log('Parsed coordinates:', { parsedLat, parsedLng, originalLat: pickup_lat, originalLng: pickup_lng });
+
     db.join_requests.push(joinRequest);
-    
+
     res.json({ success: true, join_request_id: joinRequestId });
   } catch (error) {
     console.error('Error requesting to join:', error);
@@ -2677,50 +2829,60 @@ app.post('/api/auth/request-otp', async (req, res) => {
 });
 
 // Verify OTP and login/register
-app.post('/api/auth/verify-otp', async (req, res) => {
+app.post('/api/auth/verify-otp', authLimiter, async (req, res) => {
   try {
     const { phone, otp, name, email, gender } = req.body;
-    
+
     if (!phone || !otp) {
       return res.status(400).json({ message: 'Phone and OTP are required' });
     }
-    
+
+    // Validate OTP format (must be 6 digits)
+    if (!/^\d{6}$/.test(otp)) {
+      return res.status(400).json({ message: 'OTP must be 6 digits' });
+    }
+
     // Normalize phone number to E.164 format (+972...)
     const normalizedPhone = formatPhoneNumber(phone);
-    
-    // Development bypass: accept 123456 as valid OTP in non-production
-    const isDevelopmentBypass = !isProduction && otp === '123456';
-    
-    // Secret dev OTP: 111111 works in ALL environments for testing
-    const isSecretDevOTP = otp === '111111';
-    
+
+    // Development bypass: accept 123456 as valid OTP ONLY in development mode
+    // SECURITY: This bypass is ONLY available when NODE_ENV is explicitly set to 'development'
+    const isDevelopmentBypass = process.env.NODE_ENV === 'development' && otp === '123456';
+
     // Find valid OTP (check both in-memory and database)
     let otpRecord = db.otp_codes.find(
-      o => o.phone === normalizedPhone && 
-      o.otp === otp && 
+      o => o.phone === normalizedPhone &&
+      o.otp === otp &&
       o.expires_at > new Date() &&
       !o.verified
     );
-    
+
     // Also check database if not found in memory
     if (!otpRecord && useDatabase) {
       otpRecord = await dbHelpers.findValidOTP(normalizedPhone, otp);
     }
-    
-    if (!otpRecord && !isDevelopmentBypass && !isSecretDevOTP) {
+
+    if (!otpRecord && !isDevelopmentBypass) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
-    
+
     // Mark OTP as verified (if it exists)
     if (otpRecord) {
-    otpRecord.verified = true;
+      otpRecord.verified = true;
       if (useDatabase) {
         await dbHelpers.markOTPVerified(otpRecord);
       }
-    } else if (isDevelopmentBypass) {
-      console.log(`🔓 Development OTP bypass used for phone: ${normalizedPhone}`);
-    } else if (isSecretDevOTP) {
-      console.log(`🔐 Secret dev OTP used for phone: ${normalizedPhone}`);
+      // Clean up: remove verified OTP from in-memory storage
+      db.otp_codes = db.otp_codes.filter(o => o.phone !== normalizedPhone || !o.verified);
+      // Also clean up expired OTPs from database
+      if (useDatabase) {
+        try {
+          await database.cleanupExpiredOTPs();
+        } catch (err) {
+          // Non-critical error, just log it
+          console.error('Error cleaning up expired OTPs:', err.message);
+        }
+      }
     }
     
     // Check if account exists (use database)
@@ -2759,7 +2921,9 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       
       // Save to database
       await dbHelpers.createAccount(account);
-      console.log(`✅ New account created: ${account.name} (${account.phone}, ${account.gender})`);
+      if (!isProduction) {
+        console.log(`✅ New account created: ${account.name}`);
+      }
     } else {
       // Update existing account with gender if provided
       if (gender && (gender === 'male' || gender === 'female')) {
@@ -2875,14 +3039,16 @@ function isEventCreator(account, eventId) {
 function isOfferOwner(account, offerId) {
   if (!account) return false;
   const offer = db.carpool_offers.find(o => o.offer_id === offerId);
-  return offer && offer.account_id === account.account_id;
+  // Check both owner_account_id (new schema) and account_id (legacy) for backwards compatibility
+  return offer && (offer.owner_account_id === account.account_id || offer.account_id === account.account_id);
 }
 
 // Helper to check if user owns a request
 function isRequestOwner(account, requestId) {
   if (!account) return false;
   const request = db.carpool_requests.find(r => r.request_id === requestId);
-  return request && request.account_id === account.account_id;
+  // Check both owner_account_id (new schema) and account_id (legacy) for backwards compatibility
+  return request && (request.owner_account_id === account.account_id || request.account_id === account.account_id);
 }
 
 // Middleware to verify event admin access
@@ -3036,7 +3202,6 @@ app.get('/api/auth/my-join-requests', authenticateToken, async (req, res) => {
   try {
     const account = req.account;
     console.log('=== GET MY JOIN REQUESTS ===');
-    console.log('Account:', account.account_id, account.name, account.phone, account.email);
     
     // Find all join requests by this user (all statuses)
     const myJoinRequests = db.join_requests.filter(jr => {
@@ -3098,7 +3263,6 @@ app.get('/api/auth/my-joined-rides', authenticateToken, async (req, res) => {
   try {
     const account = req.account;
     console.log('=== GET MY JOINED RIDES ===');
-    console.log('Account:', account.account_id, account.name, account.phone, account.email);
     
     // Find all join requests where:
     // 1. account_id matches (if stored), OR
@@ -3171,10 +3335,6 @@ app.get('/api/auth/my-joined-rides', authenticateToken, async (req, res) => {
 // Get my events (events I created AND events I joined)
 app.get('/api/auth/my-events', authenticateToken, async (req, res) => {
   try {
-    console.log('=== GET MY EVENTS ===');
-    console.log('Account ID:', req.account.account_id);
-    console.log('Account name:', req.account.name);
-    
     // Get events I created
     const createdEvents = db.events.filter(e => e.creator_account_id === req.account.account_id && e.status === 'active');
     
@@ -3191,11 +3351,7 @@ app.get('/api/auth/my-events', authenticateToken, async (req, res) => {
     
     // Combine all events
     const allEvents = [...createdEvents, ...joinedEvents];
-    
-    console.log('Created events:', createdEvents.length);
-    console.log('Joined events:', joinedEvents.length);
-    console.log('Total events:', allEvents.length);
-    
+
     const result = allEvents.map(event => {
       // Get stats for each event
       const offers = db.carpool_offers.filter(o => o.event_id === event.event_id && o.status === 'active');
@@ -3235,36 +3391,21 @@ app.get('/api/event/:eventCode/admin', authenticateToken, requireEventAdmin, asy
   try {
     const { eventCode } = req.params;
 
-    console.log('=== GET EVENT ADMIN ===');
-    console.log('Event code:', eventCode);
-    
     // Check for authentication
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    let account = null;
-    
-    console.log('Auth header present:', !!authHeader);
-    console.log('Token extracted:', token ? token.substring(0, 10) + '...' : 'none');
-    
-    account = await getAccountFromToken(token);
-    console.log('Account found:', account ? account.name : 'none');
-    
+
+    const account = await getAccountFromToken(token);
     const event = await dbHelpers.findEventByCode(eventCode);
-    console.log('Event found:', event ? event.event_name : 'NOT FOUND');
-    
+
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
-    
-    console.log('Event creator_account_id:', event.creator_account_id);
-    console.log('Current user account_id:', account?.account_id);
-    
+
     // Check if user is the event creator
     const isOwner = account && event.creator_account_id === account.account_id;
-    console.log('Is owner:', isOwner);
-    
+
     if (!isOwner) {
-      console.log('ACCESS DENIED - user is not the owner');
       return res.status(403).json({ message: 'You are not authorized to manage this event' });
     }
     
