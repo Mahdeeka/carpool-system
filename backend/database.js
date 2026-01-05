@@ -429,8 +429,9 @@ async function findRecentOTP(phone) {
   return result?.rows[0];
 }
 
-async function markOTPVerified(id) {
-  await query('UPDATE otp_codes SET verified = TRUE WHERE id = $1', [id]);
+async function markOTPVerified(phone, otp) {
+  // Use phone and otp to identify record since the id column is auto-generated integer
+  await query('UPDATE otp_codes SET verified = TRUE WHERE phone = $1 AND otp = $2 AND verified = FALSE', [phone, otp]);
 }
 
 async function cleanupExpiredOTPs() {

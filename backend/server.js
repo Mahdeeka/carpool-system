@@ -13,6 +13,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for Render/Heroku (required for rate limiting behind reverse proxy)
+app.set('trust proxy', 1);
+
 // In-memory storage (for local development without PostgreSQL)
 const db = {
   events: [],
@@ -288,7 +291,7 @@ const dbHelpers = {
   
   async markOTPVerified(otpRecord) {
     if (useDatabase) {
-      return await database.markOTPVerified(otpRecord.id);
+      return await database.markOTPVerified(otpRecord.phone, otpRecord.otp);
     }
     otpRecord.verified = true;
   },
