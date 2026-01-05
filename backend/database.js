@@ -98,6 +98,7 @@ async function createTables() {
     CREATE TABLE IF NOT EXISTS carpool_offers (
       offer_id VARCHAR(50) PRIMARY KEY,
       event_id VARCHAR(50) REFERENCES events(event_id) ON DELETE CASCADE,
+      driver_id VARCHAR(50),
       owner_account_id VARCHAR(50) REFERENCES accounts(account_id) ON DELETE SET NULL,
       name VARCHAR(255),
       phone VARCHAR(50),
@@ -124,6 +125,7 @@ async function createTables() {
     CREATE TABLE IF NOT EXISTS carpool_requests (
       request_id VARCHAR(50) PRIMARY KEY,
       event_id VARCHAR(50) REFERENCES events(event_id) ON DELETE CASCADE,
+      passenger_id VARCHAR(50),
       owner_account_id VARCHAR(50) REFERENCES accounts(account_id) ON DELETE SET NULL,
       name VARCHAR(255),
       phone VARCHAR(50),
@@ -156,6 +158,59 @@ async function createTables() {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
+    -- Users table (event participants - drivers and passengers)
+    CREATE TABLE IF NOT EXISTS users (
+      user_id VARCHAR(50) PRIMARY KEY,
+      event_id VARCHAR(50) REFERENCES events(event_id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      phone VARCHAR(50),
+      email VARCHAR(255),
+      role VARCHAR(20) DEFAULT 'passenger',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Offer locations table (multiple pickup/dropoff points for offers)
+    CREATE TABLE IF NOT EXISTS offer_locations (
+      location_id SERIAL PRIMARY KEY,
+      offer_id VARCHAR(50) REFERENCES carpool_offers(offer_id) ON DELETE CASCADE,
+      location_address TEXT,
+      location_lat DECIMAL(10, 8),
+      location_lng DECIMAL(11, 8),
+      trip_direction VARCHAR(20),
+      time_type VARCHAR(20),
+      specific_time TIME,
+      sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Request locations table (multiple pickup/dropoff points for requests)
+    CREATE TABLE IF NOT EXISTS request_locations (
+      location_id SERIAL PRIMARY KEY,
+      request_id VARCHAR(50) REFERENCES carpool_requests(request_id) ON DELETE CASCADE,
+      location_address TEXT,
+      location_lat DECIMAL(10, 8),
+      location_lng DECIMAL(11, 8),
+      trip_direction VARCHAR(20),
+      time_type VARCHAR(20),
+      specific_time TIME,
+      sort_order INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- Matches table (connections between offers and requests)
+    CREATE TABLE IF NOT EXISTS matches (
+      match_id VARCHAR(50) PRIMARY KEY,
+      offer_id VARCHAR(50) REFERENCES carpool_offers(offer_id) ON DELETE CASCADE,
+      request_id VARCHAR(50) REFERENCES carpool_requests(request_id) ON DELETE CASCADE,
+      driver_id VARCHAR(50) REFERENCES users(user_id) ON DELETE SET NULL,
+      passenger_id VARCHAR(50) REFERENCES users(user_id) ON DELETE SET NULL,
+      status VARCHAR(20) DEFAULT 'pending',
+      initiated_by VARCHAR(20),
+      message TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
     -- Create indexes for better performance
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
     CREATE INDEX IF NOT EXISTS idx_sessions_account ON sessions(account_id);
@@ -163,20 +218,57 @@ async function createTables() {
     CREATE INDEX IF NOT EXISTS idx_events_code ON events(event_code);
     CREATE INDEX IF NOT EXISTS idx_offers_event ON carpool_offers(event_id);
     CREATE INDEX IF NOT EXISTS idx_offers_owner ON carpool_offers(owner_account_id);
+    CREATE INDEX IF NOT EXISTS idx_offers_driver ON carpool_offers(driver_id);
     CREATE INDEX IF NOT EXISTS idx_requests_event ON carpool_requests(event_id);
     CREATE INDEX IF NOT EXISTS idx_requests_owner ON carpool_requests(owner_account_id);
+    CREATE INDEX IF NOT EXISTS idx_requests_passenger ON carpool_requests(passenger_id);
     CREATE INDEX IF NOT EXISTS idx_join_requests_offer ON join_requests(offer_id);
     CREATE INDEX IF NOT EXISTS idx_join_requests_account ON join_requests(account_id);
+    CREATE INDEX IF NOT EXISTS idx_users_event ON users(event_id);
+    CREATE INDEX IF NOT EXISTS idx_offer_locations_offer ON offer_locations(offer_id);
+    CREATE INDEX IF NOT EXISTS idx_request_locations_request ON request_locations(request_id);
+    CREATE INDEX IF NOT EXISTS idx_matches_offer ON matches(offer_id);
+    CREATE INDEX IF NOT EXISTS idx_matches_request ON matches(request_id);
+    CREATE INDEX IF NOT EXISTS idx_matches_status ON matches(status);
   `;
 
   try {
     await pool.query(createTablesSQL);
     console.log('✅ Database tables created/verified');
+
+    // Run migrations to add missing columns to existing tables
+    await runMigrations();
+
     return true;
   } catch (error) {
     console.error('❌ Error creating tables:', error.message);
     return false;
   }
+}
+
+// Run database migrations to add missing columns
+async function runMigrations() {
+  if (!pool) return;
+
+  const migrations = [
+    // Add driver_id to carpool_offers if it doesn't exist
+    `ALTER TABLE carpool_offers ADD COLUMN IF NOT EXISTS driver_id VARCHAR(50)`,
+    // Add passenger_id to carpool_requests if it doesn't exist
+    `ALTER TABLE carpool_requests ADD COLUMN IF NOT EXISTS passenger_id VARCHAR(50)`,
+  ];
+
+  for (const migration of migrations) {
+    try {
+      await pool.query(migration);
+    } catch (error) {
+      // Ignore errors - column might already exist or syntax not supported
+      if (!error.message.includes('already exists')) {
+        console.log('Migration note:', error.message);
+      }
+    }
+  }
+
+  console.log('✅ Database migrations completed');
 }
 
 // Generic query helper
