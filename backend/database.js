@@ -211,17 +211,15 @@ async function createTables() {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
-    -- Create indexes for better performance
+    -- Create indexes for better performance (only for columns that always exist)
     CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
     CREATE INDEX IF NOT EXISTS idx_sessions_account ON sessions(account_id);
     CREATE INDEX IF NOT EXISTS idx_otp_phone ON otp_codes(phone);
     CREATE INDEX IF NOT EXISTS idx_events_code ON events(event_code);
     CREATE INDEX IF NOT EXISTS idx_offers_event ON carpool_offers(event_id);
     CREATE INDEX IF NOT EXISTS idx_offers_owner ON carpool_offers(owner_account_id);
-    CREATE INDEX IF NOT EXISTS idx_offers_driver ON carpool_offers(driver_id);
     CREATE INDEX IF NOT EXISTS idx_requests_event ON carpool_requests(event_id);
     CREATE INDEX IF NOT EXISTS idx_requests_owner ON carpool_requests(owner_account_id);
-    CREATE INDEX IF NOT EXISTS idx_requests_passenger ON carpool_requests(passenger_id);
     CREATE INDEX IF NOT EXISTS idx_join_requests_offer ON join_requests(offer_id);
     CREATE INDEX IF NOT EXISTS idx_join_requests_account ON join_requests(account_id);
     CREATE INDEX IF NOT EXISTS idx_users_event ON users(event_id);
@@ -255,6 +253,9 @@ async function runMigrations() {
     `ALTER TABLE carpool_offers ADD COLUMN IF NOT EXISTS driver_id VARCHAR(50)`,
     // Add passenger_id to carpool_requests if it doesn't exist
     `ALTER TABLE carpool_requests ADD COLUMN IF NOT EXISTS passenger_id VARCHAR(50)`,
+    // Create indexes for the new columns (after they exist)
+    `CREATE INDEX IF NOT EXISTS idx_offers_driver ON carpool_offers(driver_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_requests_passenger ON carpool_requests(passenger_id)`,
   ];
 
   for (const migration of migrations) {
